@@ -72,14 +72,17 @@ async function backdate(reqId: string, days: number) {
 
 async function main() {
   const ana = await userId("angajat@aviso.local");
-  const [wf] = await db.select({ id: workflows.id }).from(workflows).where(eq(workflows.id, "wf-standard")).limit(1);
-  if (!wf) throw new Error("Lipsește fluxul „Standard” — rulează întâi pnpm db:seed");
-  const workflowId = wf.id;
+  const wfRows = await db.select({ id: workflows.id }).from(workflows);
+  const wfIds = new Set(wfRows.map((w) => w.id));
+  for (const id of ["wf-standard", "wf-achizitii-mici", "wf-servicii-it", "wf-reparatii-urgente"]) {
+    if (!wfIds.has(id)) throw new Error(`Lipsește fluxul „${id}" — rulează întâi pnpm db:seed`);
+  }
 
   // Fresh slate (row delete cascades to tasks/transitions/comments).
   await db.delete(requisitions);
 
   const mk = (
+    workflowId: string,
     item: string,
     quantity: number,
     justification: string,
@@ -100,9 +103,11 @@ async function main() {
       needsIt,
       needsSsm,
     });
+  const std = (item: string, q: number, j: string, cc: string, lei: number, it = false, ssm = false) =>
+    mk("wf-standard", item, q, j, cc, lei, it, ssm);
 
   // 1) FINALIZAT — laptopuri (avizat complet → apare în Achiziții + PDF + rapoarte)
-  const r1 = await mk(
+  const r1 = await std(
     "Laptop Dell Latitude 5540",
     3,
     "Laptopurile actuale din biroul de proiectare nu mai fac față aplicațiilor CAD și se blochează frecvent, întârziind livrabilele.",
@@ -116,7 +121,7 @@ async function main() {
   await comment(r1, "achizitii@aviso.local", "Există contract-cadru cu furnizorul; livrare estimată 5 zile.");
 
   // 2) FINALIZAT — monitoare (al doilea, pentru rapoarte)
-  const r2 = await mk(
+  const r2 = await std(
     "Monitor Dell UltraSharp U2724DE 27\"",
     4,
     "Completare posturi de lucru nou create în biroul de proiectare.",
@@ -128,7 +133,7 @@ async function main() {
   await backdate(r2, 3);
 
   // 3) ÎN AȘTEPTARE la Director economic
-  const r3 = await mk(
+  const r3 = await std(
     "Imprimantă multifuncțională Xerox VersaLink C7120",
     1,
     "Imprimanta actuală a secretariatului este defectă, reparația nu mai este rentabilă.",
@@ -140,7 +145,7 @@ async function main() {
   await comment(r3, "magazie@aviso.local", "Nu există stoc în magazie, se aprobă achiziția.");
 
   // 4) ÎN AȘTEPTARE la Verificare magazie (necesită aviz SSM)
-  const r4 = await mk(
+  const r4 = await std(
     "Pompă submersibilă Grundfos SP 17-7",
     2,
     "Înlocuirea pompelor uzate de la stația de tratare pentru a evita întreruperile de alimentare.",
@@ -153,7 +158,7 @@ async function main() {
   await backdate(r4, 1);
 
   // 5) ÎN AȘTEPTARE la IT (necesită aviz IT)
-  const r5 = await mk(
+  const r5 = await std(
     "Switch-uri rețea Cisco Catalyst 1300",
     4,
     "Extinderea rețelei la noul sediu al dispeceratului.",
@@ -164,7 +169,7 @@ async function main() {
   await approveUntil(r5, "IT");
 
   // 6) ÎN AȘTEPTARE la Verificare șef birou (abia trimis)
-  await mk(
+  await std(
     "Reactivi laborator (set complet analize apă)",
     5,
     "Reaprovizionare reactivi pentru analizele lunare de calitate a apei potabile.",
@@ -173,7 +178,7 @@ async function main() {
   );
 
   // 7) RESPINS
-  const r7 = await mk(
+  const r7 = await std(
     "Anvelope iarnă Dacia Duster (set 4)",
     4,
     "Pregătirea parcului auto pentru sezonul rece.",
@@ -185,7 +190,7 @@ async function main() {
   await backdate(r7, 4);
 
   // 8) TRIMIS ÎNAPOI (revenit la un pas anterior)
-  const r8 = await mk(
+  const r8 = await std(
     "Scaune ergonomice birou (lot 6)",
     6,
     "Înlocuirea scaunelor deteriorate din biroul de proiectare.",
@@ -196,6 +201,32 @@ async function main() {
   await act(r8, "approve"); // șef serviciu
   await act(r8, "send_back", "Vă rog atașați minim 2 oferte comparative înainte de înregistrare.");
   await backdate(r8, 1);
+
+  // ---- Categoria „Achiziții mici" (Șef birou → Director economic → Achiziții) ----
+  const a1 = await mk("wf-achizitii-mici", "Consumabile birou (hârtie, dosare, pixuri)", 1, "Reaprovizionare trimestrială a consumabilelor pentru birou.", "Administrativ", 1450);
+  await approveUntil(a1, null);
+  await backdate(a1, 5);
+
+  const a2 = await mk("wf-achizitii-mici", "Tonere imprimantă HP (set 4)", 4, "Tonerele actuale s-au epuizat.", "Administrativ", 980);
+  await approveUntil(a2, "DIRECTOR_ECONOMIC");
+  await backdate(a2, 1);
+
+  // ---- Categoria „Servicii IT" (Șef birou → IT → Director economic → Achiziții) ----
+  const s1 = await mk("wf-servicii-it", "Licențe Microsoft 365 Business (10 utilizatori)", 10, "Licențiere pentru noile posturi din proiectare.", "IT & comunicații", 5400);
+  await approveUntil(s1, null);
+  await backdate(s1, 4);
+  await comment(s1, "it@aviso.local", "Tipul de licență confirmat; se poate achiziționa.");
+
+  const s2 = await mk("wf-servicii-it", "Abonament VPN corporativ (1 an)", 1, "Acces securizat de la distanță pentru echipa de teren.", "IT & comunicații", 3200);
+  await approveUntil(s2, "IT");
+
+  // ---- Categoria „Reparații urgente" (Șef serviciu → Director) ----
+  const u1 = await mk("wf-reparatii-urgente", "Reparație pompă stație tratare", 1, "Pompă defectă; intervenție urgentă pentru a evita întreruperea alimentării.", "Stație de tratare", 7600);
+  await approveUntil(u1, null);
+  await backdate(u1, 2);
+
+  const u2 = await mk("wf-reparatii-urgente", "Înlocuire motor electric stație pompare", 1, "Motor ars; necesită înlocuire urgentă.", "Distribuție apă", 14200);
+  await approveUntil(u2, "DIRECTOR");
 
   // Counts
   const all = await db.select({ id: requisitions.id, status: requisitions.status }).from(requisitions);

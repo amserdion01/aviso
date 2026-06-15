@@ -2,7 +2,7 @@ import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { approvalSteps, orgUnits, userCapabilities, users, workflows } from "./schema";
-import { REAL_CHAIN } from "@/domain/chain";
+import { REAL_CHAIN, type ChainStepSeed } from "@/domain/chain";
 import { auth } from "@/lib/auth";
 
 /**
@@ -19,8 +19,43 @@ const PASSWORD = "Parola123!";
 export const STANDARD_WORKFLOW = {
   id: "wf-standard",
   name: "Standard",
-  description: "Fluxul standard de avizare a referatelor de necesitate.",
+  description: "Fluxul complet de avizare a referatelor de necesitate.",
 };
+
+/** All seeded workflow categories, each with its own ordered chain. */
+export const WORKFLOWS: Array<{ id: string; name: string; description: string; steps: ChainStepSeed[] }> = [
+  { ...STANDARD_WORKFLOW, steps: REAL_CHAIN },
+  {
+    id: "wf-achizitii-mici",
+    name: "Achiziții mici",
+    description: "Flux scurt pentru achiziții de valoare mică.",
+    steps: [
+      { order: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou/sector" },
+      { order: 2, taskType: "DIRECTOR_ECONOMIC", requiredCapability: "director_economic", approverStrategy: "capability", label: "Aprobat director economic" },
+      { order: 3, taskType: "ACHIZITII", requiredCapability: "achizitii", approverStrategy: "capability", label: "Achiziții" },
+    ],
+  },
+  {
+    id: "wf-servicii-it",
+    name: "Servicii IT",
+    description: "Achiziții și servicii IT, cu aviz obligatoriu de la IT.",
+    steps: [
+      { order: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou/sector" },
+      { order: 2, taskType: "IT", requiredCapability: "it", approverStrategy: "capability", label: "Aviz IT" },
+      { order: 3, taskType: "DIRECTOR_ECONOMIC", requiredCapability: "director_economic", approverStrategy: "capability", label: "Aprobat director economic" },
+      { order: 4, taskType: "ACHIZITII", requiredCapability: "achizitii", approverStrategy: "capability", label: "Achiziții" },
+    ],
+  },
+  {
+    id: "wf-reparatii-urgente",
+    name: "Reparații urgente",
+    description: "Traseu rapid pentru reparații urgente, doar șef serviciu + director.",
+    steps: [
+      { order: 1, taskType: "SEF_SERVICIU", requiredCapability: "sef_serviciu", approverStrategy: "org_relative", approverParam: "serviciu", label: "Verificare șef serviciu/secție" },
+      { order: 2, taskType: "DIRECTOR", requiredCapability: "director", approverStrategy: "director_by_unit", label: "Aprobat director" },
+    ],
+  },
+];
 
 const SERVICIU = { id: "srv-tehnic", name: "Tehnic", kind: "serviciu" as const, directorType: "Director tehnic" };
 const BIROU = { id: "br-proiectare", name: "Proiectare", kind: "birou" as const, parentId: "srv-tehnic" };
@@ -50,29 +85,31 @@ async function ensureUser(name: string, email: string): Promise<string> {
 }
 
 async function seedTemplate() {
-  await db.insert(workflows).values(STANDARD_WORKFLOW).onConflictDoNothing();
   await db.delete(approvalSteps);
-  await db.insert(approvalSteps).values(
-    REAL_CHAIN.map((s) => ({
-      id: `step-${s.order}`,
-      workflowId: STANDARD_WORKFLOW.id,
-      stepOrder: s.order,
-      taskType: s.taskType,
-      requiredCapability: s.requiredCapability,
-      approverStrategy: s.approverStrategy,
-      approverParam: s.approverParam ?? null,
-      appliesWhen: s.appliesWhen ?? null,
-      onSendBack: s.onSendBack ?? "previous",
-      blocking: s.blocking ?? true,
-      setsProcurementType: s.setsProcurementType ?? false,
-      label: s.label,
-    })),
-  );
+  for (const wf of WORKFLOWS) {
+    await db.insert(workflows).values({ id: wf.id, name: wf.name, description: wf.description }).onConflictDoNothing();
+    await db.insert(approvalSteps).values(
+      wf.steps.map((s) => ({
+        id: `${wf.id}-step-${s.order}`,
+        workflowId: wf.id,
+        stepOrder: s.order,
+        taskType: s.taskType,
+        requiredCapability: s.requiredCapability,
+        approverStrategy: s.approverStrategy,
+        approverParam: s.approverParam ?? null,
+        appliesWhen: s.appliesWhen ?? null,
+        onSendBack: s.onSendBack ?? "previous",
+        blocking: s.blocking ?? true,
+        setsProcurementType: s.setsProcurementType ?? false,
+        label: s.label,
+      })),
+    );
+    console.log(`  ✓ workflow „${wf.name}" (${wf.steps.length} pași)`);
+  }
 }
 
 async function main() {
   await seedTemplate();
-  console.log(`  ✓ approval_steps template (${REAL_CHAIN.length} steps)`);
 
   await db.insert(orgUnits).values(SERVICIU).onConflictDoNothing();
   await db.insert(orgUnits).values(BIROU).onConflictDoNothing();
