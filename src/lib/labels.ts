@@ -70,6 +70,25 @@ export const CAPABILITY_LABELS: Record<string, string> = {
   admin: "Administrator",
 };
 
+/** Capabilities an admin can assign to a user (canonical set; ordered). */
+export const ASSIGNABLE_CAPABILITIES = [
+  "angajat",
+  "sef_birou",
+  "sef_serviciu",
+  "secretariat",
+  "it",
+  "ssm",
+  "ru",
+  "magazie",
+  "director_economic",
+  "achizitii",
+  "aprovizionare",
+  "servicii",
+  "director_tehnic",
+  "director_general",
+  "admin",
+] as const;
+
 const ROLE_PRIORITY = [
   "director_general",
   "director",

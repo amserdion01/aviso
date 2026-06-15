@@ -4,10 +4,18 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { eq } from "drizzle-orm";
-import { createReferatSchema, actionSchema, delegationSchema, leiToBani } from "@/lib/validation";
+import {
+  createReferatSchema,
+  actionSchema,
+  delegationSchema,
+  createUserSchema,
+  updateUserSchema,
+  leiToBani,
+} from "@/lib/validation";
 import { requireUser, isAdmin } from "@/lib/session";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { users, userCapabilities } from "@/db/schema";
+import { auth } from "@/lib/auth";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
 import { notifyForState } from "@/lib/notifications";
 import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
@@ -20,6 +28,7 @@ import {
 
 export interface ActionState {
   error?: string;
+  ok?: boolean;
 }
 
 export async function createReferatAction(
@@ -145,6 +154,69 @@ export async function createDelegationAction(
   revalidatePath("/delegari");
   revalidatePath("/admin");
   return {};
+}
+
+/** Admin-only: create a user (via Better Auth), set org unit + capabilities. */
+export async function createUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot crea utilizatori." };
+
+  const parsed = createUserSchema.safeParse({
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+    orgUnitId: formData.get("orgUnitId") ?? undefined,
+    capabilities: formData.getAll("capabilities"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+
+  let userId: string;
+  try {
+    const res = await auth.api.signUpEmail({
+      body: { name: parsed.data.name, email: parsed.data.email, password: parsed.data.password },
+    });
+    userId = res.user.id;
+  } catch {
+    return { error: "Nu am putut crea contul (email deja folosit?)." };
+  }
+
+  await db.update(users).set({ orgUnitId: parsed.data.orgUnitId }).where(eq(users.id, userId));
+  if (parsed.data.capabilities.length) {
+    await db
+      .insert(userCapabilities)
+      .values(parsed.data.capabilities.map((capability) => ({ userId, capability })))
+      .onConflictDoNothing();
+  }
+
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Admin-only: update a user's name, org unit, and capabilities. */
+export async function updateUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot modifica utilizatorii." };
+
+  const parsed = updateUserSchema.safeParse({
+    userId: formData.get("userId"),
+    name: formData.get("name"),
+    orgUnitId: formData.get("orgUnitId") ?? undefined,
+    capabilities: formData.getAll("capabilities"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+
+  await db.update(users).set({ name: parsed.data.name, orgUnitId: parsed.data.orgUnitId }).where(eq(users.id, parsed.data.userId));
+  // Replace the capability set.
+  await db.delete(userCapabilities).where(eq(userCapabilities.userId, parsed.data.userId));
+  if (parsed.data.capabilities.length) {
+    await db
+      .insert(userCapabilities)
+      .values(parsed.data.capabilities.map((capability) => ({ userId: parsed.data.userId, capability })))
+      .onConflictDoNothing();
+  }
+
+  revalidatePath("/admin");
+  return { ok: true };
 }
 
 /** Mark the current user's notifications feed as read (records the seen time). */

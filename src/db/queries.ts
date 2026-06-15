@@ -232,6 +232,14 @@ export async function activeSubstituteFor(userId: string) {
   return row ?? null;
 }
 
+/** All org units (serviciu + birou), for the admin user form. */
+export async function allOrgUnits() {
+  return db
+    .select({ id: orgUnits.id, name: orgUnits.name, kind: orgUnits.kind })
+    .from(orgUnits)
+    .orderBy(asc(orgUnits.name));
+}
+
 /** Active users other than `excludeId`, for the delegate picker. */
 export async function selectableUsers(excludeId: string) {
   const rows = await db
@@ -274,6 +282,7 @@ export async function allUsers() {
       name: users.name,
       email: users.email,
       active: users.active,
+      orgUnitId: users.orgUnitId,
       deptName: orgUnits.name,
     })
     .from(users)

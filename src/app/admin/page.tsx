@@ -1,59 +1,23 @@
 import { requireAdmin } from "@/lib/session";
-import { allUsers, allDelegations, selectableUsers } from "@/db/queries";
+import { allUsers, allDelegations, selectableUsers, allOrgUnits } from "@/db/queries";
 import { DelegationForm } from "@/components/delegation-form";
-import { UserActiveToggle } from "@/components/user-active-toggle";
+import { UsersAdmin } from "@/components/users-admin";
 import { CAPABILITY_LABELS } from "@/lib/labels";
-import {
-  PageHead,
-  Card,
-  Table,
-  Avatar,
-  Badge,
-  StatusBadge,
-  EmptyState,
-  type Column,
-} from "@/components/ui/primitives";
+import { PageHead, Card, Table, Avatar, Badge, StatusBadge, EmptyState, type Column } from "@/components/ui/primitives";
 import { Tabs } from "@/components/ui/tabs";
 
 const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
 
-type User = Awaited<ReturnType<typeof allUsers>>[number];
 type Del = Awaited<ReturnType<typeof allDelegations>>[number];
 
 export default async function AdminPage() {
   const me = await requireAdmin();
-  const [users, delegari, pickUsers] = await Promise.all([allUsers(), allDelegations(), selectableUsers(me.id)]);
-
-  const userCols: Column<User>[] = [
-    {
-      key: "name",
-      header: "Utilizator",
-      render: (u) => (
-        <div className="avi-cell-user">
-          <Avatar name={u.name} size="sm" />
-          <div>
-            <div className="avi-cell-user__nm">{u.name}</div>
-            <div className="avi-cell-user__id">{u.email}</div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "roles",
-      header: "Roluri în traseu",
-      render: (u) => (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
-          {u.capabilities.length ? (
-            u.capabilities.map((c) => <Badge key={c} variant={c.startsWith("director") ? "accent" : "default"}>{CAPABILITY_LABELS[c] ?? c}</Badge>)
-          ) : (
-            <span className="avi-cell-muted">—</span>
-          )}
-        </div>
-      ),
-    },
-    { key: "dept", header: "Departament", render: (u) => <span className="avi-cell-muted">{u.deptName ?? "—"}</span> },
-    { key: "active", header: "Activ", align: "center", render: (u) => <UserActiveToggle userId={u.id} active={u.active} /> },
-  ];
+  const [users, delegari, pickUsers, orgUnits] = await Promise.all([
+    allUsers(),
+    allDelegations(),
+    selectableUsers(me.id),
+    allOrgUnits(),
+  ]);
 
   const delCols: Column<Del>[] = [
     {
@@ -81,7 +45,7 @@ export default async function AdminPage() {
     { key: "status", header: "Status", render: (d) => <StatusBadge status={d.active ? "approved" : "neutral"} label={d.active ? "Activă" : "Inactivă"} size="sm" /> },
   ];
 
-  const usersPanel = <Table columns={userCols} data={users} rowKey={(u) => u.id} />;
+  const usersPanel = <UsersAdmin users={users} orgUnits={orgUnits} />;
 
   const delegariPanel = (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-8)" }}>

@@ -34,6 +34,35 @@ export const delegationSchema = z
     message: "Data de sfârșit trebuie să fie după cea de început",
   });
 
+const capabilitiesField = z
+  .array(z.string().trim().min(1))
+  .or(z.string().trim().min(1).transform((s) => [s]))
+  .or(z.undefined().transform(() => [] as string[]))
+  .pipe(z.array(z.string()));
+
+export const createUserSchema = z.object({
+  name: z.string().trim().min(2, "Numele este obligatoriu"),
+  email: z.string().trim().toLowerCase().pipe(z.email("Email invalid")),
+  password: z.string().min(8, "Parola trebuie să aibă cel puțin 8 caractere"),
+  orgUnitId: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  capabilities: capabilitiesField,
+});
+
+export const updateUserSchema = z.object({
+  userId: z.string().min(1),
+  name: z.string().trim().min(2, "Numele este obligatoriu"),
+  orgUnitId: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  capabilities: capabilitiesField,
+});
+
 /** Convert a lei amount to integer bani, or null. */
 export function leiToBani(lei: number | undefined): number | null {
   if (lei === undefined) return null;
