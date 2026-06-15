@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
+import { Button, Checkbox, FormField, Input } from "@/components/ui/primitives";
+import { Icon } from "@/components/ui/icon";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -25,38 +27,70 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto max-w-sm">
-      <h1 className="mb-6 text-xl font-semibold">Autentificare</h1>
-      <form onSubmit={onSubmit} className="space-y-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded border px-3 py-2"
-          />
+    <div className="avi-login">
+      <div className="avi-login__panel">
+        <div className="avi-login__brand">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/aviso-wordmark.svg" width={148} height={36} alt="Aviso" />
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Parolă</label>
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded border px-3 py-2"
-          />
+        <h1 className="avi-login__title">Autentificare</h1>
+        <p className="avi-login__sub">Intră în contul tău pentru a gestiona referatele de necesitate.</p>
+        <form className="avi-login__form" onSubmit={onSubmit}>
+          <FormField label="Email" htmlFor="li-email">
+            <Input
+              id="li-email"
+              type="email"
+              required
+              value={email}
+              prefix={<Icon name="mail" />}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nume@apacovasna.ro"
+            />
+          </FormField>
+          <FormField label="Parolă" htmlFor="li-pass">
+            <Input
+              id="li-pass"
+              type="password"
+              required
+              value={password}
+              prefix={<Icon name="lock" />}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••"
+            />
+          </FormField>
+          <div className="avi-login__row">
+            <Checkbox label="Ține-mă minte" defaultChecked />
+            <a href="#recuperare" onClick={(e) => e.preventDefault()}>Ai uitat parola?</a>
+          </div>
+          {error && (
+            <p className="avi-login__error">
+              <Icon name="alert-circle" /> {error}
+            </p>
+          )}
+          <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
+            {loading ? "Se autentifică…" : "Autentificare"}
+          </Button>
+        </form>
+        <div className="avi-login__foot">
+          Probleme la conectare? Contactează <a href="#it" onClick={(e) => e.preventDefault()}>biroul IT</a>.
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded bg-gray-900 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Se autentifică…" : "Intră în cont"}
-        </button>
-      </form>
+      </div>
+      <div className="avi-login__aside">
+        <div className="avi-login__aside-inner">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/aviso-mark.svg" width={40} height={40} alt="" />
+          <div className="avi-login__quote">Referate de necesitate, digitalizate.</div>
+          <p className="avi-login__lead">
+            Trimite, urmărește și aprobă cereri de achiziție într-un flux clar, cu traseu de avizare și istoric complet.
+          </p>
+          <ul className="avi-login__list">
+            <li><Icon name="route" /> Traseu de avizare pe roluri</li>
+            <li><Icon name="users" /> Înlocuitori pentru aprobatori absenți</li>
+            <li><Icon name="history" /> Istoric și audit complet</li>
+          </ul>
+        </div>
+        <div className="avi-login__copy">Apa Covasna · Sistem intern Aviso</div>
+      </div>
     </div>
   );
 }

@@ -1,53 +1,101 @@
 "use client";
 import { useActionState } from "react";
 import { createReferatAction, type ActionState } from "@/app/actions";
+import { Card, FormField, Input, Textarea, Select, Checkbox, Button } from "@/components/ui/primitives";
+import { Icon } from "@/components/ui/icon";
 
 const initial: ActionState = {};
+
+const COST_CENTERS = [
+  "Mentenanță rețea",
+  "Stație de tratare",
+  "Distribuție apă",
+  "IT & comunicații",
+  "Laborator calitate",
+  "Parc auto",
+  "Administrativ",
+];
 
 export function CreateReferatForm() {
   const [state, formAction, pending] = useActionState(createReferatAction, initial);
 
   return (
-    <form action={formAction} className="space-y-4">
-      <div>
-        <label className="mb-1 block text-sm font-medium">Articol</label>
-        <input name="item" required className="w-full rounded border px-3 py-2" />
-      </div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="mb-1 block text-sm font-medium">Cantitate</label>
-          <input name="quantity" type="number" min={1} required className="w-full rounded border px-3 py-2" />
+    <form action={formAction}>
+      <Card padding="lg">
+        <div className="avi-form-grid">
+          <div className="avi-col-2">
+            <FormField label="Articol" htmlFor="r-articol" required hint="Denumirea exactă a produsului sau serviciului.">
+              <Input id="r-articol" name="item" required prefix={<Icon name="package" />} placeholder="ex. Laptop Dell Latitude 5540" />
+            </FormField>
+          </div>
+
+          <FormField label="Cantitate" htmlFor="r-cant" required>
+            <Input id="r-cant" name="quantity" type="number" min={1} defaultValue={1} required suffix="buc." />
+          </FormField>
+
+          <FormField label="Valoare estimată" htmlFor="r-val" optional>
+            <Input id="r-val" name="estimatedValueLei" type="number" min={0} step="0.01" suffix="RON" placeholder="0,00" />
+          </FormField>
+
+          <div className="avi-col-2">
+            <FormField label="Centru de cost" htmlFor="r-centru" required>
+              <Select id="r-centru" name="costCenter" required defaultValue="" placeholder="Alege centrul de cost" options={COST_CENTERS} />
+            </FormField>
+          </div>
+
+          <div className="avi-col-2">
+            <FormField label="Justificare" htmlFor="r-just" required hint="Explică necesitatea achiziției — va fi vizibilă aprobatorilor.">
+              <Textarea
+                id="r-just"
+                name="justification"
+                rows={4}
+                required
+                placeholder="ex. Laptopurile actuale nu mai pornesc și blochează activitatea biroului IT…"
+              />
+            </FormField>
+          </div>
+
+          <div className="avi-col-2">
+            <FormField label="Avize necesare">
+              <div style={{ display: "flex", gap: "var(--space-8)", flexWrap: "wrap" }}>
+                <Checkbox name="needsIt" label="Necesită aviz IT" />
+                <Checkbox name="needsSsm" label="Necesită aviz SSM" />
+              </div>
+            </FormField>
+          </div>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-medium">Valoare estimată (lei)</label>
-          <input name="estimatedValueLei" type="number" min={0} step="0.01" className="w-full rounded border px-3 py-2" />
+
+        <div className="avi-form-note">
+          <Icon name="info" />
+          <span>
+            După trimitere, referatul intră pe traseul de avizare pe roluri (șef birou → șef serviciu → … → director),
+            iar fiecare aprobator poate aproba, respinge sau trimite înapoi.
+          </span>
         </div>
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Centru de cost</label>
-        <input name="costCenter" required className="w-full rounded border px-3 py-2" />
-      </div>
-      <div>
-        <label className="mb-1 block text-sm font-medium">Justificare</label>
-        <textarea name="justification" required rows={4} className="w-full rounded border px-3 py-2" />
-      </div>
-      <fieldset className="space-y-2">
-        <legend className="mb-1 text-sm font-medium">Avize necesare</legend>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="needsIt" /> Necesită aviz IT
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" name="needsSsm" /> Necesită aviz SSM
-        </label>
-      </fieldset>
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-gray-900 px-4 py-2 text-white disabled:opacity-50"
-      >
-        {pending ? "Se trimite…" : "Trimite referatul"}
-      </button>
+
+        {state.error && (
+          <div className="avi-form-note" style={{ background: "var(--status-rejected-bg)", borderColor: "var(--status-rejected-border)", color: "var(--status-rejected-text)" }}>
+            <Icon name="alert-circle" />
+            <span>{state.error}</span>
+          </div>
+        )}
+
+        <div className="avi-form-actions">
+          <ResetLink />
+          <div style={{ flex: 1 }} />
+          <Button type="submit" variant="primary" iconLeft={<Icon name="send" />} disabled={pending}>
+            {pending ? "Se trimite…" : "Trimite referatul"}
+          </Button>
+        </div>
+      </Card>
     </form>
+  );
+}
+
+function ResetLink() {
+  return (
+    <Button type="reset" variant="ghost">
+      Renunță
+    </Button>
   );
 }

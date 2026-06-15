@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
-import { SignOutButton } from "@/components/sign-out-button";
+import { inboxFor } from "@/db/queries";
+import { primaryRole } from "@/lib/labels";
+import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: "Aviso — Referate de necesitate",
@@ -11,32 +12,21 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
+
   return (
-    <html lang="ro" className="h-full antialiased">
-      <body className="min-h-full bg-gray-50 text-gray-900">
-        <header className="border-b bg-white">
-          <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3">
-            <Link href="/" className="font-semibold">
-              Aviso
-            </Link>
-            {user && (
-              <nav className="flex items-center gap-4 text-sm">
-                <Link href="/referate/nou" className="hover:underline">
-                  Referat nou
-                </Link>
-                <Link href="/inbox" className="hover:underline">
-                  Inbox
-                </Link>
-                <Link href="/delegari" className="hover:underline">
-                  Delegări
-                </Link>
-                <span className="text-gray-500">{user.name}</span>
-                <SignOutButton />
-              </nav>
-            )}
-          </div>
-        </header>
-        <main className="mx-auto max-w-4xl px-4 py-8">{children}</main>
+    <html lang="ro">
+      <body>
+        {user ? (
+          <AppShell
+            user={{ name: user.name, email: user.email }}
+            roleLabel={primaryRole(user.capabilities)}
+            inboxCount={(await inboxFor(user.id)).length}
+          >
+            {children}
+          </AppShell>
+        ) : (
+          children
+        )}
       </body>
     </html>
   );

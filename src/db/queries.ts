@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, users } from "./schema";
+import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
 
 /**
@@ -124,6 +124,74 @@ export async function selectableUsers(excludeId: string) {
   return rows.filter((u) => u.id !== excludeId);
 }
 
+/** Fully-approved requisitions ready for procurement, with requester + approval time. */
+export async function finalizedRequisitions() {
+  return db
+    .select({
+      id: requisitions.id,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      costCenter: requisitions.costCenter,
+      estimatedValueMinor: requisitions.estimatedValueMinor,
+      procurementType: requisitions.procurementType,
+      requesterName: users.name,
+      createdAt: requisitions.createdAt,
+      approvedAt: requisitionTransitions.createdAt,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .leftJoin(
+      requisitionTransitions,
+      and(eq(requisitionTransitions.requisitionId, requisitions.id), eq(requisitionTransitions.isMostRecent, true)),
+    )
+    .where(eq(requisitions.status, "approved"))
+    .orderBy(desc(requisitionTransitions.createdAt));
+}
+
+/** All users with their org unit and capabilities, for the admin screen. */
+export async function allUsers() {
+  const rows = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      active: users.active,
+      deptName: orgUnits.name,
+    })
+    .from(users)
+    .leftJoin(orgUnits, eq(orgUnits.id, users.orgUnitId))
+    .orderBy(asc(users.name));
+
+  const caps = await db.select({ userId: userCapabilities.userId, capability: userCapabilities.capability }).from(userCapabilities);
+  const byUser = new Map<string, string[]>();
+  for (const c of caps) {
+    const list = byUser.get(c.userId) ?? [];
+    list.push(c.capability);
+    byUser.set(c.userId, list);
+  }
+  return rows.map((u) => ({ ...u, capabilities: byUser.get(u.id) ?? [] }));
+}
+
+/** All delegations (org-wide), with titular + substitute names. */
+export async function allDelegations() {
+  const delegator = alias(users, "deleg_titular");
+  const delegate = alias(users, "deleg_inlocuitor");
+  return db
+    .select({
+      id: delegations.id,
+      titular: delegator.name,
+      inlocuitor: delegate.name,
+      capability: delegations.capability,
+      startsAt: delegations.startsAt,
+      endsAt: delegations.endsAt,
+      active: delegations.active,
+    })
+    .from(delegations)
+    .innerJoin(delegator, eq(delegator.id, delegations.delegatorId))
+    .innerJoin(delegate, eq(delegate.id, delegations.delegateId))
+    .orderBy(desc(delegations.startsAt));
+}
+
 /** Requisitions created by a user. */
 export async function myRequisitions(userId: string) {
   return db
@@ -135,7 +203,27 @@ export async function myRequisitions(userId: string) {
 
 /** Full detail for one requisition: header, tasks, and audit history. */
 export async function requisitionDetail(id: string) {
-  const [requisition] = await db.select().from(requisitions).where(eq(requisitions.id, id)).limit(1);
+  const [requisition] = await db
+    .select({
+      id: requisitions.id,
+      requesterId: requisitions.requesterId,
+      orgUnitId: requisitions.orgUnitId,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      justification: requisitions.justification,
+      costCenter: requisitions.costCenter,
+      estimatedValueMinor: requisitions.estimatedValueMinor,
+      needsIt: requisitions.needsIt,
+      needsSsm: requisitions.needsSsm,
+      procurementType: requisitions.procurementType,
+      status: requisitions.status,
+      createdAt: requisitions.createdAt,
+      requesterName: users.name,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .where(eq(requisitions.id, id))
+    .limit(1);
   if (!requisition) return null;
 
   const tasks = await db

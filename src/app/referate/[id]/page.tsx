@@ -1,120 +1,192 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { requisitionDetail } from "@/db/queries";
-import { actReferatAction } from "@/app/actions";
 import {
-  STATUS_LABELS,
-  TASK_STATUS_LABELS,
   TASK_TYPE_LABELS,
-  ACTION_LABELS,
+  PROCUREMENT_TYPE_LABELS,
+  requisitionStatusBadge,
   formatLei,
 } from "@/lib/labels";
+import {
+  Card,
+  Stepper,
+  StatusBadge,
+  Avatar,
+  Badge,
+  AuditTimeline,
+  type Step,
+  type StepStatus,
+  type AuditEvent,
+  type AuditType,
+} from "@/components/ui/primitives";
+import { Icon } from "@/components/ui/icon";
+import { ReferatActionPanel } from "@/components/referat-action-panel";
 
-export default async function ReferatDetailPage({ params }: { params: Promise<{ id: string }> }) {
+const fmtDateTime = (d: Date) =>
+  new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(d);
+
+const TASK_STATUS_TO_STEP: Record<string, StepStatus> = {
+  approved: "done",
+  waiting: "current",
+  pending: "pending",
+  rejected: "rejected",
+  sent_back: "sentback",
+};
+
+const ACTION_TO_AUDIT: Record<string, { type: AuditType; verb: string }> = {
+  create: { type: "created", verb: "a creat referatul" },
+  approve: { type: "approved", verb: "a aprobat" },
+  reject: { type: "rejected", verb: "a respins" },
+  send_back: { type: "sentback", verb: "a trimis înapoi" },
+};
+
+function Meta({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="avi-meta__l">{label}</div>
+      <div className="avi-meta__v">{children}</div>
+    </div>
+  );
+}
+
+export default async function ReferatDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ action?: string }>;
+}) {
   const user = await requireUser();
   const { id } = await params;
+  const { action } = await searchParams;
   const detail = await requisitionDetail(id);
   if (!detail) notFound();
 
   const { requisition: r, tasks, history, activeTask } = detail;
-  const isMyTask = activeTask?.effectiveApproverId === user.id;
-  const hasPrevious = tasks.some((t) => activeTask && t.stepOrder < activeTask.stepOrder && t.status === "approved");
+  const canAct = activeTask?.effectiveApproverId === user.id;
+  const canSendBack = tasks.some((t) => activeTask && t.stepOrder < activeTask.stepOrder && t.status === "approved");
+  const badge = requisitionStatusBadge(r.status);
+
+  const steps: Step[] = tasks
+    .filter((t) => t.status !== "skipped")
+    .map((t) => {
+      const status = TASK_STATUS_TO_STEP[t.status] ?? "pending";
+      const sublabel =
+        status === "done"
+          ? t.actedAt
+            ? fmtDateTime(t.actedAt).split(",")[0]
+            : "Aprobat"
+          : status === "current"
+            ? "În lucru"
+            : status === "sentback"
+              ? "Retrimis"
+              : "În așteptare";
+      return { label: TASK_TYPE_LABELS[t.taskType] ?? t.taskType, sublabel, status };
+    });
+
+  const events: AuditEvent[] = history.map((h) => {
+    const map = ACTION_TO_AUDIT[h.action] ?? { type: "comment" as AuditType, verb: h.action };
+    return {
+      type: map.type,
+      actor: h.actorName,
+      action: map.verb,
+      time: fmtDateTime(h.createdAt),
+      comment: h.comment ?? undefined,
+    };
+  });
+
+  const initialMode =
+    canAct && (action === "reject" || action === "send_back") ? (action as "reject" | "send_back") : null;
 
   return (
-    <div className="space-y-8">
-      <section className="rounded border bg-white p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{r.item}</h1>
-          <div className="flex items-center gap-3">
-            {r.status === "approved" && (
-              <a
-                href={`/referate/${r.id}/pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded bg-gray-900 px-3 py-1 text-sm text-white"
-              >
-                Descarcă PDF
-              </a>
-            )}
-            <span className="rounded bg-gray-100 px-2 py-1 text-sm">{STATUS_LABELS[r.status] ?? r.status}</span>
+    <div className="avi-screen">
+      <Link href="/inbox" className="avi-back">
+        <Icon name="arrow-left" /> Înapoi la inbox
+      </Link>
+
+      <div className="avi-detail-head">
+        <div>
+          <div className="avi-detail-id">Referat #{r.id.slice(0, 8)}</div>
+          <h1 className="avi-detail-title">{r.item}</h1>
+          <div className="avi-detail-by">
+            <Avatar name={r.requesterName} size="sm" />
+            <span>
+              Solicitat de <b>{r.requesterName}</b>
+            </span>
+            <span className="avi-dot-sep">·</span>
+            <span className="avi-cell-mono">{fmtDateTime(r.createdAt)}</span>
           </div>
         </div>
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-          <div><dt className="text-gray-500">Cantitate</dt><dd>{r.quantity}</dd></div>
-          <div><dt className="text-gray-500">Valoare estimată</dt><dd>{formatLei(r.estimatedValueMinor)}</dd></div>
-          <div><dt className="text-gray-500">Centru de cost</dt><dd>{r.costCenter}</dd></div>
-          <div className="col-span-2"><dt className="text-gray-500">Justificare</dt><dd>{r.justification}</dd></div>
-        </dl>
-      </section>
+        <StatusBadge status={badge.tone} label={badge.label} icon="icon" />
+      </div>
 
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Pași de aprobare</h2>
-        <ol className="divide-y rounded border bg-white">
-          {tasks.map((t) => (
-            <li key={t.id} className="flex items-center justify-between px-4 py-2 text-sm">
-              <span>{TASK_TYPE_LABELS[t.taskType] ?? t.taskType}</span>
-              <span className={t.status === "waiting" ? "font-medium text-blue-600" : "text-gray-500"}>
-                {TASK_STATUS_LABELS[t.status] ?? t.status}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
+      <div className="avi-detail-grid">
+        <div className="avi-detail-main">
+          <Card title="Traseu de avizare" subtitle="Pașii aplicabili acestui referat și starea fiecăruia" padding="lg">
+            <Stepper steps={steps} orientation="vertical" />
+          </Card>
 
-      {isMyTask && (
-        <section className="rounded border border-blue-200 bg-blue-50 p-5">
-          <h2 className="mb-3 text-lg font-semibold">Acțiunea ta</h2>
-          <form action={actReferatAction} className="space-y-3">
-            <input type="hidden" name="requisitionId" value={r.id} />
-            {activeTask?.taskType === "INCADRARE" && (
-              <div>
-                <label className="mb-1 block text-sm font-medium">Încadrare (tip achiziție)</label>
-                <select name="classification" defaultValue="" className="w-full rounded border px-3 py-2 text-sm">
-                  <option value="" disabled>
-                    Alege tipul…
-                  </option>
-                  <option value="achizitii">Achiziții</option>
-                  <option value="aprovizionare">Aprovizionare</option>
-                  <option value="servicii">Servicii</option>
-                </select>
+          <Card title="Date referat" padding="lg">
+            <div className="avi-meta-grid">
+              <Meta label="Articol">{r.item}</Meta>
+              <Meta label="Cantitate">
+                <b>{r.quantity}</b> buc.
+              </Meta>
+              <Meta label="Centru de cost">
+                <Badge variant="outline" icon={<Icon name="building-2" />}>{r.costCenter}</Badge>
+              </Meta>
+              <Meta label="Valoare estimată">{formatLei(r.estimatedValueMinor)}</Meta>
+              {r.procurementType && (
+                <Meta label="Tip achiziție">{PROCUREMENT_TYPE_LABELS[r.procurementType] ?? r.procurementType}</Meta>
+              )}
+              <Meta label="Avize">
+                {[r.needsIt ? "IT" : null, r.needsSsm ? "SSM" : null].filter(Boolean).join(" · ") || "—"}
+              </Meta>
+              <div className="avi-col-2">
+                <Meta label="Justificare">
+                  <span className="avi-justif">{r.justification}</span>
+                </Meta>
               </div>
-            )}
-            <textarea
-              name="comment"
-              rows={2}
-              placeholder="Comentariu (opțional; obligatoriu la respingere / trimitere înapoi)"
-              className="w-full rounded border px-3 py-2 text-sm"
+            </div>
+          </Card>
+
+          <Card title="Istoric & audit" subtitle="Toate acțiunile, în ordine cronologică" padding="lg">
+            <AuditTimeline events={events} />
+          </Card>
+        </div>
+
+        <aside className="avi-detail-side">
+          {canAct ? (
+            <ReferatActionPanel
+              requisitionId={r.id}
+              stepLabel={activeTask ? (TASK_TYPE_LABELS[activeTask.taskType] ?? activeTask.taskType) : ""}
+              needsClassification={activeTask?.taskType === "INCADRARE"}
+              canSendBack={canSendBack}
+              initialMode={initialMode}
+              pdfHref={r.status === "approved" ? `/referate/${r.id}/pdf` : undefined}
             />
-            <div className="flex gap-3">
-              <button name="action" value="approve" className="rounded bg-green-700 px-4 py-2 text-sm text-white">
-                Aprobă
-              </button>
-              <button name="action" value="reject" className="rounded bg-red-700 px-4 py-2 text-sm text-white">
-                Respinge
-              </button>
-              {hasPrevious && (
-                <button name="action" value="send_back" className="rounded bg-amber-600 px-4 py-2 text-sm text-white">
-                  Trimite înapoi
-                </button>
+          ) : (
+            <div className="avi-actionpanel">
+              <div className="avi-actionpanel__readonly">
+                <Icon name="lock" />
+                <div>
+                  <div className="avi-actionpanel__t">Doar vizualizare</div>
+                  <div className="avi-actionpanel__d">Acest referat nu așteaptă o acțiune din partea ta.</div>
+                </div>
+              </div>
+              {r.status === "approved" && (
+                <div className="avi-actionpanel__foot">
+                  <a className="avi-btn avi-btn--ghost avi-btn--sm" href={`/referate/${r.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                    <span className="avi-btn__ico"><Icon name="download" /></span>
+                    <span>Descarcă PDF</span>
+                  </a>
+                </div>
               )}
             </div>
-          </form>
-        </section>
-      )}
-
-      <section>
-        <h2 className="mb-3 text-lg font-semibold">Istoric</h2>
-        <ul className="space-y-2">
-          {history.map((h) => (
-            <li key={h.seq} className="rounded border bg-white px-4 py-2 text-sm">
-              <span className="font-medium">{ACTION_LABELS[h.action] ?? h.action}</span>{" "}
-              — {h.actorName}{" "}
-              <span className="text-gray-400">{h.createdAt.toLocaleString("ro-RO")}</span>
-              {h.comment && <p className="text-gray-600">„{h.comment}”</p>}
-            </li>
-          ))}
-        </ul>
-      </section>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }

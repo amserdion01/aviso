@@ -140,5 +140,6 @@ export async function createDelegationAction(
   }
 
   revalidatePath("/delegari");
+  revalidatePath("/admin");
   return {};
 }
