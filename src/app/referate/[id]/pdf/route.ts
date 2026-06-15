@@ -24,7 +24,23 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     return new NextResponse("Referatul nu este aprobat încă.", { status: 409 });
   }
 
-  const pdf = await htmlToPdf(renderReferatDocument(data, new Date()));
+  const html = renderReferatDocument(data, new Date());
+
+  // On serverless (Vercel): serve the print-ready document as an HTML page that
+  // opens the browser's print dialog (→ Save as PDF). No headless Chromium on
+  // the server, so nothing to bundle/trace — reliable everywhere.
+  if (process.env.VERCEL) {
+    const printable = html.replace(
+      "</body>",
+      "<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),300))</script></body>",
+    );
+    return new NextResponse(printable, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+
+  // Local / self-hosted VPS: generate a real downloadable PDF via Puppeteer.
+  const pdf = await htmlToPdf(html);
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       "Content-Type": "application/pdf",

@@ -29,11 +29,16 @@ const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_V
 
 async function launchBrowser(): Promise<Browser> {
   if (isServerless) {
-    const chromium = (await import("@sparticuz/chromium")).default;
+    // chromium-min ships no binary; it downloads Chromium from a URL at runtime
+    // (cached in /tmp), so nothing has to be bundled/traced by Turbopack/Vercel.
+    const chromium = (await import("@sparticuz/chromium-min")).default;
     const puppeteer = await import("puppeteer-core");
+    const packUrl =
+      process.env.CHROMIUM_PACK_URL ??
+      "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.x64.tar";
     return puppeteer.launch({
       args: chromium.args,
-      executablePath: await chromium.executablePath(),
+      executablePath: await chromium.executablePath(packUrl),
       headless: true,
     });
   }
