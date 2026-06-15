@@ -20,6 +20,7 @@ const NAV: NavDef[] = [
   { href: "/referate/nou", label: "Referat nou", icon: "file-plus-2", match: (p) => p === "/referate/nou" },
   { href: "/", label: "Toate referatele", icon: "files", match: (p) => p === "/" || (p.startsWith("/referate/") && p !== "/referate/nou") },
   { href: "/achizitii", label: "Achiziții", icon: "shopping-cart", match: (p) => p.startsWith("/achizitii") },
+  { href: "/rapoarte", label: "Rapoarte", icon: "bar-chart-3", match: (p) => p.startsWith("/rapoarte") },
   { href: "/admin", label: "Administrare", icon: "settings", match: (p) => p.startsWith("/admin") || p.startsWith("/delegari") },
 ];
 

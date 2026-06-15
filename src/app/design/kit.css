@@ -176,6 +176,7 @@
 
 /* ---------- Achizitii stats ---------- */
 .avi-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-bottom: var(--space-8); }
+.avi-stats--4 { grid-template-columns: repeat(4, 1fr); }
 .avi-stat { display: flex; align-items: center; gap: var(--space-5); padding: var(--space-6);
   background: var(--surface-card); border: var(--border-w) solid var(--border-default);
   border-radius: var(--radius-lg); box-shadow: var(--shadow-xs); }

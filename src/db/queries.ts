@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, lte, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, inArray, lte, ne, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
@@ -230,6 +230,42 @@ export async function activeSubstituteFor(userId: string) {
     .orderBy(asc(delegations.endsAt))
     .limit(1);
   return row ?? null;
+}
+
+/** Aggregated figures for the reports dashboard (read-only). */
+export async function reportsData() {
+  const statusRows = await db
+    .select({ status: requisitions.status, n: count() })
+    .from(requisitions)
+    .groupBy(requisitions.status);
+  const byStatus: Record<string, number> = { in_progress: 0, approved: 0, rejected: 0 };
+  for (const r of statusRows) byStatus[r.status] = Number(r.n);
+  const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
+
+  const finalized = await finalizedRequisitions();
+  const totalValue = finalized.reduce((s, r) => s + (r.estimatedValueMinor ?? 0), 0);
+  const durations = finalized
+    .filter((r) => r.approvedAt)
+    .map((r) => r.approvedAt!.getTime() - r.createdAt.getTime());
+  const avgDays = durations.length ? durations.reduce((a, b) => a + b, 0) / durations.length / 86_400_000 : 0;
+
+  const waitingRows = await db
+    .select({ taskType: approvalTasks.taskType, n: count() })
+    .from(approvalTasks)
+    .where(eq(approvalTasks.status, "waiting"))
+    .groupBy(approvalTasks.taskType);
+  const waitingByStep = waitingRows.map((r) => ({ taskType: r.taskType, n: Number(r.n) })).sort((a, b) => b.n - a.n);
+
+  const spendRows = await db
+    .select({ costCenter: requisitions.costCenter, total: sum(requisitions.estimatedValueMinor) })
+    .from(requisitions)
+    .where(eq(requisitions.status, "approved"))
+    .groupBy(requisitions.costCenter);
+  const spendByCostCenter = spendRows
+    .map((r) => ({ costCenter: r.costCenter, total: Number(r.total ?? 0) }))
+    .sort((a, b) => b.total - a.total);
+
+  return { byStatus, total, totalValue, avgDays, finalizedCount: finalized.length, waitingByStep, spendByCostCenter };
 }
 
 /** All org units (serviciu + birou), for the admin user form. */
