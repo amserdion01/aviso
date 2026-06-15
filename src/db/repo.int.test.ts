@@ -36,9 +36,9 @@ async function reset() {
 
   await db.insert(orgUnits).values({ id: OU, name: "Birou Test", kind: "birou" });
   await db.insert(users).values([
-    { id: REQUESTER, name: "Requester", email: "req@aviso.local", orgUnitId: OU },
-    { id: SEF, name: "Sef Birou", email: "sef@aviso.local", orgUnitId: OU },
-    { id: DIRECTOR, name: "Director", email: "dir@aviso.local", orgUnitId: OU },
+    { id: REQUESTER, name: "Requester", email: "req@aviso.test", orgUnitId: OU },
+    { id: SEF, name: "Sef Birou", email: "sef@aviso.test", orgUnitId: OU },
+    { id: DIRECTOR, name: "Director", email: "dir@aviso.test", orgUnitId: OU },
   ]);
   await db.insert(userCapabilities).values([
     { userId: REQUESTER, capability: "angajat" },

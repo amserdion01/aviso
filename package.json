@@ -9,12 +9,14 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
+    "test:int": "RUN_DB_TESTS=1 DATABASE_URL=postgresql://aviso:aviso@localhost:5432/aviso_test vitest run",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "better-auth": "^1.6.18",
     "drizzle-orm": "^0.45.2",
     "next": "16.2.9",
     "postgres": "^3.4.9",

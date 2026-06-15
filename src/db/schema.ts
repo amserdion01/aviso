@@ -48,10 +48,12 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
   username: text("username"),
   orgUnitId: text("org_unit_id").references(() => orgUnits.id),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("users_email_uniq").on(t.email)]);
 
 /**
@@ -77,6 +79,47 @@ export const userCapabilities = pgTable("user_capabilities", {
   userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   capability: text("capability").notNull(),
 }, (t) => [primaryKey({ columns: [t.userId, t.capability] })]);
+
+// ---------------------------------------------------------------------------
+// Better Auth tables (session / account / verification)
+// Column names follow Better Auth's defaults so the drizzle adapter maps cleanly.
+// ---------------------------------------------------------------------------
+
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  token: text("token").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+}, (t) => [uniqueIndex("sessions_token_uniq").on(t.token)]);
+
+export const accounts = pgTable("accounts", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const verifications = pgTable("verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 // ---------------------------------------------------------------------------
 // Requisitions
