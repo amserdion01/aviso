@@ -79,6 +79,12 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
       input.requesterId,
       SLICE_STEPS,
       (step) => approverByOrder.get(step.order)!,
+      {
+        needsIt: input.needsIt ?? false,
+        needsSsm: input.needsSsm ?? false,
+        procurementType: null,
+        estimatedValueMinor: input.estimatedValueMinor ?? null,
+      },
     );
 
     await tx.insert(requisitions).values({
@@ -127,7 +133,14 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
 /** Load the persisted workflow state for the engine. */
 async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> {
   const [req] = await tx
-    .select({ requesterId: requisitions.requesterId, status: requisitions.status })
+    .select({
+      requesterId: requisitions.requesterId,
+      status: requisitions.status,
+      needsIt: requisitions.needsIt,
+      needsSsm: requisitions.needsSsm,
+      procurementType: requisitions.procurementType,
+      estimatedValueMinor: requisitions.estimatedValueMinor,
+    })
     .from(requisitions)
     .where(eq(requisitions.id, requisitionId))
     .limit(1);
@@ -148,6 +161,13 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
   return {
     requesterId: req.requesterId,
     status: req.status as WorkflowState["status"],
+    context: {
+      needsIt: req.needsIt,
+      needsSsm: req.needsSsm,
+      procurementType: req.procurementType,
+      estimatedValueMinor: req.estimatedValueMinor,
+    },
+    steps: SLICE_STEPS,
     tasks: taskRows.map((t) => ({
       stepOrder: t.stepOrder,
       taskType: t.taskType,
@@ -185,7 +205,7 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
 
     await tx
       .update(requisitions)
-      .set({ status: next.status })
+      .set({ status: next.status, procurementType: next.context.procurementType })
       .where(eq(requisitions.id, input.requisitionId));
 
     for (const task of next.tasks) {

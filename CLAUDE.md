@@ -24,10 +24,24 @@ Replaces a paper + wet-signature process with a tracked, role-based digital flow
 
 ## Domain terminology
 - Referat de necesitate = requisition / necessity request
-- Approval chain (in order): head of service -> IT -> warehouse ->
-  economic director -> general director -> procurement
-- Each approver can: approve, reject, or send back (one step back) from their inbox
-- Substitute / delegate = backup approver who covers an absent approver
+- Authorization is per-CAPABILITY, not one-role-per-user (a user holds many).
+- Real approval chain (confirmed from diagramaFlux.pdf + org file), in order:
+  1. șef birou/sector (org-relative to requester's unit)
+  2. șef serviciu/secție (org-relative)
+  3. înregistrare (secretariat)
+  4. IT — conditional (needs_it); OPINIE IT is advisory/non-blocking [advisory deferred]
+  5. SSM — conditional (needs_ssm); OPINIE SSM advisory [advisory deferred]
+  6. RU
+  7. verificare magazie
+  8. aprobat director economic
+  9. achiziții încadrare — classifies the request, setting procurement_type
+  10. one of: achiziții | aprovizionare | servicii (by procurement_type)
+  11. aprobat director — the requester's director BY ORG UNIT (org_units.director_type)
+  12. + aprobat director general when estimated value > threshold (amount: TBD/confirm)
+- Each approver can: approve, reject, or send back. Send-back target is
+  configurable per step (default: previous step).
+- Shared-capability steps: first eligible holder to act claims the task.
+- Substitute / delegate = backup approver who covers an absent approver.
 
 ## Data model (core)
 - requisitions: the request (item, quantity, justification, cost_center, requester_id, current_status)
