@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, inArray, lte, ne, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lte, ne, or, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
@@ -353,6 +353,47 @@ export async function allDelegations() {
     .innerJoin(delegator, eq(delegator.id, delegations.delegatorId))
     .innerJoin(delegate, eq(delegate.id, delegations.delegateId))
     .orderBy(desc(delegations.startsAt));
+}
+
+/**
+ * Search the referate a user is involved in (they requested it, or it was
+ * routed to them) by item, cost center, id, or requester name.
+ */
+export async function searchRequisitions(userId: string, q: string) {
+  const term = q.trim();
+  if (!term) return [];
+  const pattern = `%${term.replace(/[%_]/g, (m) => `\\${m}`)}%`;
+
+  const myTaskReqIds = db
+    .select({ id: approvalTasks.requisitionId })
+    .from(approvalTasks)
+    .where(eq(approvalTasks.effectiveApproverId, userId));
+
+  return db
+    .select({
+      id: requisitions.id,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      costCenter: requisitions.costCenter,
+      status: requisitions.status,
+      createdAt: requisitions.createdAt,
+      requesterName: users.name,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .where(
+      and(
+        or(eq(requisitions.requesterId, userId), inArray(requisitions.id, myTaskReqIds)),
+        or(
+          ilike(requisitions.item, pattern),
+          ilike(requisitions.costCenter, pattern),
+          ilike(requisitions.id, pattern),
+          ilike(users.name, pattern),
+        ),
+      ),
+    )
+    .orderBy(desc(requisitions.createdAt))
+    .limit(100);
 }
 
 /** Requisitions created by a user. */

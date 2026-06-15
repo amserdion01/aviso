@@ -60,9 +60,9 @@ export function AppShell({
           <span className="avi-topbar__name">Aviso</span>
           <span className="avi-topbar__org">Apa Covasna</span>
         </Link>
-        <form action="/" className="avi-topbar__search">
+        <form action="/cauta" className="avi-topbar__search">
           <Icon name="search" />
-          <input name="q" placeholder="Caută referat, articol sau centru de cost…" aria-label="Caută" />
+          <input name="q" placeholder="Caută referat, articol sau solicitant…" aria-label="Caută" />
         </form>
         <div className="avi-topbar__right">
           <NotificationsBell items={notifications.items} unread={notifications.unread} />
