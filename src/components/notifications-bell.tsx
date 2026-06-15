@@ -5,40 +5,35 @@ import { markNotificationsReadAction } from "@/app/actions";
 import { CountBadge } from "@/components/ui/primitives";
 import { Icon, type IconName } from "@/components/ui/icon";
 
+export type NotificationType = "approved" | "finalized" | "rejected" | "sentback" | "todo";
 export interface NotificationItem {
+  type: NotificationType;
   requisitionId: string;
   item: string;
-  action: string;
-  toStatus: string;
-  actorName: string;
+  actorName: string | null;
+  taskLabel: string | null;
   createdAt: string | Date;
   unread: boolean;
 }
 
-type Kind = "approved" | "finalized" | "rejected" | "sentback";
-
-function kindOf(n: NotificationItem): Kind {
-  if (n.action === "reject") return "rejected";
-  if (n.action === "send_back") return "sentback";
-  if (n.action === "approve" && n.toStatus === "approved") return "finalized";
-  return "approved";
-}
-
-const ICON: Record<Kind, IconName> = {
+const ICON: Record<NotificationType, IconName> = {
   approved: "check",
   finalized: "check-check",
   rejected: "x",
   sentback: "corner-up-left",
+  todo: "inbox",
 };
 
 function line(n: NotificationItem): string {
-  switch (kindOf(n)) {
+  switch (n.type) {
     case "rejected":
       return `${n.actorName} a respins referatul`;
     case "sentback":
       return `${n.actorName} a trimis înapoi referatul`;
     case "finalized":
       return "Referatul tău a fost aprobat complet";
+    case "todo":
+      return n.taskLabel ? `De aprobat (${n.taskLabel})` : "Ai un referat de aprobat";
     default:
       return `${n.actorName} a avizat referatul`;
   }
@@ -83,7 +78,6 @@ export function NotificationsBell({ items, unread }: { items: NotificationItem[]
               <div className="avi-notif__empty">Nicio notificare deocamdată.</div>
             ) : (
               items.map((n, i) => {
-                const kind = kindOf(n);
                 return (
                   <Link
                     key={i}
@@ -91,8 +85,8 @@ export function NotificationsBell({ items, unread }: { items: NotificationItem[]
                     className={"avi-notif__item" + (n.unread ? " avi-notif__item--unread" : "")}
                     onClick={() => setOpen(false)}
                   >
-                    <span className={`avi-notif__ico avi-notif__ico--${kind}`}>
-                      <Icon name={ICON[kind]} />
+                    <span className={`avi-notif__ico avi-notif__ico--${n.type}`}>
+                      <Icon name={ICON[n.type]} />
                     </span>
                     <span className="avi-notif__body">
                       <span className="avi-notif__txt">

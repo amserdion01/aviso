@@ -3,6 +3,7 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
+import { TASK_TYPE_LABELS } from "@/lib/labels";
 
 /**
  * Tasks waiting in a given approver's inbox — their own plus any routed to them
@@ -114,13 +115,27 @@ export async function referatDocument(id: string) {
 
 export type ReferatDocumentData = NonNullable<Awaited<ReturnType<typeof referatDocument>>>;
 
+export type NotificationType = "approved" | "finalized" | "rejected" | "sentback" | "todo";
+export interface NotificationRow {
+  type: NotificationType;
+  requisitionId: string;
+  item: string;
+  actorName: string | null;
+  taskLabel: string | null;
+  createdAt: Date;
+  unread: boolean;
+}
+
 /**
- * Notifications feed for a requester: actions other people took on the referate
- * they submitted. Unread = events newer than the user's notifications_seen_at.
+ * Unified notifications feed:
+ *  - requester-facing: actions others took on the referate you submitted;
+ *  - approver-facing: referate currently waiting on you (arrival time = the
+ *    most-recent transition, i.e. when the previous step advanced it to you).
+ * Unread = events newer than the user's notifications_seen_at.
  */
-export async function notificationsFor(userId: string) {
+export async function notificationsFor(userId: string): Promise<{ items: NotificationRow[]; unread: number }> {
   const actor = alias(users, "notif_actor");
-  const rows = await db
+  const events = await db
     .select({
       requisitionId: requisitions.id,
       item: requisitions.item,
@@ -142,6 +157,21 @@ export async function notificationsFor(userId: string) {
     .orderBy(desc(requisitionTransitions.createdAt))
     .limit(20);
 
+  const todos = await db
+    .select({
+      requisitionId: requisitions.id,
+      item: requisitions.item,
+      taskType: approvalTasks.taskType,
+      arrivedAt: requisitionTransitions.createdAt,
+    })
+    .from(approvalTasks)
+    .innerJoin(requisitions, eq(requisitions.id, approvalTasks.requisitionId))
+    .leftJoin(
+      requisitionTransitions,
+      and(eq(requisitionTransitions.requisitionId, requisitions.id), eq(requisitionTransitions.isMostRecent, true)),
+    )
+    .where(and(eq(approvalTasks.effectiveApproverId, userId), eq(approvalTasks.status, "waiting")));
+
   const [me] = await db
     .select({ seenAt: users.notificationsSeenAt })
     .from(users)
@@ -149,7 +179,36 @@ export async function notificationsFor(userId: string) {
     .limit(1);
   const seenAt = me?.seenAt ?? null;
 
-  const items = rows.map((r) => ({ ...r, unread: seenAt === null || r.createdAt > seenAt }));
+  const merged: Array<Omit<NotificationRow, "unread">> = [
+    ...events.map((e) => ({
+      type:
+        e.action === "reject"
+          ? ("rejected" as const)
+          : e.action === "send_back"
+            ? ("sentback" as const)
+            : e.toStatus === "approved"
+              ? ("finalized" as const)
+              : ("approved" as const),
+      requisitionId: e.requisitionId,
+      item: e.item,
+      actorName: e.actorName,
+      taskLabel: null,
+      createdAt: e.createdAt,
+    })),
+    ...todos.map((t) => ({
+      type: "todo" as const,
+      requisitionId: t.requisitionId,
+      item: t.item,
+      actorName: null,
+      taskLabel: TASK_TYPE_LABELS[t.taskType] ?? t.taskType,
+      createdAt: t.arrivedAt ?? new Date(0),
+    })),
+  ];
+
+  merged.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  const items: NotificationRow[] = merged
+    .slice(0, 20)
+    .map((n) => ({ ...n, unread: seenAt === null || n.createdAt > seenAt }));
   return { items, unread: items.filter((i) => i.unread).length };
 }
 
