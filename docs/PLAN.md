@@ -88,22 +88,28 @@ model that expresses the BPMN's gateways without a full graph engine.
 7. Exactly one `is_most_recent` transition row per requisition at all times.
 8. Full happy path create → șef birou → director → `approved`.
 
-## 6. Open questions (please confirm — I read the BPMN from an image)
+## 6. Flow decisions — CONFIRMED (2026-06-15) & implemented in Phase 2
 
-1. **Step order:** Is it angajat → șef birou → șef serviciu → ÎNREGISTRARE → (IT?) → (SSM?) →
-   RU → MAGAZIE → director economic → achiziții încadrare → {achiziții | aprovizionare | servicii}
-   → aprobat director? Correct / reorder?
-2. **IT & SSM:** conditional (only when the request is IT/SSM-relevant)? And are "OPINIE IT/SSM"
-   advisory (non-blocking) vs. the blocking "IT/SSM" task?
-3. **Achiziții încadrare:** one task where achiziții classifies the request, which then routes to
-   exactly one of achiziții / aprovizionare / servicii? Who sets it?
-4. **Which director** signs "Aprobat director" — always Director general, or the requester's
-   director by org unit (tehnic/economic/adjunct), per the org sheet?
-5. **Send-back / reject semantics:** send-back = one step back only (vs. back to requester)?
-   reject = terminal + notify requester?
-6. **Value thresholds:** does estimated value change the path (e.g., extra approval above a sum)?
-7. **Shared-capability tasks:** when several users hold a capability (e.g. multiple IT), does the
-   first to act claim it, or must all act?
+1. **Step order:** confirmed as listed (§4 / CLAUDE.md). ✅ seeded as REAL_CHAIN.
+2. **IT & SSM:** conditional on needs_it / needs_ssm; blocking. OPINIE (advisory/non-blocking)
+   acknowledged via the `blocking` column but advisory-only steps are DEFERRED (not seeded).
+3. **Achiziții încadrare:** one classification task sets procurement_type → routes to exactly one
+   of achiziții / aprovizionare / servicii. ✅
+4. **Which director:** the requester's director BY ORG UNIT (org_units.director_type →
+   director capability). ✅ director_by_unit strategy.
+5. **Send-back:** configurable PER STEP (on_send_back: previous | requester | step order),
+   default `previous`. `requester` target not yet implemented. Reject = terminal.
+6. **Value thresholds:** ADMIN-CONFIGURABLE, multiple allowed, per category = procurement_type.
+   Modeled as conditional approval_steps rows with composite condition
+   { all: [ value > X, procurement_type = Y ] } adding a director-general step. NONE seeded by
+   default; admin adds them (admin UI in Phase 6). Engine supports it now.
+7. **Shared-capability tasks:** first eligible holder to act claims it. ✅
+
+### Deferred from Phase 2 (tracked for later)
+- OPINIE advisory (non-blocking) steps.
+- Send-back target `requester`.
+- Admin UI to manage approval_steps / threshold rules (Phase 6).
+- Full org-structure + user import from the xls (currently a representative seed).
 
 ## 7. What I'd do first on approval
 
