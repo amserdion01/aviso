@@ -15,6 +15,13 @@
       "when": 1781522920937,
       "tag": "0001_wet_loa",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781525348634,
+      "tag": "0002_magical_christian_walker",
+      "breakpoints": true
     }
   ]
 }

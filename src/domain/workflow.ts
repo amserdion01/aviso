@@ -38,12 +38,17 @@ export interface RequisitionContext {
   estimatedValueMinor: number | null;
 }
 
-/** A predicate over the requisition context. `null` = always applies. */
+/**
+ * A predicate over the requisition context. `null` = always applies.
+ * `{ all: [...] }` is the conjunction used by admin-configured threshold rules,
+ * e.g. value > X AND procurementType = 'achizitii'.
+ */
 export type Condition =
   | { field: "needsIt"; eq: boolean }
   | { field: "needsSsm"; eq: boolean }
   | { field: "procurementType"; eq: string }
   | { field: "estimatedValueMinor"; gt: number }
+  | { all: Condition[] }
   | null;
 
 /** A step in the approval-chain template. */
@@ -136,6 +141,7 @@ const DEFAULT_CONTEXT: RequisitionContext = {
 /** Evaluate a step's condition against the requisition context. */
 export function applies(condition: Condition | undefined, ctx: RequisitionContext): boolean {
   if (condition == null) return true;
+  if ("all" in condition) return condition.all.every((c) => applies(c, ctx));
   switch (condition.field) {
     case "needsIt":
       return ctx.needsIt === condition.eq;

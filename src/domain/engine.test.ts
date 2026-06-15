@@ -6,6 +6,7 @@ import {
   applies,
   type StepDef,
   type RequisitionContext,
+  type Condition,
 } from "./workflow";
 
 // A reduced but representative slice of the real chain, exercising every
@@ -39,6 +40,17 @@ describe("applies()", () => {
     expect(applies({ field: "procurementType", eq: "servicii" }, ctx({ procurementType: "servicii" }))).toBe(true);
     expect(applies({ field: "estimatedValueMinor", gt: 1000 }, ctx({ estimatedValueMinor: 1001 }))).toBe(true);
     expect(applies({ field: "estimatedValueMinor", gt: 1000 }, ctx({ estimatedValueMinor: 1000 }))).toBe(false);
+  });
+  it("evaluates a composite AND condition (admin threshold rule)", () => {
+    const rule: Condition = {
+      all: [
+        { field: "estimatedValueMinor", gt: 1000 },
+        { field: "procurementType", eq: "achizitii" },
+      ],
+    };
+    expect(applies(rule, ctx({ estimatedValueMinor: 2000, procurementType: "achizitii" }))).toBe(true);
+    expect(applies(rule, ctx({ estimatedValueMinor: 2000, procurementType: "servicii" }))).toBe(false);
+    expect(applies(rule, ctx({ estimatedValueMinor: 500, procurementType: "achizitii" }))).toBe(false);
   });
 });
 

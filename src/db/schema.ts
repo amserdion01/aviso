@@ -161,6 +161,10 @@ export const approvalSteps = pgTable("approval_steps", {
   approverParam: text("approver_param"),
   // predicate over requisition attrs; null = always applies
   appliesWhen: jsonb("applies_when"),
+  // where a send-back returns to: 'previous' | 'requester' | a step_order
+  onSendBack: text("on_send_back").notNull().default("previous"),
+  // false = advisory (OPINIE), non-blocking
+  blocking: boolean("blocking").notNull().default(true),
   label: text("label").notNull(),
 }, (t) => [
   check(
