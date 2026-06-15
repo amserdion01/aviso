@@ -1,8 +1,8 @@
 import { requireAdmin } from "@/lib/session";
-import { allUsers, allDelegations, selectableUsers, allOrgUnits, allApprovalSteps } from "@/db/queries";
+import { allUsers, allDelegations, selectableUsers, allOrgUnits, allWorkflows, stepsForWorkflow } from "@/db/queries";
 import { DelegationForm } from "@/components/delegation-form";
 import { UsersAdmin } from "@/components/users-admin";
-import { WorkflowAdmin } from "@/components/workflow-admin";
+import { WorkflowAdmin, type WorkflowStep } from "@/components/workflow-admin";
 import { CAPABILITY_LABELS } from "@/lib/labels";
 import { PageHead, Card, Table, Avatar, Badge, StatusBadge, EmptyState, type Column } from "@/components/ui/primitives";
 import { Tabs } from "@/components/ui/tabs";
@@ -13,13 +13,19 @@ type Del = Awaited<ReturnType<typeof allDelegations>>[number];
 
 export default async function AdminPage() {
   const me = await requireAdmin();
-  const [users, delegari, pickUsers, orgUnits, steps] = await Promise.all([
+  const [users, delegari, pickUsers, orgUnits, workflows] = await Promise.all([
     allUsers(),
     allDelegations(),
     selectableUsers(me.id),
     allOrgUnits(),
-    allApprovalSteps(),
+    allWorkflows(),
   ]);
+
+  const stepLists = await Promise.all(workflows.map((w) => stepsForWorkflow(w.id)));
+  const stepsByWorkflow: Record<string, WorkflowStep[]> = {};
+  workflows.forEach((w, i) => {
+    stepsByWorkflow[w.id] = stepLists[i];
+  });
 
   const delCols: Column<Del>[] = [
     {
@@ -73,7 +79,7 @@ export default async function AdminPage() {
           { value: "delegari", label: "Delegări / înlocuitori" },
           { value: "flux", label: "Flux de avizare" },
         ]}
-        panels={{ utilizatori: usersPanel, delegari: delegariPanel, flux: <WorkflowAdmin steps={steps} /> }}
+        panels={{ utilizatori: usersPanel, delegari: delegariPanel, flux: <WorkflowAdmin workflows={workflows} stepsByWorkflow={stepsByWorkflow} /> }}
       />
     </div>
   );

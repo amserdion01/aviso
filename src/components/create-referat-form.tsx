@@ -16,13 +16,27 @@ const COST_CENTERS = [
   "Administrativ",
 ];
 
-export function CreateReferatForm() {
+export function CreateReferatForm({ workflows }: { workflows: { id: string; name: string }[] }) {
   const [state, formAction, pending] = useActionState(createReferatAction, initial);
+  const singleWorkflow = workflows.length === 1;
 
   return (
     <form action={formAction}>
       <Card padding="lg">
         <div className="avi-form-grid">
+          <div className="avi-col-2">
+            <FormField label="Categorie / tip referat" htmlFor="r-workflow" required hint="Determină traseul de avizare.">
+              <Select
+                id="r-workflow"
+                name="workflowId"
+                required
+                defaultValue={singleWorkflow ? workflows[0].id : ""}
+                placeholder={singleWorkflow ? undefined : "Alege categoria"}
+                options={workflows.map((w) => ({ value: w.id, label: w.name }))}
+              />
+            </FormField>
+          </div>
+
           <div className="avi-col-2">
             <FormField label="Articol" htmlFor="r-articol" required hint="Denumirea exactă a produsului sau serviciului.">
               <Input id="r-articol" name="item" required prefix={<Icon name="package" />} placeholder="ex. Laptop Dell Latitude 5540" />

@@ -10,6 +10,7 @@ import {
   requisitions,
   userCapabilities,
   users,
+  workflows,
 } from "./schema";
 import { actOnTask, createRequisition } from "./repo";
 import { AuthorizationError } from "@/domain/workflow";
@@ -36,10 +37,12 @@ async function reset() {
   await db.delete(orgUnits);
   await db.delete(approvalSteps);
 
+  await db.insert(workflows).values({ id: "wf-test", name: "Test" }).onConflictDoNothing();
+
   // Slice template: sef birou (org-relative) -> director (capability)
   await db.insert(approvalSteps).values([
-    { id: "st-1", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou" },
-    { id: "st-2", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Aprobat director" },
+    { id: "st-1", workflowId: "wf-test", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou" },
+    { id: "st-2", workflowId: "wf-test", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Aprobat director" },
   ]);
 
   await db.insert(orgUnits).values({ id: OU, name: "Birou Test", kind: "birou" });
@@ -59,6 +62,7 @@ async function newReq(): Promise<string> {
   return createRequisition({
     requesterId: REQUESTER,
     orgUnitId: OU,
+    workflowId: "wf-test",
     item: "Hârtie A4",
     quantity: 10,
     justification: "Stoc epuizat",

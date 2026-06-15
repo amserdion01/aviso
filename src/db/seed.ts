@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { approvalSteps, orgUnits, userCapabilities, users } from "./schema";
+import { approvalSteps, orgUnits, userCapabilities, users, workflows } from "./schema";
 import { REAL_CHAIN } from "@/domain/chain";
 import { auth } from "@/lib/auth";
 
@@ -15,6 +15,12 @@ import { auth } from "@/lib/auth";
  */
 
 const PASSWORD = "Parola123!";
+
+export const STANDARD_WORKFLOW = {
+  id: "wf-standard",
+  name: "Standard",
+  description: "Fluxul standard de avizare a referatelor de necesitate.",
+};
 
 const SERVICIU = { id: "srv-tehnic", name: "Tehnic", kind: "serviciu" as const, directorType: "Director tehnic" };
 const BIROU = { id: "br-proiectare", name: "Proiectare", kind: "birou" as const, parentId: "srv-tehnic" };
@@ -44,10 +50,12 @@ async function ensureUser(name: string, email: string): Promise<string> {
 }
 
 async function seedTemplate() {
+  await db.insert(workflows).values(STANDARD_WORKFLOW).onConflictDoNothing();
   await db.delete(approvalSteps);
   await db.insert(approvalSteps).values(
     REAL_CHAIN.map((s) => ({
       id: `step-${s.order}`,
+      workflowId: STANDARD_WORKFLOW.id,
       stepOrder: s.order,
       taskType: s.taskType,
       requiredCapability: s.requiredCapability,

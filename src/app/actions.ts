@@ -12,12 +12,13 @@ import {
   updateUserSchema,
   commentSchema,
   stepSchema,
+  workflowSchema,
   buildAppliesWhen,
   leiToBani,
 } from "@/lib/validation";
 import { requireUser, isAdmin, sessionActivityStatus } from "@/lib/session";
 import { db } from "@/db";
-import { users, userCapabilities, requisitionComments, sessions, approvalSteps } from "@/db/schema";
+import { users, userCapabilities, requisitionComments, sessions, approvalSteps, workflows } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { isInvolvedInRequisition } from "@/db/queries";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
@@ -45,6 +46,7 @@ export async function createReferatAction(
   }
 
   const parsed = createReferatSchema.safeParse({
+    workflowId: formData.get("workflowId"),
     item: formData.get("item"),
     quantity: formData.get("quantity"),
     justification: formData.get("justification"),
@@ -60,6 +62,7 @@ export async function createReferatAction(
     requisitionId = await createRequisition({
       requesterId: user.id,
       orgUnitId: user.orgUnitId,
+      workflowId: parsed.data.workflowId,
       item: parsed.data.item,
       quantity: parsed.data.quantity,
       justification: parsed.data.justification,
@@ -250,9 +253,48 @@ export async function addCommentAction(formData: FormData): Promise<void> {
   revalidatePath(`/referate/${parsed.data.requisitionId}`);
 }
 
+/** Admin-only: create a new workflow (category). */
+export async function createWorkflowAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot crea categorii." };
+  const parsed = workflowSchema.safeParse({ name: formData.get("name"), description: formData.get("description") ?? undefined });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  await db.insert(workflows).values({ id: crypto.randomUUID(), name: parsed.data.name, description: parsed.data.description });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Admin-only: rename / re-describe a workflow. */
+export async function updateWorkflowAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot modifica categoriile." };
+  const parsed = workflowSchema.safeParse({
+    workflowId: formData.get("workflowId"),
+    name: formData.get("name"),
+    description: formData.get("description") ?? undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.data.workflowId) return { error: "Categorie inexistentă." };
+  await db
+    .update(workflows)
+    .set({ name: parsed.data.name, description: parsed.data.description })
+    .where(eq(workflows.id, parsed.data.workflowId));
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Admin-only: activate / deactivate a workflow (soft delete). */
+export async function setWorkflowActiveAction(workflowId: string, active: boolean): Promise<void> {
+  const me = await requireUser();
+  if (!isAdmin(me)) throw new Error("Doar administratorii pot modifica categoriile.");
+  await db.update(workflows).set({ active }).where(eq(workflows.id, workflowId));
+  revalidatePath("/admin");
+}
+
 /** Parse + authorize a workflow-step form; returns the validated values or an error. */
 function parseStep(formData: FormData) {
   return stepSchema.safeParse({
+    workflowId: formData.get("workflowId"),
     stepId: formData.get("stepId") ?? undefined,
     label: formData.get("label"),
     taskType: formData.get("taskType"),
@@ -272,9 +314,16 @@ export async function addStepAction(_prev: ActionState, formData: FormData): Pro
   const parsed = parseStep(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
 
-  const [last] = await db.select({ o: approvalSteps.stepOrder }).from(approvalSteps).orderBy(desc(approvalSteps.stepOrder)).limit(1);
+  // step_order is per-workflow.
+  const [last] = await db
+    .select({ o: approvalSteps.stepOrder })
+    .from(approvalSteps)
+    .where(eq(approvalSteps.workflowId, parsed.data.workflowId))
+    .orderBy(desc(approvalSteps.stepOrder))
+    .limit(1);
   await db.insert(approvalSteps).values({
     id: crypto.randomUUID(),
+    workflowId: parsed.data.workflowId,
     stepOrder: (last?.o ?? 0) + 1,
     taskType: parsed.data.taskType,
     requiredCapability: parsed.data.requiredCapability,
@@ -327,7 +376,14 @@ export async function moveStepAction(stepId: string, direction: "up" | "down"): 
   const me = await requireUser();
   if (!isAdmin(me)) throw new Error("Doar administratorii pot edita fluxul.");
 
-  const steps = await db.select({ id: approvalSteps.id, order: approvalSteps.stepOrder }).from(approvalSteps).orderBy(approvalSteps.stepOrder);
+  // Reorder only within the moved step's own workflow.
+  const [moved] = await db.select({ workflowId: approvalSteps.workflowId }).from(approvalSteps).where(eq(approvalSteps.id, stepId)).limit(1);
+  if (!moved?.workflowId) return;
+  const steps = await db
+    .select({ id: approvalSteps.id, order: approvalSteps.stepOrder })
+    .from(approvalSteps)
+    .where(eq(approvalSteps.workflowId, moved.workflowId))
+    .orderBy(approvalSteps.stepOrder);
   const i = steps.findIndex((s) => s.id === stepId);
   if (i === -1) return;
   const j = direction === "up" ? i - 1 : i + 1;

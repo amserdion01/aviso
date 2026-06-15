@@ -10,6 +10,7 @@ import {
   requisitions,
   userCapabilities,
   users,
+  workflows,
 } from "@/db/schema";
 import { actOnTask, createRequisition } from "@/db/repo";
 import { referatDocument } from "@/db/queries";
@@ -33,9 +34,10 @@ async function reset() {
   await db.delete(users);
   await db.delete(orgUnits);
   await db.delete(approvalSteps);
+  await db.insert(workflows).values({ id: "p-wf", name: "Test" }).onConflictDoNothing();
   await db.insert(approvalSteps).values([
-    { id: "p-st-1", stepOrder: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
-    { id: "p-st-2", stepOrder: 2, taskType: "DIRECTOR", requiredCapability: "director", approverStrategy: "director_by_unit", label: "Director" },
+    { id: "p-st-1", workflowId: "p-wf", stepOrder: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
+    { id: "p-st-2", workflowId: "p-wf", stepOrder: 2, taskType: "DIRECTOR", requiredCapability: "director", approverStrategy: "director_by_unit", label: "Director" },
   ]);
   await db.insert(orgUnits).values([
     { id: SERVICIU, name: "Tehnic", kind: "serviciu", directorType: "Director tehnic" },
@@ -59,6 +61,7 @@ run("finalized referat PDF", () => {
     const id = await createRequisition({
       requesterId: REQUESTER,
       orgUnitId: BIROU,
+      workflowId: "p-wf",
       item: "Stații de lucru (3 buc.)",
       quantity: 3,
       justification: "Înlocuirea calculatoarelor uzate din biroul de proiectare.",

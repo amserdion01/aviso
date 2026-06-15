@@ -10,6 +10,7 @@ import {
   requisitions,
   userCapabilities,
   users,
+  workflows,
 } from "./schema";
 import { actOnTask, createRequisition } from "./repo";
 import { createDelegation, CircularDelegationError } from "./delegations-repo";
@@ -36,9 +37,11 @@ async function reset() {
   await db.delete(orgUnits);
   await db.delete(approvalSteps);
 
+  await db.insert(workflows).values({ id: "d-wf", name: "Test" }).onConflictDoNothing();
+
   await db.insert(approvalSteps).values([
-    { id: "d-st-1", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
-    { id: "d-st-2", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Director" },
+    { id: "d-st-1", workflowId: "d-wf", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
+    { id: "d-st-2", workflowId: "d-wf", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Director" },
   ]);
   await db.insert(orgUnits).values({ id: OU, name: "Birou", kind: "birou" });
   await db.insert(users).values([
@@ -57,6 +60,7 @@ function newReq() {
   return createRequisition({
     requesterId: REQUESTER,
     orgUnitId: OU,
+    workflowId: "d-wf",
     item: "Test",
     quantity: 1,
     justification: "x",

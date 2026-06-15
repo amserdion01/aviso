@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, ne, or, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { approvalSteps, approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
+import { approvalSteps, approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users, workflows } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
 import { TASK_TYPE_LABELS } from "@/lib/labels";
 
@@ -268,9 +268,36 @@ export async function reportsData() {
   return { byStatus, total, totalValue, avgDays, finalizedCount: finalized.length, waitingByStep, spendByCostCenter };
 }
 
-/** The approval-chain template steps, ordered, for the workflow editor. */
+/** All approval-chain steps across workflows, ordered. (Legacy; prefer stepsForWorkflow.) */
 export async function allApprovalSteps() {
   return db.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
+}
+
+/** All workflows (categories), incl. inactive — for the admin editor. */
+export async function allWorkflows() {
+  return db.select().from(workflows).orderBy(asc(workflows.name));
+}
+
+/**
+ * Active workflows that have at least one step — for the "Referat nou" category
+ * picker. (A category with no steps can't route a referat, so it's not offered.)
+ */
+export async function activeWorkflows() {
+  return db
+    .selectDistinct({ id: workflows.id, name: workflows.name, description: workflows.description })
+    .from(workflows)
+    .innerJoin(approvalSteps, eq(approvalSteps.workflowId, workflows.id))
+    .where(eq(workflows.active, true))
+    .orderBy(asc(workflows.name));
+}
+
+/** Ordered steps for one workflow — for the per-workflow step editor. */
+export async function stepsForWorkflow(workflowId: string) {
+  return db
+    .select()
+    .from(approvalSteps)
+    .where(eq(approvalSteps.workflowId, workflowId))
+    .orderBy(asc(approvalSteps.stepOrder));
 }
 
 /** All org units (serviciu + birou), for the admin user form. */

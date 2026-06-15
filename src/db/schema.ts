@@ -124,6 +124,24 @@ export const verifications = pgTable("verifications", {
 });
 
 // ---------------------------------------------------------------------------
+// Workflows (approval-chain categories)
+// ---------------------------------------------------------------------------
+
+/**
+ * A named approval-chain category. Each workflow owns an ordered set of
+ * approval_steps; a requisition is created against one workflow and
+ * materializes that workflow's applicable steps as tasks. Soft-deleted via
+ * `active` so in-flight referate (which keep their materialized tasks) stay valid.
+ */
+export const workflows = pgTable("workflows", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ---------------------------------------------------------------------------
 // Requisitions
 // ---------------------------------------------------------------------------
 
@@ -131,6 +149,8 @@ export const requisitions = pgTable("requisitions", {
   id: text("id").primaryKey(),
   requesterId: text("requester_id").notNull().references(() => users.id),
   orgUnitId: text("org_unit_id").notNull().references(() => orgUnits.id),
+  // the workflow (category) this referat was created against
+  workflowId: text("workflow_id").references(() => workflows.id),
   item: text("item").notNull(),
   quantity: integer("quantity").notNull(),
   justification: text("justification").notNull(),
@@ -156,6 +176,8 @@ export const requisitions = pgTable("requisitions", {
  */
 export const approvalSteps = pgTable("approval_steps", {
   id: text("id").primaryKey(),
+  // the workflow this step belongs to (null only transiently during migration)
+  workflowId: text("workflow_id").references(() => workflows.id),
   stepOrder: integer("step_order").notNull(),
   taskType: text("task_type").notNull(),
   requiredCapability: text("required_capability").notNull(),
@@ -175,7 +197,8 @@ export const approvalSteps = pgTable("approval_steps", {
     "approval_steps_strategy_chk",
     sql`${t.approverStrategy} in ('org_relative','capability','director_by_unit')`,
   ),
-  uniqueIndex("approval_steps_order_uniq").on(t.stepOrder),
+  // step_order is unique within a workflow (not globally)
+  uniqueIndex("approval_steps_wf_order_uniq").on(t.workflowId, t.stepOrder),
 ]);
 
 /**

@@ -36,6 +36,7 @@ export interface CreateRequisitionInput {
   estimatedValueMinor?: number | null;
   needsIt?: boolean;
   needsSsm?: boolean;
+  workflowId: string;
 }
 
 export class ApproverResolutionError extends Error {
@@ -65,9 +66,11 @@ function rowToStepDef(row: StepRow): StepDef {
   };
 }
 
-/** The approval-chain template, ordered. */
-async function loadTemplate(exec: Exec): Promise<StepRow[]> {
-  const rows = await exec.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
+/** The approval-chain template for a workflow, ordered. (null = all steps, legacy.) */
+async function loadTemplate(exec: Exec, workflowId: string | null): Promise<StepRow[]> {
+  const rows = workflowId
+    ? await exec.select().from(approvalSteps).where(eq(approvalSteps.workflowId, workflowId)).orderBy(asc(approvalSteps.stepOrder))
+    : await exec.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
   if (rows.length === 0) throw new Error("No approval_steps template seeded");
   return rows;
 }
@@ -132,7 +135,7 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
   const requisitionId = randomUUID();
 
   await db.transaction(async (tx) => {
-    const templateRows = await loadTemplate(tx);
+    const templateRows = await loadTemplate(tx, input.workflowId);
     const steps = templateRows.map(rowToStepDef);
 
     const approverByOrder = new Map<number, string>();
@@ -156,6 +159,7 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
       id: requisitionId,
       requesterId: input.requesterId,
       orgUnitId: input.orgUnitId,
+      workflowId: input.workflowId,
       item: input.item,
       quantity: input.quantity,
       justification: input.justification,
@@ -201,6 +205,7 @@ async function loadState(exec: Exec, requisitionId: string): Promise<WorkflowSta
     .select({
       requesterId: requisitions.requesterId,
       status: requisitions.status,
+      workflowId: requisitions.workflowId,
       needsIt: requisitions.needsIt,
       needsSsm: requisitions.needsSsm,
       procurementType: requisitions.procurementType,
@@ -211,7 +216,7 @@ async function loadState(exec: Exec, requisitionId: string): Promise<WorkflowSta
     .limit(1);
   if (!req) throw new Error(`Requisition ${requisitionId} not found`);
 
-  const steps = (await loadTemplate(exec)).map(rowToStepDef);
+  const steps = (await loadTemplate(exec, req.workflowId)).map(rowToStepDef);
 
   const taskRows = await exec
     .select()

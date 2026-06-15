@@ -9,6 +9,7 @@ import {
   requisitions,
   userCapabilities,
   users,
+  workflows,
 } from "@/db/schema";
 import { actOnTask, createRequisition, getWorkflowState } from "@/db/repo";
 import { notifyForState } from "./notifications";
@@ -30,9 +31,10 @@ async function reset() {
   await db.delete(users);
   await db.delete(orgUnits);
   await db.delete(approvalSteps);
+  await db.insert(workflows).values({ id: "n-wf", name: "Test" }).onConflictDoNothing();
   await db.insert(approvalSteps).values([
-    { id: "n-st-1", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
-    { id: "n-st-2", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Director" },
+    { id: "n-st-1", workflowId: "n-wf", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Șef birou" },
+    { id: "n-st-2", workflowId: "n-wf", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Director" },
   ]);
   await db.insert(orgUnits).values({ id: OU, name: "Birou", kind: "birou" });
   await db.insert(users).values([
@@ -59,6 +61,7 @@ run("notifications per routing event", () => {
     const id = await createRequisition({
       requesterId: REQUESTER,
       orgUnitId: OU,
+      workflowId: "n-wf",
       item: "Monitor",
       quantity: 2,
       justification: "x",

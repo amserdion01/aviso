@@ -2,7 +2,7 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "./index";
-import { users, requisitions, approvalTasks, requisitionComments } from "./schema";
+import { users, requisitions, approvalTasks, requisitionComments, workflows } from "./schema";
 import { createRequisition, actOnTask } from "./repo";
 
 /**
@@ -72,6 +72,9 @@ async function backdate(reqId: string, days: number) {
 
 async function main() {
   const ana = await userId("angajat@aviso.local");
+  const [wf] = await db.select({ id: workflows.id }).from(workflows).where(eq(workflows.id, "wf-standard")).limit(1);
+  if (!wf) throw new Error("Lipsește fluxul „Standard” — rulează întâi pnpm db:seed");
+  const workflowId = wf.id;
 
   // Fresh slate (row delete cascades to tasks/transitions/comments).
   await db.delete(requisitions);
@@ -88,6 +91,7 @@ async function main() {
     createRequisition({
       requesterId: ana,
       orgUnitId: ORG_UNIT,
+      workflowId,
       item,
       quantity,
       justification,

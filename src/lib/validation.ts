@@ -6,6 +6,7 @@ import { ASSIGNABLE_CAPABILITIES } from "@/lib/labels";
  * and converted to integer bani (minor units) — never stored as a float.
  */
 export const createReferatSchema = z.object({
+  workflowId: z.string().min(1, "Alege o categorie de referat"),
   item: z.string().trim().min(2, "Denumirea articolului este obligatorie"),
   quantity: z.coerce.number().int("Cantitatea trebuie să fie un număr întreg").positive("Cantitatea trebuie să fie pozitivă"),
   justification: z.string().trim().min(3, "Justificarea este obligatorie"),
@@ -64,7 +65,19 @@ export const updateUserSchema = z.object({
   capabilities: capabilitiesField,
 });
 
+export const workflowSchema = z.object({
+  workflowId: z.string().trim().optional(),
+  name: z.string().trim().min(2, "Numele categoriei este obligatoriu").max(80),
+  description: z
+    .string()
+    .trim()
+    .max(300)
+    .optional()
+    .transform((v) => (v ? v : null)),
+});
+
 export const stepSchema = z.object({
+  workflowId: z.string().min(1),
   stepId: z.string().trim().optional(),
   label: z.string().trim().min(2, "Eticheta este obligatorie").max(120),
   taskType: z.string().trim().min(2, "Tipul pasului este obligatoriu").max(60),

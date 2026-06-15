@@ -43,6 +43,13 @@
       "when": 1781541807161,
       "tag": "0005_fearless_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781556689217,
+      "tag": "0006_flat_sumo",
+      "breakpoints": true
     }
   ]
 }

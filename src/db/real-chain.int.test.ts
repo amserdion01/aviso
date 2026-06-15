@@ -10,6 +10,7 @@ import {
   requisitions,
   userCapabilities,
   users,
+  workflows,
 } from "./schema";
 import { actOnTask, createRequisition } from "./repo";
 import { REAL_CHAIN } from "@/domain/chain";
@@ -46,9 +47,12 @@ async function reset() {
   await db.delete(orgUnits);
   await db.delete(approvalSteps);
 
+  await db.insert(workflows).values({ id: "rc-wf", name: "Test" }).onConflictDoNothing();
+
   await db.insert(approvalSteps).values(
     REAL_CHAIN.map((s) => ({
       id: `step-${s.order}`,
+      workflowId: "rc-wf",
       stepOrder: s.order,
       taskType: s.taskType,
       requiredCapability: s.requiredCapability,
@@ -84,6 +88,7 @@ run("real chain — full happy path", () => {
     const id = await createRequisition({
       requesterId: "u-angajat",
       orgUnitId: BIROU,
+      workflowId: "rc-wf",
       item: "Laptop birou",
       quantity: 1,
       justification: "Înlocuire echipament defect",
