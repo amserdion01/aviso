@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, ne, or, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
+import { approvalSteps, approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
 import { TASK_TYPE_LABELS } from "@/lib/labels";
 
@@ -266,6 +266,11 @@ export async function reportsData() {
     .sort((a, b) => b.total - a.total);
 
   return { byStatus, total, totalValue, avgDays, finalizedCount: finalized.length, waitingByStep, spendByCostCenter };
+}
+
+/** The approval-chain template steps, ordered, for the workflow editor. */
+export async function allApprovalSteps() {
+  return db.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
 }
 
 /** All org units (serviciu + birou), for the admin user form. */

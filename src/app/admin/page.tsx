@@ -1,7 +1,8 @@
 import { requireAdmin } from "@/lib/session";
-import { allUsers, allDelegations, selectableUsers, allOrgUnits } from "@/db/queries";
+import { allUsers, allDelegations, selectableUsers, allOrgUnits, allApprovalSteps } from "@/db/queries";
 import { DelegationForm } from "@/components/delegation-form";
 import { UsersAdmin } from "@/components/users-admin";
+import { WorkflowAdmin } from "@/components/workflow-admin";
 import { CAPABILITY_LABELS } from "@/lib/labels";
 import { PageHead, Card, Table, Avatar, Badge, StatusBadge, EmptyState, type Column } from "@/components/ui/primitives";
 import { Tabs } from "@/components/ui/tabs";
@@ -12,11 +13,12 @@ type Del = Awaited<ReturnType<typeof allDelegations>>[number];
 
 export default async function AdminPage() {
   const me = await requireAdmin();
-  const [users, delegari, pickUsers, orgUnits] = await Promise.all([
+  const [users, delegari, pickUsers, orgUnits, steps] = await Promise.all([
     allUsers(),
     allDelegations(),
     selectableUsers(me.id),
     allOrgUnits(),
+    allApprovalSteps(),
   ]);
 
   const delCols: Column<Del>[] = [
@@ -64,13 +66,14 @@ export default async function AdminPage() {
 
   return (
     <div className="avi-screen">
-      <PageHead title="Administrare" sub="Gestionează utilizatorii, rolurile din traseu și înlocuitorii." />
+      <PageHead title="Administrare" sub="Gestionează utilizatorii, rolurile din traseu, înlocuitorii și fluxul de avizare." />
       <Tabs
         items={[
           { value: "utilizatori", label: "Utilizatori & roluri" },
           { value: "delegari", label: "Delegări / înlocuitori" },
+          { value: "flux", label: "Flux de avizare" },
         ]}
-        panels={{ utilizatori: usersPanel, delegari: delegariPanel }}
+        panels={{ utilizatori: usersPanel, delegari: delegariPanel, flux: <WorkflowAdmin steps={steps} /> }}
       />
     </div>
   );

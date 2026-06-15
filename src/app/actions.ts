@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import {
   createReferatSchema,
   actionSchema,
@@ -11,11 +11,13 @@ import {
   createUserSchema,
   updateUserSchema,
   commentSchema,
+  stepSchema,
+  buildAppliesWhen,
   leiToBani,
 } from "@/lib/validation";
 import { requireUser, isAdmin } from "@/lib/session";
 import { db } from "@/db";
-import { users, userCapabilities, requisitionComments, sessions } from "@/db/schema";
+import { users, userCapabilities, requisitionComments, sessions, approvalSteps } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { isInvolvedInRequisition } from "@/db/queries";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
@@ -241,6 +243,100 @@ export async function addCommentAction(formData: FormData): Promise<void> {
   });
 
   revalidatePath(`/referate/${parsed.data.requisitionId}`);
+}
+
+/** Parse + authorize a workflow-step form; returns the validated values or an error. */
+function parseStep(formData: FormData) {
+  return stepSchema.safeParse({
+    stepId: formData.get("stepId") ?? undefined,
+    label: formData.get("label"),
+    taskType: formData.get("taskType"),
+    requiredCapability: formData.get("requiredCapability"),
+    approverStrategy: formData.get("approverStrategy"),
+    approverParam: formData.get("approverParam") ?? undefined,
+    conditionKind: formData.get("conditionKind"),
+    conditionProcurement: formData.get("conditionProcurement") ?? undefined,
+    conditionValueLei: formData.get("conditionValueLei") ?? undefined,
+  });
+}
+
+/** Admin-only: append a new step to the approval-chain template. */
+export async function addStepAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot edita fluxul." };
+  const parsed = parseStep(formData);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+
+  const [last] = await db.select({ o: approvalSteps.stepOrder }).from(approvalSteps).orderBy(desc(approvalSteps.stepOrder)).limit(1);
+  await db.insert(approvalSteps).values({
+    id: crypto.randomUUID(),
+    stepOrder: (last?.o ?? 0) + 1,
+    taskType: parsed.data.taskType,
+    requiredCapability: parsed.data.requiredCapability,
+    approverStrategy: parsed.data.approverStrategy,
+    approverParam: parsed.data.approverParam,
+    appliesWhen: buildAppliesWhen(parsed.data),
+    blocking: formData.get("blocking") === "on",
+    setsProcurementType: formData.get("setsProcurementType") === "on",
+    label: parsed.data.label,
+  });
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Admin-only: update an existing step's definition (not its order). */
+export async function updateStepAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const me = await requireUser();
+  if (!isAdmin(me)) return { error: "Doar administratorii pot edita fluxul." };
+  const parsed = parseStep(formData);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.data.stepId) return { error: "Pas inexistent." };
+
+  await db
+    .update(approvalSteps)
+    .set({
+      taskType: parsed.data.taskType,
+      requiredCapability: parsed.data.requiredCapability,
+      approverStrategy: parsed.data.approverStrategy,
+      approverParam: parsed.data.approverParam,
+      appliesWhen: buildAppliesWhen(parsed.data),
+      blocking: formData.get("blocking") === "on",
+      setsProcurementType: formData.get("setsProcurementType") === "on",
+      label: parsed.data.label,
+    })
+    .where(eq(approvalSteps.id, parsed.data.stepId));
+  revalidatePath("/admin");
+  return { ok: true };
+}
+
+/** Admin-only: delete a step from the template. Affects only future referate. */
+export async function deleteStepAction(stepId: string): Promise<void> {
+  const me = await requireUser();
+  if (!isAdmin(me)) throw new Error("Doar administratorii pot edita fluxul.");
+  await db.delete(approvalSteps).where(eq(approvalSteps.id, stepId));
+  revalidatePath("/admin");
+}
+
+/** Admin-only: swap a step with its neighbour to reorder the chain. */
+export async function moveStepAction(stepId: string, direction: "up" | "down"): Promise<void> {
+  const me = await requireUser();
+  if (!isAdmin(me)) throw new Error("Doar administratorii pot edita fluxul.");
+
+  const steps = await db.select({ id: approvalSteps.id, order: approvalSteps.stepOrder }).from(approvalSteps).orderBy(approvalSteps.stepOrder);
+  const i = steps.findIndex((s) => s.id === stepId);
+  if (i === -1) return;
+  const j = direction === "up" ? i - 1 : i + 1;
+  if (j < 0 || j >= steps.length) return;
+
+  const a = steps[i];
+  const b = steps[j];
+  // Swap orders via a temporary value to avoid the unique-order constraint.
+  await db.transaction(async (tx) => {
+    await tx.update(approvalSteps).set({ stepOrder: -1 }).where(eq(approvalSteps.id, a.id));
+    await tx.update(approvalSteps).set({ stepOrder: a.order }).where(eq(approvalSteps.id, b.id));
+    await tx.update(approvalSteps).set({ stepOrder: b.order }).where(eq(approvalSteps.id, a.id));
+  });
+  revalidatePath("/admin");
 }
 
 /** Mark the current user's notifications feed as read (records the seen time). */

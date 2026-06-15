@@ -115,6 +115,24 @@ export function primaryRole(capabilities: string[]): string {
   return capabilities.length ? (CAPABILITY_LABELS[capabilities[0]] ?? capabilities[0]) : "Utilizator";
 }
 
+export const APPROVER_STRATEGY_LABELS: Record<string, string> = {
+  capability: "După capabilitate",
+  org_relative: "Relativ la unitate",
+  director_by_unit: "Director pe unitate",
+};
+
+/** Human summary (Romanian) of an approval step's applies_when condition. */
+export function describeCondition(cond: unknown): string {
+  if (cond == null) return "Întotdeauna";
+  const c = cond as Record<string, unknown>;
+  if ("all" in c) return "Condiție compusă";
+  if (c.field === "needsIt") return "Dacă necesită aviz IT";
+  if (c.field === "needsSsm") return "Dacă necesită aviz SSM";
+  if (c.field === "procurementType") return `Dacă tip achiziție = ${PROCUREMENT_TYPE_LABELS[String(c.eq)] ?? c.eq}`;
+  if (c.field === "estimatedValueMinor") return `Dacă valoarea > ${((Number(c.gt) || 0) / 100).toLocaleString("ro-RO")} lei`;
+  return "Condiție avansată";
+}
+
 /** Maps a requisition's stored status to a design-system status badge. */
 export function requisitionStatusBadge(status: string): {
   tone: "pending" | "approved" | "rejected" | "sentback" | "finalized" | "neutral";

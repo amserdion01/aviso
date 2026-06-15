@@ -64,6 +64,44 @@ export const updateUserSchema = z.object({
   capabilities: capabilitiesField,
 });
 
+export const stepSchema = z.object({
+  stepId: z.string().trim().optional(),
+  label: z.string().trim().min(2, "Eticheta este obligatorie").max(120),
+  taskType: z.string().trim().min(2, "Tipul pasului este obligatoriu").max(60),
+  requiredCapability: z.string().trim().min(1, "Capabilitatea este obligatorie").max(60),
+  approverStrategy: z.enum(["org_relative", "capability", "director_by_unit"]),
+  approverParam: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? v : null)),
+  conditionKind: z.enum(["none", "needsIt", "needsSsm", "procurementType", "value"]),
+  conditionProcurement: z.enum(["achizitii", "aprovizionare", "servicii"]).optional(),
+  conditionValueLei: z
+    .union([z.coerce.number().nonnegative(), z.literal("").transform(() => undefined)])
+    .optional(),
+});
+
+/** Build the engine `applies_when` predicate from the form's condition fields. */
+export function buildAppliesWhen(input: {
+  conditionKind: string;
+  conditionProcurement?: string;
+  conditionValueLei?: number;
+}): unknown {
+  switch (input.conditionKind) {
+    case "needsIt":
+      return { field: "needsIt", eq: true };
+    case "needsSsm":
+      return { field: "needsSsm", eq: true };
+    case "procurementType":
+      return input.conditionProcurement ? { field: "procurementType", eq: input.conditionProcurement } : null;
+    case "value":
+      return input.conditionValueLei != null ? { field: "estimatedValueMinor", gt: Math.round(input.conditionValueLei * 100) } : null;
+    default:
+      return null;
+  }
+}
+
 export const commentSchema = z.object({
   requisitionId: z.string().min(1),
   body: z.string().trim().min(1, "Comentariul nu poate fi gol").max(2000, "Comentariul este prea lung"),
