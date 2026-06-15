@@ -4,6 +4,10 @@ import { referatDocument, isInvolvedInRequisition } from "@/db/queries";
 import { renderReferatDocument } from "@/lib/referat-document";
 import { htmlToPdf } from "@/lib/pdf";
 
+// PDF rendering (Chromium cold start + render) can take a while on serverless.
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await ctx.params;
