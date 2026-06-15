@@ -3,7 +3,7 @@
    IBM Plex webfonts (Google CDN) → design tokens → components → shell.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import "./design/fonts.css";
 @import "./design/tokens.css";
 @import "./design/components.css";
 @import "./design/kit.css";
