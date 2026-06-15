@@ -439,6 +439,46 @@ export function AuditTimeline({ events }: { events: AuditEvent[] }) {
   );
 }
 
+/* ---------------- Toast ---------------- */
+export type ToastTone = "success" | "error" | "info" | "warning";
+const TOAST_GLYPH: Record<ToastTone, string> = {
+  success: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  error: '<circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  warning: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+};
+export function Toast({
+  tone = "info",
+  title,
+  message,
+  onClose,
+}: {
+  tone?: ToastTone;
+  title?: ReactNode;
+  message?: ReactNode;
+  onClose?: () => void;
+}) {
+  return (
+    <div className={cx("avi-toast", `avi-toast--${tone}`)} role="status">
+      <span className="avi-toast__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: TOAST_GLYPH[tone] }} />
+      </span>
+      <div className="avi-toast__body">
+        {title && <div className="avi-toast__title">{title}</div>}
+        {message && <div className="avi-toast__msg">{message}</div>}
+      </div>
+      {onClose && (
+        <button className="avi-toast__close" aria-label="Închide" onClick={onClose}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ---------------- EmptyState ---------------- */
 export function EmptyState({
   icon,

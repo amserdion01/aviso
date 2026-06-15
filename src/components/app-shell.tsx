@@ -1,9 +1,10 @@
 "use client";
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Avatar, CountBadge, IconButton } from "@/components/ui/primitives";
+import { ToastHost } from "@/components/ui/toast-host";
 import { signOut } from "@/lib/auth-client";
 
 interface NavDef {
@@ -114,6 +115,9 @@ export function AppShell({
         </nav>
         <main className="avi-main">{children}</main>
       </div>
+      <Suspense fallback={null}>
+        <ToastHost />
+      </Suspense>
     </div>
   );
 }

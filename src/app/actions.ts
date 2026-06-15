@@ -65,7 +65,7 @@ export async function createReferatAction(
     await notifyForState(requisitionId, state);
   });
 
-  redirect(`/referate/${requisitionId}`);
+  redirect(`/referate/${requisitionId}?flash=create`);
 }
 
 export async function actReferatAction(formData: FormData): Promise<void> {
@@ -106,7 +106,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
 
   revalidatePath(`/referate/${parsed.data.requisitionId}`);
   revalidatePath("/inbox");
-  redirect(`/referate/${parsed.data.requisitionId}`);
+  redirect(`/referate/${parsed.data.requisitionId}?flash=${parsed.data.action}`);
 }
 
 export async function createDelegationAction(
