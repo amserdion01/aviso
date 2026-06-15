@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: aviso
+      POSTGRES_PASSWORD: aviso
+      POSTGRES_DB: aviso
+    ports:
+      - "127.0.0.1:5432:5432"   # bound to localhost only — never expose publicly
+    volumes:
+      - aviso_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aviso -d aviso"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "127.0.0.1:1025:1025"   # SMTP trap
+      - "127.0.0.1:8025:8025"   # web UI -> http://localhost:8025
+
+volumes:
+  aviso_pgdata:
