@@ -22,6 +22,7 @@ export default async function InboxPage() {
                 </Link>
                 <p className="text-sm text-gray-500">
                   {TASK_TYPE_LABELS[t.taskType] ?? t.taskType} · solicitant: {t.requesterName}
+                  {t.onBehalfOf && <span className="ml-1 text-amber-700">· în numele {t.onBehalfOf}</span>}
                 </p>
               </div>
               <Link href={`/referate/${t.requisitionId}`} className="text-sm text-blue-600 hover:underline">

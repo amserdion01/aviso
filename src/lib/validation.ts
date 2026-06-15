@@ -23,6 +23,17 @@ export const actionSchema = z.object({
   classification: z.enum(["achizitii", "aprovizionare", "servicii"]).optional(),
 });
 
+export const delegationSchema = z
+  .object({
+    delegateId: z.string().min(1, "Alege un înlocuitor"),
+    capability: z.string().trim().optional(),
+    startsAt: z.coerce.date(),
+    endsAt: z.coerce.date(),
+  })
+  .refine((d) => d.endsAt.getTime() > d.startsAt.getTime(), {
+    message: "Data de sfârșit trebuie să fie după cea de început",
+  });
+
 /** Convert a lei amount to integer bani, or null. */
 export function leiToBani(lei: number | undefined): number | null {
   if (lei === undefined) return null;

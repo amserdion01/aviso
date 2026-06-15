@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createReferatSchema, actionSchema, leiToBani } from "@/lib/validation";
+import { createReferatSchema, actionSchema, delegationSchema, leiToBani } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
 import { actOnTask, createRequisition, ApproverResolutionError } from "@/db/repo";
+import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
 import {
   AuthorizationError,
   WorkflowFinishedError,
@@ -97,4 +98,38 @@ export async function actReferatAction(formData: FormData): Promise<void> {
   revalidatePath(`/referate/${parsed.data.requisitionId}`);
   revalidatePath("/inbox");
   redirect(`/referate/${parsed.data.requisitionId}`);
+}
+
+export async function createDelegationAction(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const user = await requireUser();
+  const parsed = delegationSchema.safeParse({
+    delegateId: formData.get("delegateId"),
+    capability: formData.get("capability") ?? "",
+    startsAt: formData.get("startsAt"),
+    endsAt: formData.get("endsAt"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  }
+
+  try {
+    await createDelegation({
+      delegatorId: user.id,
+      delegateId: parsed.data.delegateId,
+      capability: parsed.data.capability ? parsed.data.capability : null,
+      startsAt: parsed.data.startsAt,
+      endsAt: parsed.data.endsAt,
+    });
+  } catch (err) {
+    if (err instanceof CircularDelegationError) {
+      return { error: "Delegarea ar crea un lanț circular (sau te alegi pe tine)." };
+    }
+    throw err;
+  }
+
+  revalidatePath("/delegari");
+  return {};
 }

@@ -27,6 +27,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/inbox" className="hover:underline">
                   Inbox
                 </Link>
+                <Link href="/delegari" className="hover:underline">
+                  Delegări
+                </Link>
                 <span className="text-gray-500">{user.name}</span>
                 <SignOutButton />
               </nav>
