@@ -39,3 +39,15 @@ export async function requireUser(): Promise<AppUser> {
   if (!user) redirect("/login");
   return user;
 }
+
+/** Whether a user holds the `admin` capability (system administration). */
+export function isAdmin(user: AppUser): boolean {
+  return user.capabilities.includes("admin");
+}
+
+/** Require an authenticated admin; redirect non-admins to the home screen. */
+export async function requireAdmin(): Promise<AppUser> {
+  const user = await requireUser();
+  if (!isAdmin(user)) redirect("/");
+  return user;
+}

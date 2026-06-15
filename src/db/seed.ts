@@ -33,7 +33,7 @@ const USERS = [
   { name: "Aprovizionare", email: "aprovizionare@aviso.local", caps: ["aprovizionare"] },
   { name: "Servicii", email: "servicii@aviso.local", caps: ["servicii"] },
   { name: "Director Tehnic", email: "dirtehnic@aviso.local", caps: ["director_tehnic"] },
-  { name: "Director General", email: "dirgeneral@aviso.local", caps: ["director_general"] },
+  { name: "Director General", email: "dirgeneral@aviso.local", caps: ["director_general", "admin"] },
 ];
 
 async function ensureUser(name: string, email: string): Promise<string> {

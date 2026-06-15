@@ -23,6 +23,8 @@
   font-family: var(--font-sans); font-size: var(--text-sm-size); color: var(--text-strong); }
 .avi-topbar__search input::placeholder { color: var(--text-subtle); }
 .avi-topbar__right { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); }
+.avi-bell { position: relative; display: inline-flex; }
+.avi-bell__count { position: absolute; top: -3px; right: -3px; pointer-events: none; transform: scale(.85); transform-origin: top right; }
 
 /* user menu */
 .avi-usermenu { position: relative; }

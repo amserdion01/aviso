@@ -67,6 +67,7 @@ export const CAPABILITY_LABELS: Record<string, string> = {
   director: "Director",
   director_tehnic: "Director tehnic",
   director_general: "Director general",
+  admin: "Administrator",
 };
 
 const ROLE_PRIORITY = [

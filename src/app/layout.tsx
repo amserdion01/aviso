@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { getCurrentUser } from "@/lib/session";
+import { getCurrentUser, isAdmin } from "@/lib/session";
 import { inboxFor, activeSubstituteFor } from "@/db/queries";
 import { primaryRole } from "@/lib/labels";
 import { AppShell } from "@/components/app-shell";
@@ -31,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             user={{ name: user.name, email: user.email }}
             roleLabel={primaryRole(user.capabilities)}
             inboxCount={inboxCount}
+            isAdmin={isAdmin(user)}
             activeSubstitute={activeSubstitute}
           >
             {children}

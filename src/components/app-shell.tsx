@@ -3,7 +3,7 @@ import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon, type IconName } from "@/components/ui/icon";
-import { Avatar, CountBadge, IconButton } from "@/components/ui/primitives";
+import { Avatar, CountBadge } from "@/components/ui/primitives";
 import { ToastHost } from "@/components/ui/toast-host";
 import { signOut } from "@/lib/auth-client";
 
@@ -26,12 +26,14 @@ export function AppShell({
   user,
   roleLabel,
   inboxCount = 0,
+  isAdmin = false,
   activeSubstitute,
   children,
 }: {
   user: { name: string; email: string };
   roleLabel: string;
   inboxCount?: number;
+  isAdmin?: boolean;
   activeSubstitute?: { name: string; until: string } | null;
   children: ReactNode;
 }) {
@@ -54,12 +56,21 @@ export function AppShell({
           <span className="avi-topbar__name">Aviso</span>
           <span className="avi-topbar__org">Apa Covasna</span>
         </Link>
-        <div className="avi-topbar__search">
+        <form action="/" className="avi-topbar__search">
           <Icon name="search" />
-          <input placeholder="Caută referat, articol sau solicitant…" aria-label="Caută" />
-        </div>
+          <input name="q" placeholder="Caută referat, articol sau centru de cost…" aria-label="Caută" />
+        </form>
         <div className="avi-topbar__right">
-          <IconButton aria-label="Notificări"><Icon name="bell" /></IconButton>
+          <div className="avi-bell">
+            <Link href="/inbox" className="avi-iconbtn avi-iconbtn--ghost avi-iconbtn--md" aria-label="Notificări — vezi inboxul">
+              <Icon name="bell" />
+            </Link>
+            {inboxCount > 0 && (
+              <span className="avi-bell__count">
+                <CountBadge count={inboxCount} tone="danger" />
+              </span>
+            )}
+          </div>
           <div className="avi-usermenu">
             <button className="avi-usermenu__btn" onClick={() => setMenu((m) => !m)}>
               <Avatar name={user.name} size="sm" />
@@ -75,7 +86,7 @@ export function AppShell({
                   <div className="avi-usermenu__nm2">{user.name}</div>
                   <div className="avi-usermenu__em">{user.email}</div>
                 </div>
-                <Link href="/admin" className="avi-usermenu__item" onClick={() => setMenu(false)}>
+                <Link href="/delegari" className="avi-usermenu__item" onClick={() => setMenu(false)}>
                   <Icon name="repeat" /> Setează înlocuitor
                 </Link>
                 <div className="avi-usermenu__sep" />
@@ -90,7 +101,7 @@ export function AppShell({
       <div className="avi-body">
         <nav className="avi-sidebar">
           <div className="avi-sidebar__group">
-            {NAV.map((it) => {
+            {NAV.filter((it) => it.href !== "/admin" || isAdmin).map((it) => {
               const active = it.match(pathname);
               return (
                 <Link key={it.href} href={it.href} className={"avi-navitem" + (active ? " is-active" : "")} aria-current={active ? "page" : undefined}>

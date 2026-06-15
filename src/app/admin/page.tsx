@@ -1,6 +1,7 @@
-import { requireUser } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { allUsers, allDelegations, selectableUsers } from "@/db/queries";
 import { DelegationForm } from "@/components/delegation-form";
+import { UserActiveToggle } from "@/components/user-active-toggle";
 import { CAPABILITY_LABELS } from "@/lib/labels";
 import {
   PageHead,
@@ -9,7 +10,6 @@ import {
   Avatar,
   Badge,
   StatusBadge,
-  Switch,
   EmptyState,
   type Column,
 } from "@/components/ui/primitives";
@@ -21,7 +21,7 @@ type User = Awaited<ReturnType<typeof allUsers>>[number];
 type Del = Awaited<ReturnType<typeof allDelegations>>[number];
 
 export default async function AdminPage() {
-  const me = await requireUser();
+  const me = await requireAdmin();
   const [users, delegari, pickUsers] = await Promise.all([allUsers(), allDelegations(), selectableUsers(me.id)]);
 
   const userCols: Column<User>[] = [
@@ -52,7 +52,7 @@ export default async function AdminPage() {
       ),
     },
     { key: "dept", header: "Departament", render: (u) => <span className="avi-cell-muted">{u.deptName ?? "—"}</span> },
-    { key: "active", header: "Activ", align: "center", render: (u) => <Switch defaultChecked={u.active} aria-label="Activ" /> },
+    { key: "active", header: "Activ", align: "center", render: (u) => <UserActiveToggle userId={u.id} active={u.active} /> },
   ];
 
   const delCols: Column<Del>[] = [

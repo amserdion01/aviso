@@ -18,9 +18,17 @@ const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
 
 type Row = Awaited<ReturnType<typeof myRequisitions>>[number];
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const user = await requireUser();
-  const mine = await myRequisitions(user.id);
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
+  const all = await myRequisitions(user.id);
+  const mine = query
+    ? all.filter((r) => {
+        const hay = `${r.item} ${r.costCenter} ${r.id}`.toLowerCase();
+        return hay.includes(query.toLowerCase());
+      })
+    : all;
 
   const columns: Column<Row>[] = [
     {
@@ -60,7 +68,10 @@ export default async function HomePage() {
 
   return (
     <div className="avi-screen">
-      <PageHead title="Toate referatele" sub="Referatele inițiate de tine și starea lor curentă.">
+      <PageHead
+        title="Toate referatele"
+        sub={query ? `Rezultate pentru „${query}” — ${mine.length} referat(e).` : "Referatele inițiate de tine și starea lor curentă."}
+      >
         <ButtonLink href="/referate/nou" variant="primary" iconLeft={<Icon name="file-plus-2" />}>
           Referat nou
         </ButtonLink>
@@ -68,16 +79,29 @@ export default async function HomePage() {
 
       {mine.length === 0 ? (
         <Card padding="sm">
-          <EmptyState
-            icon="files"
-            title="Niciun referat încă"
-            description="Referatele pe care le inițiezi vor apărea aici, cu statusul lor pe traseul de avizare."
-            actions={
-              <ButtonLink href="/referate/nou" variant="secondary" iconLeft={<Icon name="file-plus-2" />}>
-                Creează un referat
-              </ButtonLink>
-            }
-          />
+          {query ? (
+            <EmptyState
+              icon="search"
+              title="Niciun rezultat"
+              description={`Niciun referat nu corespunde căutării „${query}”.`}
+              actions={
+                <ButtonLink href="/" variant="secondary" iconLeft={<Icon name="files" />}>
+                  Vezi toate referatele
+                </ButtonLink>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon="files"
+              title="Niciun referat încă"
+              description="Referatele pe care le inițiezi vor apărea aici, cu statusul lor pe traseul de avizare."
+              actions={
+                <ButtonLink href="/referate/nou" variant="secondary" iconLeft={<Icon name="file-plus-2" />}>
+                  Creează un referat
+                </ButtonLink>
+              }
+            />
+          )}
         </Card>
       ) : (
         <Table columns={columns} data={mine} rowKey={(r) => r.id} />

@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { eq } from "drizzle-orm";
 import { createReferatSchema, actionSchema, delegationSchema, leiToBani } from "@/lib/validation";
-import { requireUser } from "@/lib/session";
+import { requireUser, isAdmin } from "@/lib/session";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
 import { notifyForState } from "@/lib/notifications";
 import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
@@ -142,4 +145,14 @@ export async function createDelegationAction(
   revalidatePath("/delegari");
   revalidatePath("/admin");
   return {};
+}
+
+/** Admin-only: activate / deactivate a user account. */
+export async function setUserActiveAction(userId: string, active: boolean): Promise<void> {
+  const me = await requireUser();
+  if (!isAdmin(me)) {
+    throw new Error("Doar administratorii pot modifica utilizatorii.");
+  }
+  await db.update(users).set({ active }).where(eq(users.id, userId));
+  revalidatePath("/admin");
 }
