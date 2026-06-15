@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
-const fmtDate = (d: Date | null) => (d ? new Intl.DateTimeFormat("ro-RO").format(d) : "—");
+import { formatDate } from "@/lib/format";
+const fmtDate = (d: Date | null) => (d ? formatDate(d) : "—");
 
 type Row = Awaited<ReturnType<typeof finalizedRequisitions>>[number];
 

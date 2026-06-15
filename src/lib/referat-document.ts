@@ -1,5 +1,6 @@
 import type { ReferatDocumentData } from "@/db/queries";
 import { TASK_TYPE_LABELS, PROCUREMENT_TYPE_LABELS, formatLei } from "./labels";
+import { formatDate, formatDateTime } from "./format";
 
 const COMPANY_NAME = process.env.COMPANY_NAME ?? "Compania de Apă";
 
@@ -15,10 +16,8 @@ function shortId(id: string): string {
   return id.slice(0, 8).toUpperCase();
 }
 
-const dateFmt = (d: Date | null) =>
-  d ? new Date(d).toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
-const dateTimeFmt = (d: Date) =>
-  new Date(d).toLocaleString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateFmt = (d: Date | null) => (d ? formatDate(d) : "—");
+const dateTimeFmt = (d: Date) => formatDateTime(d);
 
 /** Renders the finalized referat as a self-contained, print-ready HTML document. */
 export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Date): string {

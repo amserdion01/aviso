@@ -5,7 +5,7 @@ import { inboxFor, activeSubstituteFor, notificationsFor } from "@/db/queries";
 import { primaryRole } from "@/lib/labels";
 import { AppShell } from "@/components/app-shell";
 
-const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
+import { formatDate as fmtDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Aviso — Referate de necesitate",

@@ -18,7 +18,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import { Tabs } from "@/components/ui/tabs";
 
-const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
+import { formatDate as fmtDate } from "@/lib/format";
 
 type Task = Awaited<ReturnType<typeof inboxFor>>[number];
 

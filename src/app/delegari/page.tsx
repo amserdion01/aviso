@@ -13,7 +13,7 @@ import {
   type Column,
 } from "@/components/ui/primitives";
 
-const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
+import { formatDate as fmtDate } from "@/lib/format";
 
 type Del = Awaited<ReturnType<typeof myDelegations>>[number];
 

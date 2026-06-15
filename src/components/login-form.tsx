@@ -1,13 +1,11 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn, signOut } from "@/lib/auth-client";
 import { checkActiveStatusAction } from "@/app/actions";
 import { Button, Checkbox, FormField, Input } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
 export function LoginForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,9 +28,10 @@ export function LoginForm() {
       setError("Contul tău este dezactivat. Contactează biroul IT.");
       return;
     }
-    setLoading(false);
-    router.push("/");
-    router.refresh();
+    // Full navigation (not router.push) so the freshly-set session cookie is
+    // sent on the request for "/"; a client navigation can race the cookie and
+    // bounce back to /login. Keep `loading` true — the page reloads.
+    window.location.href = "/";
   }
 
   return (

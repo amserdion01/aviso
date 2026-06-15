@@ -7,7 +7,7 @@ import { CAPABILITY_LABELS } from "@/lib/labels";
 import { PageHead, Card, Table, Avatar, Badge, StatusBadge, EmptyState, type Column } from "@/components/ui/primitives";
 import { Tabs } from "@/components/ui/tabs";
 
-const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
+import { formatDate as fmtDate } from "@/lib/format";
 
 type Del = Awaited<ReturnType<typeof allDelegations>>[number];
 

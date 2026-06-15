@@ -26,8 +26,7 @@ import {
 import { Icon } from "@/components/ui/icon";
 import { ReferatActionPanel } from "@/components/referat-action-panel";
 
-const fmtDateTime = (d: Date) =>
-  new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(d);
+import { formatDateTime as fmtDateTime } from "@/lib/format";
 
 const TASK_STATUS_TO_STEP: Record<string, StepStatus> = {
   approved: "done",

@@ -39,8 +39,7 @@ function line(n: NotificationItem): string {
   }
 }
 
-const fmtWhen = (d: string | Date) =>
-  new Intl.DateTimeFormat("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(d));
+import { formatDateTime as fmtWhen } from "@/lib/format";
 
 export function NotificationsBell({ items, unread }: { items: NotificationItem[]; unread: number }) {
   const [open, setOpen] = useState(false);
