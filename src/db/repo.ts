@@ -11,6 +11,7 @@ import {
   users,
 } from "./schema";
 import { DIRECTOR_TYPE_CAPABILITY } from "@/domain/chain";
+import { isActiveDelegate } from "./delegations-repo";
 import {
   act,
   createWorkflow,
@@ -262,6 +263,22 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
   return db.transaction(async (tx) => {
     const state = await loadState(tx, input.requisitionId);
     const activeBefore = state.tasks.find((t) => t.status === "waiting");
+
+    // Delegation: if the actor is an active delegate of the task's base approver
+    // (for its capability), let them act on the base approver's behalf. The audit
+    // transition records the delegate as the actor.
+    if (activeBefore && input.actorId !== activeBefore.effectiveApproverId) {
+      const delegated = await isActiveDelegate(
+        tx,
+        activeBefore.effectiveApproverId,
+        input.actorId,
+        activeBefore.requiredCapability,
+        new Date(),
+      );
+      if (delegated) {
+        activeBefore.effectiveApproverId = input.actorId;
+      }
+    }
 
     const next = act(state, {
       actorId: input.actorId,

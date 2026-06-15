@@ -1,14 +1,23 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "./index";
 import { approvalTasks, requisitionTransitions, requisitions, users } from "./schema";
+import { activeDelegationsForDelegate } from "./delegations-repo";
 
-/** Tasks waiting in a given approver's inbox, with requisition summary. */
+/**
+ * Tasks waiting in a given approver's inbox — their own plus any routed to them
+ * via an active delegation (date window + capability scope enforced here).
+ */
 export async function inboxFor(userId: string) {
-  return db
+  const now = new Date();
+  const covering = await activeDelegationsForDelegate(db, userId, now);
+  const baseIds = [userId, ...covering.map((c) => c.delegatorId)];
+
+  const rows = await db
     .select({
       taskId: approvalTasks.id,
       taskType: approvalTasks.taskType,
-      label: approvalTasks.taskType,
+      requiredCapability: approvalTasks.requiredCapability,
+      effectiveApproverId: approvalTasks.effectiveApproverId,
       requisitionId: requisitions.id,
       item: requisitions.item,
       quantity: requisitions.quantity,
@@ -18,8 +27,15 @@ export async function inboxFor(userId: string) {
     .from(approvalTasks)
     .innerJoin(requisitions, eq(requisitions.id, approvalTasks.requisitionId))
     .innerJoin(users, eq(users.id, requisitions.requesterId))
-    .where(and(eq(approvalTasks.effectiveApproverId, userId), eq(approvalTasks.status, "waiting")))
+    .where(and(inArray(approvalTasks.effectiveApproverId, baseIds), eq(approvalTasks.status, "waiting")))
     .orderBy(asc(requisitions.createdAt));
+
+  return rows.filter((t) => {
+    if (t.effectiveApproverId === userId) return true;
+    return covering.some(
+      (c) => c.delegatorId === t.effectiveApproverId && (c.capability === null || c.capability === t.requiredCapability),
+    );
+  });
 }
 
 /** Requisitions created by a user. */
