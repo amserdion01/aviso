@@ -1,0 +1,1 @@
+ALTER TABLE "approval_steps" ADD COLUMN "sets_procurement_type" boolean DEFAULT false NOT NULL;

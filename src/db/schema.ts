@@ -165,6 +165,8 @@ export const approvalSteps = pgTable("approval_steps", {
   onSendBack: text("on_send_back").notNull().default("previous"),
   // false = advisory (OPINIE), non-blocking
   blocking: boolean("blocking").notNull().default(true),
+  // true for the achiziții-încadrare step whose approval sets procurement_type
+  setsProcurementType: boolean("sets_procurement_type").notNull().default(false),
   label: text("label").notNull(),
 }, (t) => [
   check(

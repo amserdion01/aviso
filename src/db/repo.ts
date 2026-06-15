@@ -1,23 +1,28 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, or } from "drizzle-orm";
 import { db } from "./index";
 import {
+  approvalSteps,
   approvalTasks,
+  orgUnits,
   requisitionTransitions,
   requisitions,
   userCapabilities,
   users,
 } from "./schema";
-import { SLICE_STEPS } from "@/domain/chain";
+import { DIRECTOR_TYPE_CAPABILITY } from "@/domain/chain";
 import {
   act,
   createWorkflow,
   type ActInput,
+  type Condition,
+  type SendBackTarget,
   type StepDef,
   type WorkflowState,
 } from "@/domain/workflow";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type StepRow = typeof approvalSteps.$inferSelect;
 
 export interface CreateRequisitionInput {
   requesterId: string;
@@ -32,37 +37,92 @@ export interface CreateRequisitionInput {
 }
 
 export class ApproverResolutionError extends Error {
-  constructor(step: StepDef) {
-    super(`No eligible approver for step "${step.taskType}" (${step.requiredCapability})`);
+  constructor(taskType: string, capability: string) {
+    super(`No eligible approver for step "${taskType}" (${capability})`);
     this.name = "ApproverResolutionError";
   }
 }
 
-// The slice treats sef_birou as org-relative; everything else as capability-wide.
-function isOrgRelative(step: StepDef): boolean {
-  return step.requiredCapability === "sef_birou";
+function parseSendBack(v: string): SendBackTarget {
+  if (v === "previous" || v === "requester") return v;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : "previous";
 }
 
-/**
- * Resolve the effective approver for a step. Slice rules:
- *  - sef_birou: a user with the capability in the requester's own org unit
- *  - director / others: any active user holding the required capability
- * Phase 3 layers active delegations on top of this.
- */
-async function resolveApprover(tx: Tx, step: StepDef, orgUnitId: string): Promise<string> {
-  const conditions = [eq(userCapabilities.capability, step.requiredCapability), eq(users.active, true)];
-  if (isOrgRelative(step)) {
-    conditions.push(eq(users.orgUnitId, orgUnitId));
-  }
+function rowToStepDef(row: StepRow): StepDef {
+  return {
+    order: row.stepOrder,
+    taskType: row.taskType,
+    requiredCapability: row.requiredCapability,
+    label: row.label,
+    approverStrategy: row.approverStrategy as StepDef["approverStrategy"],
+    appliesWhen: (row.appliesWhen ?? null) as Condition,
+    onSendBack: parseSendBack(row.onSendBack),
+    blocking: row.blocking,
+    setsProcurementType: row.setsProcurementType,
+  };
+}
+
+/** The approval-chain template, ordered. */
+async function loadTemplate(tx: Tx): Promise<StepRow[]> {
+  const rows = await tx.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
+  if (rows.length === 0) throw new Error("No approval_steps template seeded");
+  return rows;
+}
+
+async function getOrgUnit(tx: Tx, id: string) {
+  const [row] = await tx.select().from(orgUnits).where(eq(orgUnits.id, id)).limit(1);
+  return row ?? null;
+}
+
+async function firstUserWithCapability(tx: Tx, capability: string, orgFilter?: ReturnType<typeof or>) {
+  const conditions = [eq(userCapabilities.capability, capability), eq(users.active, true)];
+  if (orgFilter) conditions.push(orgFilter);
   const rows = await tx
     .select({ id: users.id })
     .from(userCapabilities)
     .innerJoin(users, eq(users.id, userCapabilities.userId))
+    .leftJoin(orgUnits, eq(orgUnits.id, users.orgUnitId))
     .where(and(...conditions))
     .limit(1);
-  const found = rows[0];
-  if (!found) throw new ApproverResolutionError(step);
-  return found.id;
+  return rows[0]?.id ?? null;
+}
+
+/**
+ * Resolve the effective approver for a template step.
+ *  - capability:       any active user holding the required capability
+ *  - org_relative:     a holder within the requester's birou (param 'birou')
+ *                      or serviciu (param 'serviciu')
+ *  - director_by_unit: the director whose type matches the requester's serviciu
+ * Phase 3 layers active delegations on top of this.
+ */
+async function resolveApprover(tx: Tx, row: StepRow, requesterOrgUnitId: string): Promise<string> {
+  let userId: string | null = null;
+
+  if (row.approverStrategy === "capability") {
+    userId = await firstUserWithCapability(tx, row.requiredCapability);
+  } else if (row.approverStrategy === "org_relative") {
+    if (row.approverParam === "serviciu") {
+      const birou = await getOrgUnit(tx, requesterOrgUnitId);
+      const serviciuId = birou?.parentId ?? requesterOrgUnitId;
+      userId = await firstUserWithCapability(
+        tx,
+        row.requiredCapability,
+        or(eq(orgUnits.id, serviciuId), eq(orgUnits.parentId, serviciuId)),
+      );
+    } else {
+      userId = await firstUserWithCapability(tx, row.requiredCapability, eq(users.orgUnitId, requesterOrgUnitId));
+    }
+  } else if (row.approverStrategy === "director_by_unit") {
+    const birou = await getOrgUnit(tx, requesterOrgUnitId);
+    const serviciuId = birou?.parentId ?? requesterOrgUnitId;
+    const serviciu = await getOrgUnit(tx, serviciuId);
+    const capability = serviciu?.directorType ? DIRECTOR_TYPE_CAPABILITY[serviciu.directorType] : undefined;
+    if (capability) userId = await firstUserWithCapability(tx, capability);
+  }
+
+  if (!userId) throw new ApproverResolutionError(row.taskType, row.requiredCapability);
+  return userId;
 }
 
 /** Create a requisition and its initial approval tasks + audit row in one tx. */
@@ -70,14 +130,17 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
   const requisitionId = randomUUID();
 
   await db.transaction(async (tx) => {
+    const templateRows = await loadTemplate(tx);
+    const steps = templateRows.map(rowToStepDef);
+
     const approverByOrder = new Map<number, string>();
-    for (const step of SLICE_STEPS) {
-      approverByOrder.set(step.order, await resolveApprover(tx, step, input.orgUnitId));
+    for (const row of templateRows) {
+      approverByOrder.set(row.stepOrder, await resolveApprover(tx, row, input.orgUnitId));
     }
 
     const state = createWorkflow(
       input.requesterId,
-      SLICE_STEPS,
+      steps,
       (step) => approverByOrder.get(step.order)!,
       {
         needsIt: input.needsIt ?? false,
@@ -130,7 +193,7 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
   return requisitionId;
 }
 
-/** Load the persisted workflow state for the engine. */
+/** Load the persisted workflow state (with the template) for the engine. */
 async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> {
   const [req] = await tx
     .select({
@@ -145,6 +208,8 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
     .where(eq(requisitions.id, requisitionId))
     .limit(1);
   if (!req) throw new Error(`Requisition ${requisitionId} not found`);
+
+  const steps = (await loadTemplate(tx)).map(rowToStepDef);
 
   const taskRows = await tx
     .select()
@@ -167,7 +232,7 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
       procurementType: req.procurementType,
       estimatedValueMinor: req.estimatedValueMinor,
     },
-    steps: SLICE_STEPS,
+    steps,
     tasks: taskRows.map((t) => ({
       stepOrder: t.stepOrder,
       taskType: t.taskType,
@@ -190,7 +255,8 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
 /**
  * Apply an approval action and persist the new state + its single new audit row
  * in ONE transaction. If the engine rejects the action (authorization, finished
- * workflow) it throws before any write, so nothing is persisted.
+ * workflow, missing classification) it throws before any write, so nothing is
+ * persisted.
  */
 export async function actOnTask(input: ActInput & { requisitionId: string }): Promise<WorkflowState> {
   return db.transaction(async (tx) => {
@@ -201,6 +267,7 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
       actorId: input.actorId,
       action: input.action,
       comment: input.comment,
+      classification: input.classification,
     });
 
     await tx

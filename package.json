@@ -9,7 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:int": "RUN_DB_TESTS=1 DATABASE_URL=postgresql://aviso:aviso@localhost:5432/aviso_test vitest run",
+    "test:int": "RUN_DB_TESTS=1 DATABASE_URL=postgresql://aviso:aviso@localhost:5432/aviso_test vitest run --no-file-parallelism",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

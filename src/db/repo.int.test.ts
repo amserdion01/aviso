@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import {
+  approvalSteps,
   approvalTasks,
   delegations,
   orgUnits,
@@ -33,6 +34,13 @@ async function reset() {
   await db.delete(userCapabilities);
   await db.delete(users);
   await db.delete(orgUnits);
+  await db.delete(approvalSteps);
+
+  // Slice template: sef birou (org-relative) -> director (capability)
+  await db.insert(approvalSteps).values([
+    { id: "st-1", stepOrder: 1, taskType: "VERIFICARE_SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou" },
+    { id: "st-2", stepOrder: 2, taskType: "APROBAT_DIRECTOR", requiredCapability: "director", approverStrategy: "capability", label: "Aprobat director" },
+  ]);
 
   await db.insert(orgUnits).values({ id: OU, name: "Birou Test", kind: "birou" });
   await db.insert(users).values([
