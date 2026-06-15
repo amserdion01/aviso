@@ -20,6 +20,7 @@ export const actionSchema = z.object({
   requisitionId: z.string().min(1),
   action: z.enum(["approve", "reject", "send_back"]),
   comment: z.string().trim().max(2000).optional(),
+  classification: z.enum(["achizitii", "aprovizionare", "servicii"]).optional(),
 });
 
 /** Convert a lei amount to integer bani, or null. */

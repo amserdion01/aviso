@@ -16,8 +16,29 @@ export const TASK_STATUS_LABELS: Record<string, string> = {
 };
 
 export const TASK_TYPE_LABELS: Record<string, string> = {
+  // slice
   VERIFICARE_SEF_BIROU: "Verificare șef birou",
   APROBAT_DIRECTOR: "Aprobat director",
+  // real chain
+  SEF_BIROU: "Verificare șef birou/sector",
+  SEF_SERVICIU: "Verificare șef serviciu/secție",
+  INREGISTRARE: "Înregistrare",
+  IT: "IT",
+  SSM: "SSM",
+  RU: "RU",
+  MAGAZIE: "Verificare magazie",
+  DIRECTOR_ECONOMIC: "Aprobat director economic",
+  INCADRARE: "Achiziții — încadrare",
+  ACHIZITII: "Achiziții",
+  APROVIZIONARE: "Aprovizionare",
+  SERVICII: "Servicii",
+  DIRECTOR: "Aprobat director",
+};
+
+export const PROCUREMENT_TYPE_LABELS: Record<string, string> = {
+  achizitii: "Achiziții",
+  aprovizionare: "Aprovizionare",
+  servicii: "Servicii",
 };
 
 export const ACTION_LABELS: Record<string, string> = {

@@ -5,7 +5,12 @@ import { redirect } from "next/navigation";
 import { createReferatSchema, actionSchema, leiToBani } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
 import { actOnTask, createRequisition, ApproverResolutionError } from "@/db/repo";
-import { AuthorizationError, WorkflowFinishedError, SendBackError } from "@/domain/workflow";
+import {
+  AuthorizationError,
+  WorkflowFinishedError,
+  SendBackError,
+  ClassificationRequiredError,
+} from "@/domain/workflow";
 
 export interface ActionState {
   error?: string;
@@ -41,6 +46,8 @@ export async function createReferatAction(
       justification: parsed.data.justification,
       costCenter: parsed.data.costCenter,
       estimatedValueMinor: leiToBani(parsed.data.estimatedValueLei),
+      needsIt: formData.get("needsIt") === "on",
+      needsSsm: formData.get("needsSsm") === "on",
     });
   } catch (err) {
     if (err instanceof ApproverResolutionError) {
@@ -58,6 +65,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     requisitionId: formData.get("requisitionId"),
     action: formData.get("action"),
     comment: formData.get("comment") ?? undefined,
+    classification: formData.get("classification") ?? undefined,
   });
   if (!parsed.success) {
     throw new Error("Acțiune invalidă");
@@ -69,8 +77,12 @@ export async function actReferatAction(formData: FormData): Promise<void> {
       actorId: user.id,
       action: parsed.data.action,
       comment: parsed.data.comment,
+      classification: parsed.data.classification,
     });
   } catch (err) {
+    if (err instanceof ClassificationRequiredError) {
+      throw new Error("Selectează tipul de achiziție (încadrarea) înainte de a aproba.");
+    }
     if (
       err instanceof AuthorizationError ||
       err instanceof WorkflowFinishedError ||

@@ -54,6 +54,19 @@ export default async function ReferatDetailPage({ params }: { params: Promise<{ 
           <h2 className="mb-3 text-lg font-semibold">Acțiunea ta</h2>
           <form action={actReferatAction} className="space-y-3">
             <input type="hidden" name="requisitionId" value={r.id} />
+            {activeTask?.taskType === "INCADRARE" && (
+              <div>
+                <label className="mb-1 block text-sm font-medium">Încadrare (tip achiziție)</label>
+                <select name="classification" defaultValue="" className="w-full rounded border px-3 py-2 text-sm">
+                  <option value="" disabled>
+                    Alege tipul…
+                  </option>
+                  <option value="achizitii">Achiziții</option>
+                  <option value="aprovizionare">Aprovizionare</option>
+                  <option value="servicii">Servicii</option>
+                </select>
+              </div>
+            )}
             <textarea
               name="comment"
               rows={2}

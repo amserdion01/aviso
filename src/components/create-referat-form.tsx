@@ -31,6 +31,15 @@ export function CreateReferatForm() {
         <label className="mb-1 block text-sm font-medium">Justificare</label>
         <textarea name="justification" required rows={4} className="w-full rounded border px-3 py-2" />
       </div>
+      <fieldset className="space-y-2">
+        <legend className="mb-1 text-sm font-medium">Avize necesare</legend>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="needsIt" /> Necesită aviz IT
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" name="needsSsm" /> Necesită aviz SSM
+        </label>
+      </fieldset>
       {state.error && <p className="text-sm text-red-600">{state.error}</p>}
       <button
         type="submit"
