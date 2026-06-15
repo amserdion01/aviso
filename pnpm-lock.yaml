@@ -15,7 +15,7 @@ importers:
         specifier: ^2.0.8
         version: 2.0.8(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@sparticuz/chromium':
-        specifier: ^149.0.0
+        specifier: 149.0.0
         version: 149.0.0
       better-auth:
         specifier: ^1.6.18
@@ -33,7 +33,7 @@ importers:
         specifier: ^3.4.9
         version: 3.4.9
       puppeteer-core:
-        specifier: ^25.1.0
+        specifier: 25.1.0
         version: 25.1.0
       react:
         specifier: 19.2.4
@@ -76,7 +76,7 @@ importers:
         specifier: 16.2.9
         version: 16.2.9(@typescript-eslint/parser@8.61.0(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
       puppeteer:
-        specifier: ^25.1.0
+        specifier: 25.1.0
         version: 25.1.0
       tailwindcss:
         specifier: ^4
