@@ -25,7 +25,19 @@ export default async function ReferatDetailPage({ params }: { params: Promise<{ 
       <section className="rounded border bg-white p-5">
         <div className="mb-3 flex items-center justify-between">
           <h1 className="text-xl font-semibold">{r.item}</h1>
-          <span className="rounded bg-gray-100 px-2 py-1 text-sm">{STATUS_LABELS[r.status] ?? r.status}</span>
+          <div className="flex items-center gap-3">
+            {r.status === "approved" && (
+              <a
+                href={`/referate/${r.id}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded bg-gray-900 px-3 py-1 text-sm text-white"
+              >
+                Descarcă PDF
+              </a>
+            )}
+            <span className="rounded bg-gray-100 px-2 py-1 text-sm">{STATUS_LABELS[r.status] ?? r.status}</span>
+          </div>
         </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
           <div><dt className="text-gray-500">Cantitate</dt><dd>{r.quantity}</dd></div>

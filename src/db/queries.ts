@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { approvalTasks, delegations, requisitionTransitions, requisitions, users } from "./schema";
+import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, users } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
 
 /**
@@ -61,6 +61,58 @@ export async function myDelegations(userId: string) {
     .where(eq(delegations.delegatorId, userId))
     .orderBy(desc(delegations.startsAt));
 }
+
+/**
+ * Everything needed to render the finalized referat PDF: header fields,
+ * requester + org unit, and each step with who signed it and when.
+ */
+export async function referatDocument(id: string) {
+  const birou = alias(orgUnits, "doc_birou");
+  const serviciu = alias(orgUnits, "doc_serviciu");
+  const [row] = await db
+    .select({
+      id: requisitions.id,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      justification: requisitions.justification,
+      costCenter: requisitions.costCenter,
+      estimatedValueMinor: requisitions.estimatedValueMinor,
+      needsIt: requisitions.needsIt,
+      needsSsm: requisitions.needsSsm,
+      procurementType: requisitions.procurementType,
+      status: requisitions.status,
+      createdAt: requisitions.createdAt,
+      requesterName: users.name,
+      requesterEmail: users.email,
+      birouName: birou.name,
+      serviciuName: serviciu.name,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .leftJoin(birou, eq(birou.id, requisitions.orgUnitId))
+    .leftJoin(serviciu, eq(serviciu.id, birou.parentId))
+    .where(eq(requisitions.id, id))
+    .limit(1);
+  if (!row) return null;
+
+  const actedBy = alias(users, "doc_acted_by");
+  const steps = await db
+    .select({
+      stepOrder: approvalTasks.stepOrder,
+      taskType: approvalTasks.taskType,
+      status: approvalTasks.status,
+      actedAt: approvalTasks.actedAt,
+      actedByName: actedBy.name,
+    })
+    .from(approvalTasks)
+    .leftJoin(actedBy, eq(actedBy.id, approvalTasks.actedBy))
+    .where(eq(approvalTasks.requisitionId, id))
+    .orderBy(asc(approvalTasks.stepOrder));
+
+  return { ...row, steps };
+}
+
+export type ReferatDocumentData = NonNullable<Awaited<ReturnType<typeof referatDocument>>>;
 
 /** Active users other than `excludeId`, for the delegate picker. */
 export async function selectableUsers(excludeId: string) {
