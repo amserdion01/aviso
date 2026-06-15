@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ASSIGNABLE_CAPABILITIES } from "@/lib/labels";
 
 /**
  * Server-boundary validation for creating a referat. Money is entered in lei
@@ -34,11 +35,11 @@ export const delegationSchema = z
     message: "Data de sfârșit trebuie să fie după cea de început",
   });
 
+// Only canonical, assignable capabilities may be persisted (anything else is rejected).
 const capabilitiesField = z
-  .array(z.string().trim().min(1))
-  .or(z.string().trim().min(1).transform((s) => [s]))
-  .or(z.undefined().transform(() => [] as string[]))
-  .pipe(z.array(z.string()));
+  .array(z.enum(ASSIGNABLE_CAPABILITIES))
+  .or(z.enum(ASSIGNABLE_CAPABILITIES).transform((s) => [s]))
+  .or(z.undefined().transform(() => [] as Array<(typeof ASSIGNABLE_CAPABILITIES)[number]>));
 
 export const createUserSchema = z.object({
   name: z.string().trim().min(2, "Numele este obligatoriu"),

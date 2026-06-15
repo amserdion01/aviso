@@ -19,11 +19,12 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   if (!session) return null;
 
   const [row] = await db
-    .select({ id: users.id, name: users.name, email: users.email, orgUnitId: users.orgUnitId })
+    .select({ id: users.id, name: users.name, email: users.email, orgUnitId: users.orgUnitId, active: users.active })
     .from(users)
     .where(eq(users.id, session.user.id))
     .limit(1);
-  if (!row) return null;
+  // Deactivated accounts are treated as signed-out (offboarding / compromised account).
+  if (!row || !row.active) return null;
 
   const caps = await db
     .select({ capability: userCapabilities.capability })

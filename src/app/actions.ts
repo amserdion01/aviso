@@ -15,8 +15,9 @@ import {
 } from "@/lib/validation";
 import { requireUser, isAdmin } from "@/lib/session";
 import { db } from "@/db";
-import { users, userCapabilities, requisitionComments } from "@/db/schema";
+import { users, userCapabilities, requisitionComments, sessions } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { isInvolvedInRequisition } from "@/db/queries";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
 import { notifyForState } from "@/lib/notifications";
 import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
@@ -229,6 +230,9 @@ export async function addCommentAction(formData: FormData): Promise<void> {
   });
   if (!parsed.success) return; // empty/invalid: no-op (the textarea is required client-side)
 
+  // Only people involved in the referat may comment on it.
+  if (!(await isInvolvedInRequisition(me.id, parsed.data.requisitionId))) return;
+
   await db.insert(requisitionComments).values({
     id: crypto.randomUUID(),
     requisitionId: parsed.data.requisitionId,
@@ -252,5 +256,8 @@ export async function setUserActiveAction(userId: string, active: boolean): Prom
     throw new Error("Doar administratorii pot modifica utilizatorii.");
   }
   await db.update(users).set({ active }).where(eq(users.id, userId));
+  // Deactivation takes effect immediately: drop the user's sessions so they
+  // can't keep acting on an existing session until it expires.
+  if (!active) await db.delete(sessions).where(eq(sessions.userId, userId));
   revalidatePath("/admin");
 }

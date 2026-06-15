@@ -405,6 +405,22 @@ export async function myRequisitions(userId: string) {
     .orderBy(desc(requisitions.createdAt));
 }
 
+/** Whether a user is involved in a requisition (requester, or routed a task). */
+export async function isInvolvedInRequisition(userId: string, requisitionId: string): Promise<boolean> {
+  const [own] = await db
+    .select({ id: requisitions.id })
+    .from(requisitions)
+    .where(and(eq(requisitions.id, requisitionId), eq(requisitions.requesterId, userId)))
+    .limit(1);
+  if (own) return true;
+  const [task] = await db
+    .select({ id: approvalTasks.id })
+    .from(approvalTasks)
+    .where(and(eq(approvalTasks.requisitionId, requisitionId), eq(approvalTasks.effectiveApproverId, userId)))
+    .limit(1);
+  return !!task;
+}
+
 /** Discussion comments on a requisition, oldest first, with author names. */
 export async function commentsFor(requisitionId: string) {
   return db
