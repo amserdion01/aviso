@@ -63,6 +63,11 @@ export const updateUserSchema = z.object({
   capabilities: capabilitiesField,
 });
 
+export const commentSchema = z.object({
+  requisitionId: z.string().min(1),
+  body: z.string().trim().min(1, "Comentariul nu poate fi gol").max(2000, "Comentariul este prea lung"),
+});
+
 /** Convert a lei amount to integer bani, or null. */
 export function leiToBani(lei: number | undefined): number | null {
   if (lei === undefined) return null;

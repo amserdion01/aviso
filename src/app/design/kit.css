@@ -170,6 +170,20 @@
 .avi-actionpanel__foot { display: flex; gap: var(--space-3); padding: var(--space-4) var(--space-5);
   border-top: var(--border-w) solid var(--border-subtle); background: var(--gray-25); }
 
+/* ---------- Comments / discuție ---------- */
+.avi-comments { display: flex; flex-direction: column; gap: var(--space-6); }
+.avi-comments__empty { font-size: var(--text-sm-size); color: var(--text-muted); }
+.avi-comment { display: flex; gap: var(--space-4); }
+.avi-comment__body { flex: 1; min-width: 0; }
+.avi-comment__head { display: flex; align-items: baseline; gap: var(--space-4); }
+.avi-comment__author { font-size: var(--text-sm-size); font-weight: var(--weight-semibold); color: var(--text-strong); }
+.avi-comment__time { font-family: var(--font-mono); font-size: var(--text-caption-size); color: var(--text-subtle); }
+.avi-comment__text { margin-top: 3px; font-size: var(--text-body-size); color: var(--text-body);
+  line-height: var(--text-body-lh); white-space: pre-wrap; word-break: break-word; }
+.avi-comment-form { margin-top: var(--space-7); padding-top: var(--space-7);
+  border-top: var(--border-w) solid var(--border-subtle); display: flex; flex-direction: column; gap: var(--space-5); }
+.avi-comment-form__actions { display: flex; justify-content: flex-end; }
+
 /* ---------- Admin dialog ---------- */
 .avi-dialog-form { display: flex; flex-direction: column; gap: var(--space-6); }
 .avi-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }

@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, ne, or, sum } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
-import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
+import { approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
 import { TASK_TYPE_LABELS } from "@/lib/labels";
 
@@ -403,6 +403,21 @@ export async function myRequisitions(userId: string) {
     .from(requisitions)
     .where(eq(requisitions.requesterId, userId))
     .orderBy(desc(requisitions.createdAt));
+}
+
+/** Discussion comments on a requisition, oldest first, with author names. */
+export async function commentsFor(requisitionId: string) {
+  return db
+    .select({
+      id: requisitionComments.id,
+      body: requisitionComments.body,
+      createdAt: requisitionComments.createdAt,
+      authorName: users.name,
+    })
+    .from(requisitionComments)
+    .innerJoin(users, eq(users.id, requisitionComments.authorId))
+    .where(eq(requisitionComments.requisitionId, requisitionId))
+    .orderBy(asc(requisitionComments.createdAt));
 }
 
 /** Full detail for one requisition: header, tasks, and audit history. */

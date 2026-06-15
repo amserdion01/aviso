@@ -10,11 +10,12 @@ import {
   delegationSchema,
   createUserSchema,
   updateUserSchema,
+  commentSchema,
   leiToBani,
 } from "@/lib/validation";
 import { requireUser, isAdmin } from "@/lib/session";
 import { db } from "@/db";
-import { users, userCapabilities } from "@/db/schema";
+import { users, userCapabilities, requisitionComments } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
 import { notifyForState } from "@/lib/notifications";
@@ -217,6 +218,25 @@ export async function updateUserAction(_prev: ActionState, formData: FormData): 
 
   revalidatePath("/admin");
   return { ok: true };
+}
+
+/** Add a discussion comment to a referat. Any authenticated user may comment. */
+export async function addCommentAction(formData: FormData): Promise<void> {
+  const me = await requireUser();
+  const parsed = commentSchema.safeParse({
+    requisitionId: formData.get("requisitionId"),
+    body: formData.get("body"),
+  });
+  if (!parsed.success) return; // empty/invalid: no-op (the textarea is required client-side)
+
+  await db.insert(requisitionComments).values({
+    id: crypto.randomUUID(),
+    requisitionId: parsed.data.requisitionId,
+    authorId: me.id,
+    body: parsed.data.body,
+  });
+
+  revalidatePath(`/referate/${parsed.data.requisitionId}`);
 }
 
 /** Mark the current user's notifications feed as read (records the seen time). */

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/session";
-import { requisitionDetail } from "@/db/queries";
+import { requisitionDetail, commentsFor } from "@/db/queries";
+import { addCommentAction } from "@/app/actions";
 import {
   TASK_TYPE_LABELS,
   PROCUREMENT_TYPE_LABELS,
@@ -14,6 +15,8 @@ import {
   StatusBadge,
   Avatar,
   Badge,
+  Button,
+  Textarea,
   AuditTimeline,
   type Step,
   type StepStatus,
@@ -62,6 +65,7 @@ export default async function ReferatDetailPage({
   const { action } = await searchParams;
   const detail = await requisitionDetail(id);
   if (!detail) notFound();
+  const comments = await commentsFor(id);
 
   const { requisition: r, tasks, history, activeTask } = detail;
   const canAct = activeTask?.effectiveApproverId === user.id;
@@ -153,6 +157,36 @@ export default async function ReferatDetailPage({
 
           <Card title="Istoric & audit" subtitle="Toate acțiunile, în ordine cronologică" padding="lg">
             <AuditTimeline events={events} />
+          </Card>
+
+          <Card title="Discuție" subtitle="Comentarii și observații pe acest referat" padding="lg">
+            <div className="avi-comments">
+              {comments.length === 0 ? (
+                <p className="avi-comments__empty">Niciun comentariu încă. Începe discuția mai jos.</p>
+              ) : (
+                comments.map((c) => (
+                  <div key={c.id} className="avi-comment">
+                    <Avatar name={c.authorName} size="sm" />
+                    <div className="avi-comment__body">
+                      <div className="avi-comment__head">
+                        <span className="avi-comment__author">{c.authorName}</span>
+                        <span className="avi-comment__time">{fmtDateTime(c.createdAt)}</span>
+                      </div>
+                      <div className="avi-comment__text">{c.body}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <form action={addCommentAction} className="avi-comment-form">
+              <input type="hidden" name="requisitionId" value={r.id} />
+              <Textarea name="body" rows={3} required placeholder="Scrie un comentariu…" aria-label="Comentariu" />
+              <div className="avi-comment-form__actions">
+                <Button type="submit" variant="primary" iconLeft={<Icon name="send" />}>
+                  Trimite comentariul
+                </Button>
+              </div>
+            </form>
           </Card>
         </div>
 

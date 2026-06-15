@@ -248,3 +248,17 @@ export const delegations = pgTable("delegations", {
   check("delegations_not_self_chk", sql`${t.delegatorId} <> ${t.delegateId}`),
   index("delegations_delegate_idx").on(t.delegateId, t.active),
 ]);
+
+/**
+ * Free-form discussion on a requisition (separate from the approval audit in
+ * requisition_transitions). Anyone who can view the referat may comment.
+ */
+export const requisitionComments = pgTable("requisition_comments", {
+  id: text("id").primaryKey(),
+  requisitionId: text("requisition_id").notNull().references(() => requisitions.id, { onDelete: "cascade" }),
+  authorId: text("author_id").notNull().references(() => users.id),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("requisition_comments_req_idx").on(t.requisitionId, t.createdAt),
+]);
