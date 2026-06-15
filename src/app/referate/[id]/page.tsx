@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireUser } from "@/lib/session";
-import { requisitionDetail, commentsFor } from "@/db/queries";
+import { requireUser, isAdmin } from "@/lib/session";
+import { requisitionDetail, commentsFor, isInvolvedInRequisition } from "@/db/queries";
 import { addCommentAction } from "@/app/actions";
 import {
   TASK_TYPE_LABELS,
@@ -63,6 +63,9 @@ export default async function ReferatDetailPage({
   const user = await requireUser();
   const { id } = await params;
   const { action } = await searchParams;
+  // Only people involved in the referat (or admins) may view it; 404 otherwise
+  // so we don't reveal that it exists.
+  if (!isAdmin(user) && !(await isInvolvedInRequisition(user.id, id))) notFound();
   const detail = await requisitionDetail(id);
   if (!detail) notFound();
   const comments = await commentsFor(id);

@@ -237,8 +237,8 @@ export async function addCommentAction(formData: FormData): Promise<void> {
   });
   if (!parsed.success) return; // empty/invalid: no-op (the textarea is required client-side)
 
-  // Only people involved in the referat may comment on it.
-  if (!(await isInvolvedInRequisition(me.id, parsed.data.requisitionId))) return;
+  // Only people involved in the referat (or admins) may comment on it.
+  if (!isAdmin(me) && !(await isInvolvedInRequisition(me.id, parsed.data.requisitionId))) return;
 
   await db.insert(requisitionComments).values({
     id: crypto.randomUUID(),

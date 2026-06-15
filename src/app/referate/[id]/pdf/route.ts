@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/session";
-import { referatDocument } from "@/db/queries";
+import { requireUser, isAdmin } from "@/lib/session";
+import { referatDocument, isInvolvedInRequisition } from "@/db/queries";
 import { renderReferatDocument } from "@/lib/referat-document";
 import { htmlToPdf } from "@/lib/pdf";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  await requireUser();
+  const user = await requireUser();
   const { id } = await ctx.params;
+
+  // Same read-gate as the detail page: only involved users (or admins).
+  if (!isAdmin(user) && !(await isInvolvedInRequisition(user.id, id))) {
+    return new NextResponse("Referat inexistent", { status: 404 });
+  }
 
   const data = await referatDocument(id);
   if (!data) return new NextResponse("Referat inexistent", { status: 404 });

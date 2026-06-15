@@ -410,7 +410,11 @@ export async function myRequisitions(userId: string) {
     .orderBy(desc(requisitions.createdAt));
 }
 
-/** Whether a user is involved in a requisition (requester, or routed a task). */
+/**
+ * Whether a user is involved in a requisition: the requester, an approver it
+ * was routed to (current or past), someone who acted on it (incl. as a
+ * delegate), or a delegate currently covering an approver it's waiting on.
+ */
 export async function isInvolvedInRequisition(userId: string, requisitionId: string): Promise<boolean> {
   const [own] = await db
     .select({ id: requisitions.id })
@@ -418,12 +422,41 @@ export async function isInvolvedInRequisition(userId: string, requisitionId: str
     .where(and(eq(requisitions.id, requisitionId), eq(requisitions.requesterId, userId)))
     .limit(1);
   if (own) return true;
+
   const [task] = await db
     .select({ id: approvalTasks.id })
     .from(approvalTasks)
-    .where(and(eq(approvalTasks.requisitionId, requisitionId), eq(approvalTasks.effectiveApproverId, userId)))
+    .where(
+      and(
+        eq(approvalTasks.requisitionId, requisitionId),
+        or(eq(approvalTasks.effectiveApproverId, userId), eq(approvalTasks.actedBy, userId)),
+      ),
+    )
     .limit(1);
-  return !!task;
+  if (task) return true;
+
+  // Delegate currently covering an approver this referat is waiting on.
+  const covering = await activeDelegationsForDelegate(db, userId, new Date());
+  if (covering.length) {
+    const rows = await db
+      .select({ effectiveApproverId: approvalTasks.effectiveApproverId, requiredCapability: approvalTasks.requiredCapability })
+      .from(approvalTasks)
+      .where(
+        and(
+          eq(approvalTasks.requisitionId, requisitionId),
+          eq(approvalTasks.status, "waiting"),
+          inArray(approvalTasks.effectiveApproverId, covering.map((c) => c.delegatorId)),
+        ),
+      );
+    if (
+      rows.some((r) =>
+        covering.some((c) => c.delegatorId === r.effectiveApproverId && (c.capability === null || c.capability === r.requiredCapability)),
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /** Discussion comments on a requisition, oldest first, with author names. */
