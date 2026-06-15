@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Avatar, CountBadge } from "@/components/ui/primitives";
 import { ToastHost } from "@/components/ui/toast-host";
+import { NotificationsBell, type NotificationItem } from "@/components/notifications-bell";
 import { signOut } from "@/lib/auth-client";
 
 interface NavDef {
@@ -28,6 +29,7 @@ export function AppShell({
   inboxCount = 0,
   isAdmin = false,
   activeSubstitute,
+  notifications,
   children,
 }: {
   user: { name: string; email: string };
@@ -35,6 +37,7 @@ export function AppShell({
   inboxCount?: number;
   isAdmin?: boolean;
   activeSubstitute?: { name: string; until: string } | null;
+  notifications: { items: NotificationItem[]; unread: number };
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? "/";
@@ -61,16 +64,7 @@ export function AppShell({
           <input name="q" placeholder="Caută referat, articol sau centru de cost…" aria-label="Caută" />
         </form>
         <div className="avi-topbar__right">
-          <div className="avi-bell">
-            <Link href="/inbox" className="avi-iconbtn avi-iconbtn--ghost avi-iconbtn--md" aria-label="Notificări — vezi inboxul">
-              <Icon name="bell" />
-            </Link>
-            {inboxCount > 0 && (
-              <span className="avi-bell__count">
-                <CountBadge count={inboxCount} tone="danger" />
-              </span>
-            )}
-          </div>
+          <NotificationsBell items={notifications.items} unread={notifications.unread} />
           <div className="avi-usermenu">
             <button className="avi-usermenu__btn" onClick={() => setMenu((m) => !m)}>
               <Avatar name={user.name} size="sm" />

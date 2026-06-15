@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getCurrentUser, isAdmin } from "@/lib/session";
-import { inboxFor, activeSubstituteFor } from "@/db/queries";
+import { inboxFor, activeSubstituteFor, notificationsFor } from "@/db/queries";
 import { primaryRole } from "@/lib/labels";
 import { AppShell } from "@/components/app-shell";
 
@@ -17,10 +17,16 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   let inboxCount = 0;
   let activeSubstitute: { name: string; until: string } | null = null;
+  let notifications: Awaited<ReturnType<typeof notificationsFor>> = { items: [], unread: 0 };
   if (user) {
-    const [inbox, substitute] = await Promise.all([inboxFor(user.id), activeSubstituteFor(user.id)]);
+    const [inbox, substitute, notifs] = await Promise.all([
+      inboxFor(user.id),
+      activeSubstituteFor(user.id),
+      notificationsFor(user.id),
+    ]);
     inboxCount = inbox.length;
     if (substitute) activeSubstitute = { name: substitute.delegateName, until: fmtDate(substitute.endsAt) };
+    notifications = notifs;
   }
 
   return (
@@ -33,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             inboxCount={inboxCount}
             isAdmin={isAdmin(user)}
             activeSubstitute={activeSubstitute}
+            notifications={notifications}
           >
             {children}
           </AppShell>

@@ -147,6 +147,12 @@ export async function createDelegationAction(
   return {};
 }
 
+/** Mark the current user's notifications feed as read (records the seen time). */
+export async function markNotificationsReadAction(): Promise<void> {
+  const me = await requireUser();
+  await db.update(users).set({ notificationsSeenAt: new Date() }).where(eq(users.id, me.id));
+}
+
 /** Admin-only: activate / deactivate a user account. */
 export async function setUserActiveAction(userId: string, active: boolean): Promise<void> {
   const me = await requireUser();

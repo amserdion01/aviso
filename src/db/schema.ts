@@ -52,6 +52,8 @@ export const users = pgTable("users", {
   username: text("username"),
   orgUnitId: text("org_unit_id").references(() => orgUnits.id),
   active: boolean("active").notNull().default(true),
+  // when the user last opened their notifications feed; unread = events after this
+  notificationsSeenAt: timestamp("notifications_seen_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [uniqueIndex("users_email_uniq").on(t.email)]);

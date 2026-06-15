@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte, ne } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
@@ -113,6 +113,45 @@ export async function referatDocument(id: string) {
 }
 
 export type ReferatDocumentData = NonNullable<Awaited<ReturnType<typeof referatDocument>>>;
+
+/**
+ * Notifications feed for a requester: actions other people took on the referate
+ * they submitted. Unread = events newer than the user's notifications_seen_at.
+ */
+export async function notificationsFor(userId: string) {
+  const actor = alias(users, "notif_actor");
+  const rows = await db
+    .select({
+      requisitionId: requisitions.id,
+      item: requisitions.item,
+      action: requisitionTransitions.action,
+      toStatus: requisitionTransitions.toStatus,
+      actorName: actor.name,
+      createdAt: requisitionTransitions.createdAt,
+    })
+    .from(requisitionTransitions)
+    .innerJoin(requisitions, eq(requisitions.id, requisitionTransitions.requisitionId))
+    .innerJoin(actor, eq(actor.id, requisitionTransitions.actorId))
+    .where(
+      and(
+        eq(requisitions.requesterId, userId),
+        ne(requisitionTransitions.actorId, userId),
+        inArray(requisitionTransitions.action, ["approve", "reject", "send_back"]),
+      ),
+    )
+    .orderBy(desc(requisitionTransitions.createdAt))
+    .limit(20);
+
+  const [me] = await db
+    .select({ seenAt: users.notificationsSeenAt })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  const seenAt = me?.seenAt ?? null;
+
+  const items = rows.map((r) => ({ ...r, unread: seenAt === null || r.createdAt > seenAt }));
+  return { items, unread: items.filter((i) => i.unread).length };
+}
 
 /** The current user's active substitute right now (as delegator), if any. */
 export async function activeSubstituteFor(userId: string) {
