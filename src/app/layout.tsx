@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { getCurrentUser } from "@/lib/session";
-import { inboxFor } from "@/db/queries";
+import { inboxFor, activeSubstituteFor } from "@/db/queries";
 import { primaryRole } from "@/lib/labels";
 import { AppShell } from "@/components/app-shell";
+
+const fmtDate = (d: Date) => new Intl.DateTimeFormat("ro-RO").format(d);
 
 export const metadata: Metadata = {
   title: "Aviso — Referate de necesitate",
@@ -13,6 +15,14 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
 
+  let inboxCount = 0;
+  let activeSubstitute: { name: string; until: string } | null = null;
+  if (user) {
+    const [inbox, substitute] = await Promise.all([inboxFor(user.id), activeSubstituteFor(user.id)]);
+    inboxCount = inbox.length;
+    if (substitute) activeSubstitute = { name: substitute.delegateName, until: fmtDate(substitute.endsAt) };
+  }
+
   return (
     <html lang="ro">
       <body>
@@ -20,7 +30,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AppShell
             user={{ name: user.name, email: user.email }}
             roleLabel={primaryRole(user.capabilities)}
-            inboxCount={(await inboxFor(user.id)).length}
+            inboxCount={inboxCount}
+            activeSubstitute={activeSubstitute}
           >
             {children}
           </AppShell>

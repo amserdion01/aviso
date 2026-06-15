@@ -41,6 +41,7 @@ export default function LoginPage() {
               id="li-email"
               type="email"
               required
+              autoComplete="email"
               value={email}
               prefix={<Icon name="mail" />}
               onChange={(e) => setEmail(e.target.value)}
@@ -52,6 +53,7 @@ export default function LoginPage() {
               id="li-pass"
               type="password"
               required
+              autoComplete="current-password"
               value={password}
               prefix={<Icon name="lock" />}
               onChange={(e) => setPassword(e.target.value)}

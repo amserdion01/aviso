@@ -67,7 +67,7 @@ run("notifications per routing event", () => {
 
     // create -> first approver (sef)
     await notifyForState(id, await getWorkflowState(id));
-    let mail = (await inbox())[0];
+    const mail = (await inbox())[0];
     expect(mail.Subject).toContain("de aprobat");
     expect(mail.To[0].Address).toBe("sef-n@aviso.test");
 

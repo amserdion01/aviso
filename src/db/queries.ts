@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalTasks, delegations, orgUnits, requisitionTransitions, requisitions, userCapabilities, users } from "./schema";
@@ -113,6 +113,26 @@ export async function referatDocument(id: string) {
 }
 
 export type ReferatDocumentData = NonNullable<Awaited<ReturnType<typeof referatDocument>>>;
+
+/** The current user's active substitute right now (as delegator), if any. */
+export async function activeSubstituteFor(userId: string) {
+  const now = new Date();
+  const [row] = await db
+    .select({ delegateName: users.name, endsAt: delegations.endsAt })
+    .from(delegations)
+    .innerJoin(users, eq(users.id, delegations.delegateId))
+    .where(
+      and(
+        eq(delegations.delegatorId, userId),
+        eq(delegations.active, true),
+        lte(delegations.startsAt, now),
+        gte(delegations.endsAt, now),
+      ),
+    )
+    .orderBy(asc(delegations.endsAt))
+    .limit(1);
+  return row ?? null;
+}
 
 /** Active users other than `excludeId`, for the delegate picker. */
 export async function selectableUsers(excludeId: string) {

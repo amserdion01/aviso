@@ -25,11 +25,13 @@ export function AppShell({
   user,
   roleLabel,
   inboxCount = 0,
+  activeSubstitute,
   children,
 }: {
   user: { name: string; email: string };
   roleLabel: string;
   inboxCount?: number;
+  activeSubstitute?: { name: string; until: string } | null;
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? "/";
@@ -99,13 +101,15 @@ export function AppShell({
             })}
           </div>
           <div className="avi-sidebar__foot">
-            <div className="avi-sidebar__sub">
+            <Link href="/delegari" className="avi-sidebar__sub" style={{ textDecoration: "none" }}>
               <Icon name="shield-check" />
               <div>
                 <div className="avi-sidebar__subt">Înlocuitor activ</div>
-                <div className="avi-sidebar__subd">Niciunul setat</div>
+                <div className="avi-sidebar__subd">
+                  {activeSubstitute ? `${activeSubstitute.name} · până la ${activeSubstitute.until}` : "Niciunul setat"}
+                </div>
               </div>
-            </div>
+            </Link>
           </div>
         </nav>
         <main className="avi-main">{children}</main>
