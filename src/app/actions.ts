@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { createReferatSchema, actionSchema, delegationSchema, leiToBani } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
-import { actOnTask, createRequisition, ApproverResolutionError } from "@/db/repo";
+import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
+import { notifyForState } from "@/lib/notifications";
 import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
 import {
   AuthorizationError,
@@ -57,6 +59,12 @@ export async function createReferatAction(
     throw err;
   }
 
+  // Notify the first approver after the response is sent.
+  after(async () => {
+    const state = await getWorkflowState(requisitionId);
+    await notifyForState(requisitionId, state);
+  });
+
   redirect(`/referate/${requisitionId}`);
 }
 
@@ -73,13 +81,14 @@ export async function actReferatAction(formData: FormData): Promise<void> {
   }
 
   try {
-    await actOnTask({
+    const next = await actOnTask({
       requisitionId: parsed.data.requisitionId,
       actorId: user.id,
       action: parsed.data.action,
       comment: parsed.data.comment,
       classification: parsed.data.classification,
     });
+    after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {
     if (err instanceof ClassificationRequiredError) {
       throw new Error("Selectează tipul de achiziție (încadrarea) înainte de a aproba.");

@@ -23,6 +23,7 @@ import {
 } from "@/domain/workflow";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Exec = typeof db | Tx;
 type StepRow = typeof approvalSteps.$inferSelect;
 
 export interface CreateRequisitionInput {
@@ -65,8 +66,8 @@ function rowToStepDef(row: StepRow): StepDef {
 }
 
 /** The approval-chain template, ordered. */
-async function loadTemplate(tx: Tx): Promise<StepRow[]> {
-  const rows = await tx.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
+async function loadTemplate(exec: Exec): Promise<StepRow[]> {
+  const rows = await exec.select().from(approvalSteps).orderBy(asc(approvalSteps.stepOrder));
   if (rows.length === 0) throw new Error("No approval_steps template seeded");
   return rows;
 }
@@ -195,8 +196,8 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
 }
 
 /** Load the persisted workflow state (with the template) for the engine. */
-async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> {
-  const [req] = await tx
+async function loadState(exec: Exec, requisitionId: string): Promise<WorkflowState> {
+  const [req] = await exec
     .select({
       requesterId: requisitions.requesterId,
       status: requisitions.status,
@@ -210,15 +211,15 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
     .limit(1);
   if (!req) throw new Error(`Requisition ${requisitionId} not found`);
 
-  const steps = (await loadTemplate(tx)).map(rowToStepDef);
+  const steps = (await loadTemplate(exec)).map(rowToStepDef);
 
-  const taskRows = await tx
+  const taskRows = await exec
     .select()
     .from(approvalTasks)
     .where(eq(approvalTasks.requisitionId, requisitionId))
     .orderBy(asc(approvalTasks.stepOrder));
 
-  const transitionRows = await tx
+  const transitionRows = await exec
     .select()
     .from(requisitionTransitions)
     .where(eq(requisitionTransitions.requisitionId, requisitionId))
@@ -251,6 +252,11 @@ async function loadState(tx: Tx, requisitionId: string): Promise<WorkflowState> 
       isMostRecent: t.isMostRecent,
     })),
   };
+}
+
+/** Load the current workflow state for a requisition (e.g. for notifications). */
+export async function getWorkflowState(requisitionId: string): Promise<WorkflowState> {
+  return loadState(db, requisitionId);
 }
 
 /**
