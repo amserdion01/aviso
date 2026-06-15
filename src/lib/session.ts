@@ -41,6 +41,18 @@ export async function requireUser(): Promise<AppUser> {
   return user;
 }
 
+/**
+ * Activity status of the session's user — distinguishes a deactivated account
+ * from no session at all (getCurrentUser collapses both to null).
+ */
+export async function sessionActivityStatus(): Promise<"active" | "inactive" | "none"> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return "none";
+  const [row] = await db.select({ active: users.active }).from(users).where(eq(users.id, session.user.id)).limit(1);
+  if (!row) return "none";
+  return row.active ? "active" : "inactive";
+}
+
 /** Whether a user holds the `admin` capability (system administration). */
 export function isAdmin(user: AppUser): boolean {
   return user.capabilities.includes("admin");

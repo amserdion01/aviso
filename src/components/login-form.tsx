@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "@/lib/auth-client";
+import { signIn, signOut } from "@/lib/auth-client";
+import { checkActiveStatusAction } from "@/app/actions";
 import { Button, Checkbox, FormField, Input } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
@@ -17,11 +18,19 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
     const { error } = await signIn.email({ email, password });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setError("Email sau parolă incorecte.");
       return;
     }
+    // Better Auth doesn't know about our `active` flag — block deactivated accounts here.
+    if ((await checkActiveStatusAction()) === "inactive") {
+      await signOut();
+      setLoading(false);
+      setError("Contul tău este dezactivat. Contactează biroul IT.");
+      return;
+    }
+    setLoading(false);
     router.push("/");
     router.refresh();
   }

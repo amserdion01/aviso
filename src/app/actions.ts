@@ -15,7 +15,7 @@ import {
   buildAppliesWhen,
   leiToBani,
 } from "@/lib/validation";
-import { requireUser, isAdmin } from "@/lib/session";
+import { requireUser, isAdmin, sessionActivityStatus } from "@/lib/session";
 import { db } from "@/db";
 import { users, userCapabilities, requisitionComments, sessions, approvalSteps } from "@/db/schema";
 import { auth } from "@/lib/auth";
@@ -138,6 +138,11 @@ export async function createDelegationAction(
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  }
+
+  // You can only delegate a capability you actually hold (null = all of yours).
+  if (parsed.data.capability && !user.capabilities.includes(parsed.data.capability)) {
+    return { error: "Poți delega doar capabilitățile pe care le deții." };
   }
 
   try {
@@ -337,6 +342,11 @@ export async function moveStepAction(stepId: string, direction: "up" | "down"): 
     await tx.update(approvalSteps).set({ stepOrder: b.order }).where(eq(approvalSteps.id, a.id));
   });
   revalidatePath("/admin");
+}
+
+/** Used by the login screen to detect a sign-in by a deactivated account. */
+export async function checkActiveStatusAction(): Promise<"active" | "inactive" | "none"> {
+  return sessionActivityStatus();
 }
 
 /** Mark the current user's notifications feed as read (records the seen time). */
