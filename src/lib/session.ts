@@ -58,6 +58,11 @@ export function isAdmin(user: AppUser): boolean {
   return user.capabilities.includes("admin");
 }
 
+/** Admins and directors get an org-wide view of all referate. */
+export function canSeeAllRequisitions(user: AppUser): boolean {
+  return isAdmin(user) || user.capabilities.some((c) => c.startsWith("director"));
+}
+
 /** Require an authenticated admin; redirect non-admins to the home screen. */
 export async function requireAdmin(): Promise<AppUser> {
   const user = await requireUser();

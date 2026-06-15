@@ -401,6 +401,23 @@ export async function searchRequisitions(userId: string, q: string) {
     .limit(100);
 }
 
+/** All requisitions org-wide (admin/director view), with requester names. */
+export async function allRequisitions() {
+  return db
+    .select({
+      id: requisitions.id,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      costCenter: requisitions.costCenter,
+      status: requisitions.status,
+      createdAt: requisitions.createdAt,
+      requesterName: users.name,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .orderBy(desc(requisitions.createdAt));
+}
+
 /** Requisitions created by a user. */
 export async function myRequisitions(userId: string) {
   return db
