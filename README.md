@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aviso
 
-## Getting Started
+Internal requisition (*referat de necesitate*) approval workflow for the Covasna county water company (**Apa Covasna**). It replaces a paper + wet-signature process with a tracked, role-based digital flow. The UI is entirely in Romanian.
 
-First, run the development server:
+An employee submits a *referat*; it routes through a configurable, role-based approval chain — each approver can **Aprobă**, **Respinge**, or **Trimite înapoi** (send back) from a personal task inbox. Substitutes cover absent approvers, and every action is recorded in an append-only audit trail.
+
+## Stack
+
+- **Next.js** (App Router) + **TypeScript**, React Server Components
+- **PostgreSQL 16** + **Drizzle ORM** (migrations in `/drizzle`)
+- **Better Auth** (email/password; authorization is per-capability)
+- **Nodemailer** over SMTP for notifications (React Email templates)
+- **Puppeteer** + `@sparticuz/chromium` for server-side PDF generation
+- **Vitest** for tests; Playwright for UI-flow verification
+- Self-hosted (Docker Compose), EU VPS for data residency
+
+## Features
+
+- **Approval workflow engine** — data-driven chain (the steps live in the `approval_steps` table), conditional steps (`applies_when`), value thresholds, org-relative and capability-based approvers, configurable send-back targets.
+- **Approver inbox** with quick approve / send-back / reject and an audit timeline.
+- **Requisition detail** — vertical stepper, full data, audit history, discussion comments, and a per-step action panel.
+- **Delegations** — substitute routing with a date window and circular-chain guard.
+- **Notifications** — in-app feed for requester updates and approver to-dos.
+- **Reports** dashboard — volume by status, average approval time, queue-by-step, spend by cost center.
+- **Global search** scoped to the referate you're involved in.
+- **Admin** (per the `admin` capability) — user management, delegations, and a **workflow editor** to edit the approval chain.
+- **Finalized PDF** generated once the chain is fully approved.
+- Romanian-first UI built on a dedicated design system (tokens, components, screens; self-hosted IBM Plex fonts).
+
+Authorization is **per-capability and per-task**: an approver may only act on tasks routed to them (or to them via an active delegation). Referat detail/PDF reads are gated to involved users (or admins).
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env          # adjust BETTER_AUTH_SECRET etc.
+docker compose up -d          # postgres + mailpit (SMTP trap, UI on :8025)
+pnpm db:migrate               # apply migrations
+pnpm db:seed                  # one user per role + an example delegation
+pnpm dev                      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Seeded users use predictable emails (`role@aviso.local`, e.g. `angajat@aviso.local`, `dirgeneral@aviso.local`) with the dev password printed by the seed script. `dirgeneral@aviso.local` holds the `admin` capability.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---|---|
+| `pnpm dev` | Dev server on :3000 |
+| `pnpm test` | Vitest (unit suite) |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` | ESLint |
+| `pnpm db:generate` | Generate a Drizzle migration after schema changes |
+| `pnpm db:migrate` | Apply migrations |
+| `pnpm db:seed` | Seed dev users + chain template |
+| `pnpm db:studio` | Drizzle Studio |
 
-## Learn More
+## Project notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [`CLAUDE.md`](./CLAUDE.md) for the domain model, the real approval chain, and the engineering conventions (TDD on the workflow engine and authorization; append-only audit; integer minor units for money; no destructive DB commands).
