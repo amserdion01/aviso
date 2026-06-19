@@ -379,7 +379,7 @@ function WorkflowDialog({
           <Input id="w-name" name="name" required defaultValue={workflow?.name ?? ""} placeholder={t("workflowAdmin.workflowDialog.namePlaceholder")} />
         </FormField>
 
-        <FormField label={t("workflowAdmin.workflowDialog.descriptionLabel")} htmlFor="w-desc" optional hint={t("workflowAdmin.workflowDialog.descriptionHint")}>
+        <FormField label={t("workflowAdmin.workflowDialog.descriptionLabel")} htmlFor="w-desc" optional optionalLabel={t("common.optional")} hint={t("workflowAdmin.workflowDialog.descriptionHint")}>
           <Textarea id="w-desc" name="description" rows={3} defaultValue={workflow?.description ?? ""} />
         </FormField>
 

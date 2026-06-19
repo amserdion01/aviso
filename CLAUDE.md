@@ -8,6 +8,10 @@ Replaces a paper + wet-signature process with a tracked, role-based digital flow
 - Better Auth (email/password + role-based access via the admin plugin)
 - Nodemailer over the company SMTP server for notifications (React Email templates)
 - Puppeteer + @sparticuz/chromium for server-side PDF generation
+- i18n: next-intl (cookie mode, no [locale] segment) — Romanian (default) + Hungarian.
+  UI prose lives in per-namespace fragments under src/messages/{ro,hu}/*; enum labels +
+  money/date formatting are locale-aware accessors in src/lib/labels.ts + format.ts.
+  users.locale persists the per-user preference (emails by recipient, PDF by viewer).
 - Vitest for tests; Playwright (MCP + headless CI tests) for UI flows
 - Self-hosted: Docker Compose / Coolify on an EU VPS (data residency)
 

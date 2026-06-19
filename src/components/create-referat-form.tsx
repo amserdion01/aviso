@@ -49,7 +49,7 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
             <Input id="r-cant" name="quantity" type="number" min={1} defaultValue={1} required suffix={t("common.pieces")} />
           </FormField>
 
-          <FormField label={t("referatNew.fields.estimatedValue.label")} htmlFor="r-val" optional>
+          <FormField label={t("referatNew.fields.estimatedValue.label")} htmlFor="r-val" optional optionalLabel={t("common.optional")}>
             <Input id="r-val" name="estimatedValueLei" type="number" min={0} step="0.01" suffix="RON" placeholder={t("referatNew.fields.estimatedValue.placeholder")} />
           </FormField>
 

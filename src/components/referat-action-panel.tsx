@@ -75,7 +75,7 @@ export function ReferatActionPanel({
           )}
 
           {mode === "approve" ? (
-            <FormField label={t("referatDetail.panel.comment.label")} optional>
+            <FormField label={t("referatDetail.panel.comment.label")} optional optionalLabel={t("common.optional")}>
               <Textarea name="comment" rows={2} placeholder={t("referatDetail.panel.comment.placeholder")} />
             </FormField>
           ) : (

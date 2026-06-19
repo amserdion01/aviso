@@ -1,6 +1,6 @@
 # HydroKov
 
-Internal requisition (*referat de necesitate*) approval workflow for the Covasna county water company (**Apa Covasna**). It replaces a paper + wet-signature process with a tracked, role-based digital flow. The UI is entirely in Romanian.
+Internal requisition (*referat de necesitate*) approval workflow for the Covasna county water company (**Apa Covasna**). It replaces a paper + wet-signature process with a tracked, role-based digital flow. The UI is available in **Romanian** (default) and **Hungarian**, switchable per user (next-intl, cookie-based).
 
 An employee submits a *referat*; it routes through a configurable, role-based approval chain — each approver can **Aprobă**, **Respinge**, or **Trimite înapoi** (send back) from a personal task inbox. Substitutes cover absent approvers, and every action is recorded in an append-only audit trail.
 

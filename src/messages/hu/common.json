@@ -22,5 +22,6 @@
   "sending": "Küldés…",
   "status": "Státusz",
   "pieces": "db",
-  "all": "Összes"
+  "all": "Összes",
+  "optional": "(opcionális)"
 }

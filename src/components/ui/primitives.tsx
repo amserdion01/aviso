@@ -235,6 +235,7 @@ export function FormField({
   htmlFor,
   required = false,
   optional = false,
+  optionalLabel = "(opțional)",
   hint,
   error,
   className,
@@ -244,6 +245,7 @@ export function FormField({
   htmlFor?: string;
   required?: boolean;
   optional?: boolean;
+  optionalLabel?: string;
   hint?: ReactNode;
   error?: ReactNode;
   className?: string;
@@ -255,7 +257,7 @@ export function FormField({
         <label className="avi-formfield__label" htmlFor={htmlFor}>
           {label}
           {required && <span className="avi-formfield__req" aria-hidden="true">*</span>}
-          {optional && !required && <span className="avi-formfield__optional">(opțional)</span>}
+          {optional && !required && <span className="avi-formfield__optional">{optionalLabel}</span>}
         </label>
       )}
       {children}
