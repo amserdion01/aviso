@@ -46,7 +46,7 @@ export async function notifyForState(requisitionId: string, state: WorkflowState
           ctaUrl: url,
         }),
       );
-      await sendMail({ to: approver.email, subject: `Aviso: referat de aprobat — ${req.item}`, html });
+      await sendMail({ to: approver.email, subject: `HydroKov: referat de aprobat — ${req.item}`, html });
       return;
     }
 
@@ -68,7 +68,7 @@ export async function notifyForState(requisitionId: string, state: WorkflowState
     );
     await sendMail({
       to: requester.email,
-      subject: `Aviso: referat ${approved ? "aprobat" : "respins"} — ${req.item}`,
+      subject: `HydroKov: referat ${approved ? "aprobat" : "respins"} — ${req.item}`,
       html,
     });
   } catch (err) {

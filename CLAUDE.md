@@ -1,4 +1,4 @@
-# Aviso
+# HydroKov
 Internal requisition ("referat de necesitate") approval workflow for the Covasna water company.
 Replaces a paper + wet-signature process with a tracked, role-based digital flow.
 

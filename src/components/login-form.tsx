@@ -39,7 +39,7 @@ export function LoginForm() {
       <div className="avi-login__panel">
         <div className="avi-login__brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/aviso-wordmark.svg" width={148} height={36} alt="Aviso" />
+          <img src="/assets/aviso-wordmark.svg" width={190} height={36} alt="HydroKov" />
         </div>
         <h1 className="avi-login__title">Autentificare</h1>
         <p className="avi-login__sub">Intră în contul tău pentru a gestiona referatele de necesitate.</p>
@@ -99,7 +99,7 @@ export function LoginForm() {
             <li><Icon name="history" /> Istoric și audit complet</li>
           </ul>
         </div>
-        <div className="avi-login__copy">Apa Covasna · Sistem intern Aviso</div>
+        <div className="avi-login__copy">Apa Covasna · Sistem intern HydroKov</div>
       </div>
     </div>
   );

@@ -57,7 +57,7 @@ export function AppShell({
         <Link href="/" className="avi-topbar__brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/aviso-mark.svg" width={26} height={26} alt="" />
-          <span className="avi-topbar__name">Aviso</span>
+          <span className="avi-topbar__name">HydroKov</span>
           <span className="avi-topbar__org">Apa Covasna</span>
         </Link>
         <form action="/cauta" className="avi-topbar__search">

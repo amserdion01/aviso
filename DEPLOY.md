@@ -1,4 +1,4 @@
-# Deploying Aviso to Vercel + Neon (free tier)
+# Deploying HydroKov to Vercel + Neon (free tier)
 
 A free, always-on demo: **Vercel Hobby** (app) + **Neon** (Postgres). Functions
 are pinned to `fra1` (Frankfurt) via `vercel.json`.

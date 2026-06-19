@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
   auth: user ? { user, pass } : undefined,
 });
 
-const FROM = process.env.SMTP_FROM ?? "Aviso <no-reply@aviso.local>";
+const FROM = process.env.SMTP_FROM ?? "HydroKov <no-reply@aviso.local>";
 
 export interface MailMessage {
   to: string;

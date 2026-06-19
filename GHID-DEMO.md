@@ -1,6 +1,6 @@
-# Aviso — Ghid de demonstrație
+# HydroKov — Ghid de demonstrație
 
-**Aviso** digitalizează fluxul de aprobare a *referatelor de necesitate* la Apa Covasna:
+**HydroKov** digitalizează fluxul de aprobare a *referatelor de necesitate* la Apa Covasna:
 un angajat alege o **categorie** de referat și îl trimite, acesta parcurge traseul de avizare
 al categoriei, iar fiecare aprobator poate **Aprobă**, **Respinge** sau **Trimite înapoi** din
 inboxul propriu. Toate acțiunile sunt înregistrate într-un istoric/audit, iar la final

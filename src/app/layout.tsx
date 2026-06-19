@@ -8,7 +8,7 @@ import { AppShell } from "@/components/app-shell";
 import { formatDate as fmtDate } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Aviso — Referate de necesitate",
+  title: "HydroKov — Referate de necesitate",
   description: "Flux de aprobare a referatelor de necesitate",
 };
 

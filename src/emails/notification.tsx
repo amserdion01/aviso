@@ -40,7 +40,7 @@ export function NotificationEmail({ heading, intro, itemLabel, itemValue, ctaLab
             {ctaLabel}
           </Button>
           <Text style={{ fontSize: "12px", color: "#9ca3af", marginTop: "20px" }}>
-            Aviso — flux de aprobare a referatelor de necesitate
+            HydroKov — flux de aprobare a referatelor de necesitate
           </Text>
         </Container>
       </Body>

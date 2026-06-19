@@ -1,4 +1,4 @@
-# Aviso
+# HydroKov
 
 Internal requisition (*referat de necesitate*) approval workflow for the Covasna county water company (**Apa Covasna**). It replaces a paper + wet-signature process with a tracked, role-based digital flow. The UI is entirely in Romanian.
 
