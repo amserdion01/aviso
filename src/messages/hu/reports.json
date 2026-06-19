@@ -1,1 +1,33 @@
-{}
+{
+  "title": "Jelentések",
+  "sub": "Mutatószámok a referátumok jóváhagyási folyamatáról.",
+  "days": "{value} nap",
+  "stats": {
+    "totalReferate": "Összes referátum",
+    "finalized": "Lezárva",
+    "finalizedValue": "Lezárt érték",
+    "avgTime": "Átlagos jóváhagyási idő"
+  },
+  "statusDistribution": "Megoszlás státusz szerint",
+  "statusGroups": {
+    "inProgress": "Folyamatban",
+    "finalized": "Lezárva",
+    "rejected": "Elutasítva"
+  },
+  "queueByStep": {
+    "title": "Várólista lépésenként",
+    "subtitle": "Az egyes lépéseknél jelenleg várakozó referátumok",
+    "stepHeader": "Lépés",
+    "countHeader": "Referátumok",
+    "emptyTitle": "Nincs várólista",
+    "emptyDescription": "Jelenleg egyetlen referátum sem vár jóváhagyásra."
+  },
+  "spend": {
+    "title": "Kiadások költséghelyenként",
+    "subtitle": "A lezárt referátumok becsült értéke",
+    "costCenterHeader": "Költséghely",
+    "valueHeader": "Becsült érték",
+    "emptyTitle": "Nincs lezárt referátum",
+    "emptyDescription": "A kiadások az első, teljesen jóváhagyott referátumok után jelennek meg itt."
+  }
+}

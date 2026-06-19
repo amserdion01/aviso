@@ -1,1 +1,21 @@
-{}
+{
+  "title": "Beszerzés",
+  "sub": "Teljesen jóváhagyott referátumok, készen a beszerzési folyamatra.",
+  "table": {
+    "referat": "Referátum",
+    "item": "Tétel",
+    "costCenter": "Költséghely",
+    "requester": "Igénylő",
+    "estimatedValue": "Becsült érték",
+    "approvedAt": "Jóváhagyva"
+  },
+  "stats": {
+    "readyForProcurement": "Beszerzésre kész",
+    "estimatedValue": "Becsült érték",
+    "totalItems": "Összes tétel"
+  },
+  "empty": {
+    "title": "Nincs lezárt referátum",
+    "description": "A teljesen jóváhagyott referátumok itt jelennek meg, készen a beszerzéshez PDF-ként letölthetően."
+  }
+}

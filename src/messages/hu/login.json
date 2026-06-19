@@ -1,1 +1,25 @@
-{}
+{
+  "title": "Bejelentkezés",
+  "sub": "Jelentkezzen be a fiókjába a szükségességi referátumok kezeléséhez.",
+  "email": "E-mail",
+  "password": "Jelszó",
+  "remember": "Maradjak bejelentkezve",
+  "forgot": "Elfelejtette a jelszavát?",
+  "loading": "Bejelentkezés…",
+  "submit": "Bejelentkezés",
+  "troubleshoot": "Gondja van a bejelentkezéssel? Forduljon az <it>IT-irodához</it>.",
+  "errors": {
+    "invalidCredentials": "Hibás e-mail-cím vagy jelszó.",
+    "inactive": "A fiókja le van tiltva. Forduljon az IT-irodához."
+  },
+  "aside": {
+    "quote": "Szükségességi referátumok, digitalizálva.",
+    "lead": "Küldjön be, kövessen nyomon és hagyjon jóvá beszerzési igényeket átlátható folyamatban, jóváhagyási útvonallal és teljes előzménnyel.",
+    "features": {
+      "route": "Szerepkör alapú jóváhagyási útvonal",
+      "substitutes": "Helyettesek a távollévő jóváhagyók számára",
+      "audit": "Teljes előzmény és auditnapló"
+    }
+  },
+  "footer": "Apa Covasna · HydroKov belső rendszer"
+}

@@ -1,1 +1,22 @@
-{}
+{
+  "title": "Keresés",
+  "sub": "Keressen az Ön referátumai és az Önhöz rendelt referátumok között.",
+  "placeholder": "Tétel, költséghely, igénylő vagy referátumazonosító…",
+  "ariaSearch": "Keresés",
+  "table": {
+    "referat": "Referátum",
+    "item": "Tétel",
+    "requester": "Igénylő",
+    "costCenter": "Költséghely",
+    "createdAt": "Létrehozva"
+  },
+  "groups": {
+    "inProgress": "Folyamatban",
+    "finalized": "Lezárva",
+    "rejected": "Elutasítva"
+  },
+  "promptTitle": "Referátumok keresése",
+  "promptDescription": "Adjon meg egy kifejezést cikk, költséghely, igénylő vagy azonosító szerinti kereséshez.",
+  "noResultsTitle": "Nincs találat",
+  "noResultsDescription": "Egyetlen referátum sem felel meg a következő keresésnek: „{query}”."
+}

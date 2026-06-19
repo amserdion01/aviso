@@ -1,1 +1,14 @@
-{}
+{
+  "title": "Delegálások / helyettesek",
+  "sub": "Jelöljön ki egy helyettest, aki egy adott időszakra (szabadság stb.) átveszi a feladatait.",
+  "addTitle": "Helyettes hozzáadása",
+  "addSubtitle": "A helyettesítő jóváhagyó a kiválasztott időszakban átveszi a feladatokat.",
+  "submitLabel": "Delegálás mentése",
+  "emptyTitle": "Nincs delegálás",
+  "emptyDescription": "Az Ön által létrehozott delegálások itt jelennek meg az időszakukkal és állapotukkal.",
+  "columns": {
+    "inlocuitor": "Helyettes",
+    "capability": "Hatáskör",
+    "perioada": "Időszak"
+  }
+}

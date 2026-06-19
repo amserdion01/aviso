@@ -1,1 +1,23 @@
-{}
+{
+  "itemLabel": "Referátum",
+  "someoneFallback": "Egy alkalmazott",
+  "footer": "HydroKov — szükségességi referátumok jóváhagyási folyamata",
+  "approval": {
+    "heading": "Van egy jóváhagyásra váró referátuma",
+    "intro": "{requester} beküldött egy referátumot, amely az Ön intézkedésére vár ({task}).",
+    "cta": "Referátum megnyitása",
+    "subject": "HydroKov: jóváhagyásra váró referátum — {item}"
+  },
+  "approved": {
+    "heading": "Referátum jóváhagyva",
+    "intro": "A referátumát a teljes folyamaton jóváhagyták.",
+    "cta": "Referátum megtekintése",
+    "subject": "HydroKov: jóváhagyott referátum — {item}"
+  },
+  "rejected": {
+    "heading": "Referátum elutasítva",
+    "intro": "A referátumát elutasították. A részletekért tekintse meg az előzményeket.",
+    "cta": "Referátum megtekintése",
+    "subject": "HydroKov: elutasított referátum — {item}"
+  }
+}

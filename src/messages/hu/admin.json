@@ -1,1 +1,22 @@
-{}
+{
+  "title": "Adminisztráció",
+  "sub": "Kezelje a felhasználókat, az útvonal szerepköreit, a helyetteseket és a jóváhagyási folyamatot.",
+  "tabs": {
+    "users": "Felhasználók és szerepkörök",
+    "delegations": "Delegálások / helyettesek",
+    "workflow": "Jóváhagyási folyamat"
+  },
+  "delegations": {
+    "addTitle": "Helyettes hozzáadása",
+    "addSubtitle": "A helyettesítő jóváhagyó a kiválasztott időszakban átveszi a feladatokat.",
+    "submitLabel": "Delegálás mentése",
+    "emptyTitle": "Nincs delegálás beállítva",
+    "emptyDescription": "Az aktív és ütemezett delegálások itt jelennek meg.",
+    "columns": {
+      "titular": "Jogosult",
+      "capability": "Hatáskör",
+      "inlocuitor": "Helyettes",
+      "perioada": "Időszak"
+    }
+  }
+}

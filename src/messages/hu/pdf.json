@@ -1,1 +1,27 @@
-{}
+{
+  "companySub": "Belső jóváhagyási folyamat — szükségességi referátumok",
+  "nrReferat": "Referátum száma:",
+  "date": "Dátum:",
+  "docTitle": "SZÜKSÉGESSÉGI REFERÁTUM",
+  "docSubtitle": "Elektronikusan jóváhagyott dokumentum",
+  "stamp": "JÓVÁHAGYVA",
+  "requester": "Igénylő",
+  "name": "Név",
+  "serviceOffice": "Szolgálat / Iroda",
+  "costCenter": "Költséghely",
+  "object": "A referátum tárgya",
+  "itemService": "Tétel / szolgáltatás",
+  "quantity": "Mennyiség",
+  "estimatedValue": "Becsült érték",
+  "procurementType": "Beszerzés típusa",
+  "advisories": "Szükséges jóváhagyások",
+  "none": "Egyik sem",
+  "justification": "Indoklás",
+  "approvalFlow": "Jóváhagyási folyamat",
+  "stepHeader": "Szakasz",
+  "approverHeader": "Jóváhagyó",
+  "dateHeader": "Dátum",
+  "stateHeader": "Állapot",
+  "approved": "Jóváhagyva",
+  "generatedAt": "A dokumentum elektronikusan készült: {date}. Nem igényel kézi aláírást."
+}

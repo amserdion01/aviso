@@ -1,1 +1,30 @@
-{}
+{
+  "title": "Beérkezett feladataim",
+  "sub": "Az Ön jóváhagyására váró referátumok.",
+  "table": {
+    "requester": "Igénylő",
+    "item": "Tétel",
+    "yourStep": "Az Ön lépése",
+    "received": "Beérkezett",
+    "actions": "Műveletek"
+  },
+  "onBehalfOf": "· {name} nevében",
+  "classify": "Besorolás",
+  "approve": "Jóváhagyás",
+  "sendBack": "Visszaküldés",
+  "reject": "Elutasítás",
+  "tabs": {
+    "waiting": "Folyamatban",
+    "sent": "Általam beküldött"
+  },
+  "emptyWaiting": {
+    "title": "Üres a postaláda",
+    "description": "Nincs az Ön jóváhagyására váró referátum. Szép munka!",
+    "create": "Referátum létrehozása"
+  },
+  "emptySent": {
+    "title": "Nincs beküldött referátum",
+    "description": "Az Ön által kezdeményezett referátumok az „Összes referátum” menüpontban jelennek meg aktuális állapotukkal.",
+    "viewAll": "Összes referátum megtekintése"
+  }
+}

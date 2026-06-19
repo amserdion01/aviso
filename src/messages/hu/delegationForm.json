@@ -1,1 +1,11 @@
-{}
+{
+  "submitLabel": "Delegálás hozzáadása",
+  "inlocuitor": "Helyettes",
+  "inlocuitorPlaceholder": "Válasszon felhasználót…",
+  "capability": "A következő hatáskörre",
+  "capabilityHint": "Hagyja üresen az összes hatásköréhez.",
+  "allCapabilities": "Összes hatásköröm",
+  "from": "Ettől",
+  "to": "Eddig",
+  "activateNow": "Aktiválás azonnal"
+}

@@ -1,1 +1,18 @@
-{}
+{
+  "invalidData": "Érvénytelen adatok",
+  "noOrgUnit": "A fiókja nincs irodához rendelve. Forduljon az adminisztrátorhoz.",
+  "noApprover": "Nincs jóváhagyó beállítva a folyamatához. Forduljon az adminisztrátorhoz.",
+  "invalidAction": "Érvénytelen művelet",
+  "classifyFirst": "Jóváhagyás előtt válassza ki a beszerzés típusát (besorolás).",
+  "notAllowedForTask": "Ez a művelet nem engedélyezett ehhez a feladathoz.",
+  "delegateOwnCaps": "Csak azokat a hatásköröket delegálhatja, amelyekkel rendelkezik.",
+  "delegateCircular": "A delegálás körkörös láncot hozna létre (vagy önmagát választaná).",
+  "adminOnlyCreateUser": "Csak adminisztrátorok hozhatnak létre felhasználókat.",
+  "createUserFailed": "Nem sikerült létrehozni a fiókot (az e-mail-cím már használatban van?).",
+  "adminOnlyEditUser": "Csak adminisztrátorok módosíthatják a felhasználókat.",
+  "adminOnlyCreateCategory": "Csak adminisztrátorok hozhatnak létre kategóriákat.",
+  "adminOnlyEditCategory": "Csak adminisztrátorok módosíthatják a kategóriákat.",
+  "categoryNotFound": "A kategória nem létezik.",
+  "adminOnlyEditFlow": "Csak adminisztrátorok szerkeszthetik a folyamatot.",
+  "stepNotFound": "A lépés nem létezik."
+}

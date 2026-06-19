@@ -1,1 +1,26 @@
-{}
+{
+  "cancel": "Mégse",
+  "save": "Mentés",
+  "saveChanges": "Módosítások mentése",
+  "create": "Létrehozás",
+  "add": "Hozzáadás",
+  "edit": "Szerkesztés",
+  "delete": "Törlés",
+  "close": "Bezárás",
+  "back": "Vissza",
+  "search": "Keresés",
+  "none": "—",
+  "noneWord": "Egyik sem",
+  "yes": "Igen",
+  "no": "Nem",
+  "active": "Aktív",
+  "inactive": "Inaktív",
+  "activeF": "Aktív",
+  "inactiveF": "Inaktív",
+  "downloadPdf": "PDF letöltése",
+  "saving": "Mentés…",
+  "sending": "Küldés…",
+  "status": "Státusz",
+  "pieces": "db",
+  "all": "Összes"
+}

@@ -1,1 +1,76 @@
-{}
+{
+  "futureOnlyNote": "A folyamat módosításai csak a <b>jövőbeli referátumokat</b> érintik. A már útvonalon lévő referátumok megtartják lépéseiket.",
+  "addCategory": "Kategória hozzáadása",
+  "empty": {
+    "title": "Nincs jóváhagyási kategória",
+    "description": "Hozza létre az első kategóriát egy jóváhagyási útvonal meghatározásához."
+  },
+  "toggle": {
+    "deactivate": "Kategória deaktiválása",
+    "activate": "Kategória aktiválása"
+  },
+  "card": {
+    "stepCount": "{count} lépés",
+    "collapse": "Kategória összecsukása",
+    "expand": "Kategória kibontása",
+    "editCategory": "{name} kategória szerkesztése",
+    "addStep": "Lépés hozzáadása",
+    "noSteps": {
+      "title": "Nincs meghatározott lépés",
+      "description": "Adja hozzá a kategória útvonalának első lépését."
+    }
+  },
+  "table": {
+    "step": "Lépés",
+    "capability": "Hatáskör",
+    "strategy": "Stratégia",
+    "condition": "Feltétel",
+    "type": "Típus",
+    "advisory": "Véleményező",
+    "classification": "Besorolás",
+    "moveUp": "Mozgatás felfelé",
+    "moveDown": "Mozgatás lefelé",
+    "edit": "Szerkesztés",
+    "delete": "Törlés"
+  },
+  "confirmDeleteStep": "Törli a(z) „{label}” lépést? Csak a jövőbeli referátumokat érinti.",
+  "workflowDialog": {
+    "editTitle": "Kategória szerkesztése",
+    "createTitle": "Kategória hozzáadása",
+    "subtitle": "Egy kategória külön jóváhagyási útvonalat határoz meg.",
+    "nameLabel": "Név",
+    "namePlaceholder": "pl. Anyagbeszerzés",
+    "descriptionLabel": "Leírás",
+    "descriptionHint": "Rövid magyarázat arról, mikor használandó ez a kategória.",
+    "saveEdit": "Kategória mentése",
+    "saveCreate": "Kategória létrehozása"
+  },
+  "stepDialog": {
+    "editTitle": "Lépés szerkesztése",
+    "createTitle": "Lépés hozzáadása",
+    "subtitle": "Határozzon meg egy lépést a jóváhagyási útvonalon.",
+    "labelLabel": "Címke",
+    "labelPlaceholder": "pl. Gazdasági igazgatói jóváhagyás",
+    "taskTypeLabel": "Lépés típusa (kód)",
+    "taskTypeHint": "Rövid azonosító, pl. DIRECTOR_ECONOMIC.",
+    "capabilityLabel": "Szükséges hatáskör",
+    "capabilityPlaceholder": "Válasszon hatáskört",
+    "strategyLabel": "Jóváhagyói stratégia",
+    "paramLabel": "Stratégia paramétere",
+    "paramHint": "Csak az „Egységhez viszonyítva” esetén (iroda / szolgálat). Egyébként hagyja üresen.",
+    "paramPlaceholder": "iroda / szolgálat",
+    "conditionLabel": "Alkalmazási feltétel",
+    "conditionAlways": "Mindig",
+    "conditionNeedsIt": "Ha IT-jóváhagyás szükséges",
+    "conditionNeedsSsm": "Ha munkavédelmi jóváhagyás szükséges",
+    "conditionProcurement": "A beszerzés típusa szerint",
+    "conditionValue": "Egy érték felett (lej)",
+    "procurementLabel": "Beszerzés típusa",
+    "procurementPlaceholder": "Válasszon típust",
+    "valueLabel": "Értékhatár (lej)",
+    "blocking": "Kötelező (blokkoló) lépés",
+    "setsProcurement": "Beállítja a beszerzés típusát (besorolás)",
+    "saveEdit": "Lépés mentése",
+    "saveCreate": "Lépés hozzáadása"
+  }
+}

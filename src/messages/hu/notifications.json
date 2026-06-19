@@ -1,1 +1,13 @@
-{}
+{
+  "title": "Értesítések",
+  "ariaLabel": "Értesítések",
+  "empty": "Egyelőre nincs értesítés.",
+  "lines": {
+    "rejected": "{actor} elutasította a referátumot",
+    "sentback": "{actor} visszaküldte a referátumot",
+    "finalized": "A referátumát teljesen jóváhagyták",
+    "todoTyped": "Jóváhagyásra vár ({task})",
+    "todo": "Van egy jóváhagyásra váró referátuma",
+    "approved": "{actor} jóváhagyta a referátumot"
+  }
+}

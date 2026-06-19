@@ -1,1 +1,39 @@
-{}
+{
+  "title": "Új szükségességi referátum",
+  "sub": "Töltse ki az igénylés adatait. Beküldés után a referátum a jóváhagyási útvonalra kerül.",
+  "fields": {
+    "workflow": {
+      "label": "Kategória / referátumtípus",
+      "hint": "Meghatározza a jóváhagyási útvonalat.",
+      "placeholder": "Válasszon kategóriát"
+    },
+    "item": {
+      "label": "Tétel",
+      "hint": "A termék vagy szolgáltatás pontos megnevezése.",
+      "placeholder": "pl. Laptop Dell Latitude 5540"
+    },
+    "quantity": {
+      "label": "Mennyiség"
+    },
+    "estimatedValue": {
+      "label": "Becsült érték",
+      "placeholder": "0,00"
+    },
+    "costCenter": {
+      "label": "Költséghely",
+      "placeholder": "Válasszon költséghelyet"
+    },
+    "justification": {
+      "label": "Indoklás",
+      "hint": "Indokolja meg a beszerzés szükségességét — a jóváhagyók látni fogják.",
+      "placeholder": "pl. A jelenlegi laptopok már nem indulnak el, és akadályozzák az IT-iroda munkáját…"
+    },
+    "approvals": {
+      "label": "Szükséges jóváhagyások",
+      "needsIt": "IT-jóváhagyás szükséges",
+      "needsSsm": "Munkavédelmi jóváhagyás szükséges"
+    }
+  },
+  "flowNote": "Beküldés után a referátum a szerepkör alapú jóváhagyási útvonalra kerül (irodavezető → szolgálatvezető → … → igazgató), és minden jóváhagyó jóváhagyhatja, elutasíthatja vagy visszaküldheti.",
+  "submit": "Referátum beküldése"
+}

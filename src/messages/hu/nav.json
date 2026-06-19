@@ -1,1 +1,16 @@
-{}
+{
+  "inbox": "Beérkezett feladataim",
+  "new": "Új referátum",
+  "all": "Összes referátum",
+  "procurement": "Beszerzés",
+  "reports": "Jelentések",
+  "admin": "Adminisztráció",
+  "searchPlaceholder": "Referátum, tétel vagy igénylő keresése…",
+  "searchAria": "Keresés",
+  "setSubstitute": "Helyettes beállítása",
+  "signOut": "Kijelentkezés",
+  "activeSubstitute": "Aktív helyettes",
+  "noneSet": "Nincs beállítva",
+  "substituteUntil": "{name} · eddig: {until}",
+  "language": "Nyelv"
+}

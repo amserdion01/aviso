@@ -1,1 +1,19 @@
-{}
+{
+  "workflowRequired": "Válasszon referátumkategóriát",
+  "itemRequired": "A cikk megnevezése kötelező",
+  "quantityInt": "A mennyiségnek egész számnak kell lennie",
+  "quantityPositive": "A mennyiségnek pozitívnak kell lennie",
+  "justificationRequired": "Az indoklás kötelező",
+  "costCenterRequired": "A költséghely kötelező",
+  "delegateRequired": "Válasszon helyettest",
+  "dateRangeOrder": "A befejezés dátumának a kezdő dátum utáninak kell lennie",
+  "nameRequired": "A név kötelező",
+  "emailInvalid": "Érvénytelen e-mail-cím",
+  "passwordMin": "A jelszónak legalább 8 karakterből kell állnia",
+  "categoryNameRequired": "A kategória neve kötelező",
+  "stepLabelRequired": "A címke kötelező",
+  "stepTypeRequired": "A lépés típusa kötelező",
+  "capabilityRequired": "A hatáskör kötelező",
+  "commentEmpty": "A megjegyzés nem lehet üres",
+  "commentTooLong": "A megjegyzés túl hosszú"
+}

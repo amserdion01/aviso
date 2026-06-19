@@ -1,1 +1,26 @@
-{}
+{
+  "addUser": "Felhasználó hozzáadása",
+  "columns": {
+    "user": "Felhasználó",
+    "roles": "Szerepkörök az útvonalon",
+    "dept": "Osztály",
+    "active": "Aktív"
+  },
+  "editAria": "{name} szerkesztése",
+  "dialog": {
+    "createTitle": "Felhasználó hozzáadása",
+    "editTitle": "Felhasználó szerkesztése",
+    "createSubtitle": "Hozzon létre egy fiókot, és rendelje hozzá az útvonal szerepköreit.",
+    "editSubtitle": "Frissítse a szerepköröket és az osztályt.",
+    "name": "Név",
+    "namePlaceholder": "pl. Kovács István",
+    "email": "E-mail",
+    "emailPlaceholder": "nev@apacovasna.ro",
+    "password": "Jelszó",
+    "passwordHint": "Legalább 8 karakter.",
+    "dept": "Osztály",
+    "noDept": "Nincs osztály",
+    "roles": "Szerepkörök az útvonalon",
+    "createSubmit": "Felhasználó létrehozása"
+  }
+}

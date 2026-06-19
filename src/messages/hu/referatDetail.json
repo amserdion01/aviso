@@ -1,1 +1,79 @@
-{}
+{
+  "backToInbox": "Vissza a beérkezett feladatokhoz",
+  "idLabel": "Referátum #{id}",
+  "requestedBy": "Igénylő",
+  "stepper": {
+    "title": "Jóváhagyási útvonal",
+    "subtitle": "A referátumra vonatkozó lépések és azok állapota",
+    "approved": "Jóváhagyva",
+    "inProgress": "Folyamatban",
+    "resent": "Újraküldve",
+    "waiting": "Várakozik"
+  },
+  "audit": {
+    "create": "létrehozta a referátumot",
+    "approve": "jóváhagyta",
+    "reject": "elutasította",
+    "sendBack": "visszaküldte"
+  },
+  "data": {
+    "title": "Referátum adatai",
+    "item": "Tétel",
+    "quantity": "Mennyiség",
+    "costCenter": "Költséghely",
+    "estimatedValue": "Becsült érték",
+    "procurementType": "Beszerzés típusa",
+    "advisories": "Jóváhagyások",
+    "justification": "Indoklás"
+  },
+  "history": {
+    "title": "Előzmény és audit",
+    "subtitle": "Minden művelet időrendi sorrendben"
+  },
+  "discussion": {
+    "title": "Megbeszélés",
+    "subtitle": "Megjegyzések és észrevételek erről a referátumról",
+    "empty": "Még nincs megjegyzés. Kezdje el a megbeszélést alább.",
+    "placeholder": "Írjon megjegyzést…",
+    "ariaLabel": "Megjegyzés",
+    "submit": "Megjegyzés küldése"
+  },
+  "readonly": {
+    "title": "Csak megtekintés",
+    "description": "Ez a referátum nem vár intézkedésre Öntől."
+  },
+  "panel": {
+    "yourStep": "Az Ön lépése:",
+    "chooseAction": "Válasszon műveletet az útvonal folytatásához.",
+    "approve": "Jóváhagyás",
+    "sendBack": "Visszaküldés",
+    "reject": "Elutasítás",
+    "banner": {
+      "approve": "Jóváhagyja ezt a referátumot, és továbbküldi az útvonalon.",
+      "sendBack": "Visszaküldi a referátumot az előző lépéshez javításra.",
+      "reject": "Véglegesen elutasítja ezt a referátumot."
+    },
+    "classification": {
+      "label": "Besorolás (beszerzés típusa)",
+      "placeholder": "Válasszon típust…",
+      "achizitii": "Beszerzés",
+      "aprovizionare": "Ellátás",
+      "servicii": "Szolgáltatások"
+    },
+    "comment": {
+      "label": "Megjegyzés",
+      "placeholder": "Észrevételek…"
+    },
+    "rejectReason": {
+      "label": "Az elutasítás indoka",
+      "placeholder": "pl. Ebben a negyedévben nincs rendelkezésre álló keret."
+    },
+    "sendBackReason": {
+      "label": "Mit kell javítani",
+      "placeholder": "pl. Adja meg a pontos típust, és csatolja az árajánlatot."
+    },
+    "confirmApprove": "Jóváhagyás megerősítése",
+    "confirmSendBack": "Visszaküldés",
+    "confirmReject": "Referátum elutasítása"
+  }
+}

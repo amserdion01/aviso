@@ -1,1 +1,67 @@
-{}
+{
+  "status": { "in_progress": "Folyamatban", "approved": "Jóváhagyva", "rejected": "Elutasítva" },
+  "taskStatus": {
+    "pending": "Várakozik",
+    "waiting": "Jóváhagyásra vár",
+    "approved": "Jóváhagyva",
+    "rejected": "Elutasítva",
+    "sent_back": "Visszaküldve",
+    "skipped": "Kihagyva"
+  },
+  "taskType": {
+    "VERIFICARE_SEF_BIROU": "Irodavezetői ellenőrzés",
+    "APROBAT_DIRECTOR": "Igazgatói jóváhagyás",
+    "SEF_BIROU": "Iroda-/szektorvezetői ellenőrzés",
+    "SEF_SERVICIU": "Szolgálat-/üzemvezetői ellenőrzés",
+    "INREGISTRARE": "Iktatás",
+    "IT": "IT",
+    "SSM": "Munkavédelem",
+    "RU": "Humánerőforrás",
+    "MAGAZIE": "Raktári ellenőrzés",
+    "DIRECTOR_ECONOMIC": "Gazdasági igazgatói jóváhagyás",
+    "INCADRARE": "Beszerzés — besorolás",
+    "ACHIZITII": "Beszerzés",
+    "APROVIZIONARE": "Ellátás",
+    "SERVICII": "Szolgáltatások",
+    "DIRECTOR": "Igazgatói jóváhagyás"
+  },
+  "procurementType": { "achizitii": "Beszerzés", "aprovizionare": "Ellátás", "servicii": "Szolgáltatások" },
+  "action": { "create": "Létrehozás", "approve": "Jóváhagyás", "reject": "Elutasítás", "send_back": "Visszaküldés" },
+  "capability": {
+    "angajat": "Alkalmazott",
+    "sef_birou": "Irodavezető",
+    "sef_serviciu": "Szolgálatvezető",
+    "secretariat": "Titkárság",
+    "inregistrare": "Titkárság",
+    "it": "IT",
+    "ssm": "Munkavédelem",
+    "ru": "Humánerőforrás",
+    "magazie": "Raktár",
+    "director_economic": "Gazdasági igazgató",
+    "incadrare": "Beszerzés — besorolás",
+    "achizitii": "Beszerzés",
+    "aprovizionare": "Ellátás",
+    "servicii": "Szolgáltatások",
+    "director": "Igazgató",
+    "director_tehnic": "Műszaki igazgató",
+    "director_general": "Vezérigazgató",
+    "admin": "Adminisztrátor"
+  },
+  "approverStrategy": {
+    "capability": "Hatáskör szerint",
+    "org_relative": "Egységhez viszonyítva",
+    "director_by_unit": "Igazgató egység szerint"
+  },
+  "statusBadge": { "approved": "Lezárva", "rejected": "Elutasítva", "in_progress": "Folyamatban" },
+  "condition": {
+    "always": "Mindig",
+    "composite": "Összetett feltétel",
+    "needsIt": "Ha IT-jóváhagyás szükséges",
+    "needsSsm": "Ha munkavédelmi jóváhagyás szükséges",
+    "procurementType": "Ha a beszerzés típusa = {type}",
+    "value": "Ha az érték > {amount} lej",
+    "advanced": "Speciális feltétel"
+  },
+  "currencyUnit": "lej",
+  "userFallback": "Felhasználó"
+}
