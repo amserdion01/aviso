@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { randomUUID } from "node:crypto";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./index";
 import { users, requisitions, approvalTasks, requisitionComments, workflows } from "./schema";
 import { createRequisition, actOnTask } from "./repo";
@@ -227,6 +227,59 @@ async function main() {
 
   const u2 = await mk("wf-reparatii-urgente", "Înlocuire motor electric stație pompare", 1, "Motor ars; necesită înlocuire urgentă.", "Distribuție apă", 14200);
   await approveUntil(u2, "DIRECTOR");
+
+  // ---- Referate cu conținut în limba maghiară (demo bilingv) ----
+  // h1) ÎN AȘTEPTARE la IT (necesită aviz IT) — aprobatorul IT are limba `hu`
+  const h1 = await std(
+    "Hálózati switch-ek az új irodához (4 db)",
+    4,
+    "A diszpécserközpont új irodájának hálózati bővítéséhez szükséges.",
+    "IT & comunicații",
+    9800,
+    true,
+  );
+  await approveUntil(h1, "IT");
+  await comment(h1, "angajat@aviso.local", "Kérjük a switch-ek kompatibilitásának ellenőrzését a meglévő hálózattal.");
+
+  // h2) FINALIZAT — apare în Achiziții + PDF + rapoarte, conținut maghiar
+  const h2 = await std(
+    "Ergonomikus irodai székek (8 db)",
+    8,
+    "A tervezőiroda elhasználódott székeinek cseréje a megfelelő munkakörülmények biztosításához.",
+    "Administrativ",
+    6400,
+  );
+  await approveUntil(h2, null);
+  await backdate(h2, 3);
+  await comment(h2, "achizitii@aviso.local", "Keretszerződés alapján beszerezhető, a szállítás kb. 5 nap.");
+
+  // h3) ÎN AȘTEPTARE la Director economic — categoria „Achiziții mici", conținut maghiar
+  const h3 = await mk(
+    "wf-achizitii-mici",
+    "Irodaszerek (papír, dossziék, tollak)",
+    1,
+    "Az iroda negyedéves irodaszer-utánpótlása.",
+    "Administrativ",
+    1350,
+  );
+  await approveUntil(h3, "DIRECTOR_ECONOMIC");
+  await backdate(h3, 1);
+
+  // h4) FINALIZAT — categoria „Reparații urgente", conținut maghiar
+  const h4 = await mk(
+    "wf-reparatii-urgente",
+    "Sürgős szivattyújavítás – vízkezelő állomás",
+    1,
+    "Meghibásodott szivattyú; sürgős beavatkozás az ellátás megszakadásának elkerülésére.",
+    "Stație de tratare",
+    8200,
+  );
+  await approveUntil(h4, null);
+  await backdate(h4, 2);
+
+  // A couple of approver accounts default to Hungarian (per-user language +
+  // localized notification emails). Anyone can switch RO/HU from the user menu.
+  await db.update(users).set({ locale: "hu" }).where(inArray(users.email, ["it@aviso.local", "magazie@aviso.local"]));
 
   // Counts
   const all = await db.select({ id: requisitions.id, status: requisitions.status }).from(requisitions);

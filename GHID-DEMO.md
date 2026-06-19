@@ -9,9 +9,14 @@ documentul oficial se poate salva ca PDF.
 > **Adresă demo:** https://aviso-docs.vercel.app
 > **Parolă (pentru toate conturile):** `Parola123!`
 >
-> Datele sunt fictive, pentru demonstrație: **14 referate** în **4 categorii**, în toate stările
-> (finalizate, în curs la diferiți pași, respinse, trimise înapoi). Te poți autentifica cu oricare
-> cont de mai jos.
+> Datele sunt fictive, pentru demonstrație: **18 referate** în **4 categorii**, în toate stările
+> (finalizate, în curs la diferiți pași, respinse, trimise înapoi) — inclusiv câteva cu conținut în
+> **limba maghiară**. Te poți autentifica cu oricare cont de mai jos.
+
+> **Limbă: română / maghiară.** Aplicația este bilingvă. Schimbi limba din **meniul de utilizator**
+> (dreapta sus) → comutatorul **RO / HU**; alegerea se reține pentru contul tău, iar emailurile de
+> notificare se trimit în limba destinatarului. Conturile `it@aviso.local` și `magazie@aviso.local`
+> sunt setate implicit pe **maghiară** (poți comuta oricând înapoi pe RO).
 
 ---
 
@@ -23,10 +28,10 @@ documentul oficial se poate salva ca PDF.
 | `sefbirou@aviso.local` | **Șef birou** | Primul pas de avizare în inbox |
 | `sefserviciu@aviso.local` | **Șef serviciu** | Al doilea pas de avizare |
 | `secretariat@aviso.local` | **Secretariat** (înregistrare) | Pasul de înregistrare |
-| `it@aviso.local` | **IT** | Avizează referatele care necesită aviz IT |
+| `it@aviso.local` | **IT** *(implicit în maghiară)* | Avizează referatele care necesită aviz IT |
 | `ssm@aviso.local` | **SSM** | Avizează referatele care necesită aviz SSM |
 | `ru@aviso.local` | **Resurse umane** | Pasul RU |
-| `magazie@aviso.local` | **Magazie** | Verificare stoc magazie |
+| `magazie@aviso.local` | **Magazie** *(implicit în maghiară)* | Verificare stoc magazie |
 | `direconomic@aviso.local` | **Director economic** | Aprobare economică |
 | `achizitii@aviso.local` | **Achiziții** | Încadrare + achiziții |
 | `aprovizionare@aviso.local` | **Aprovizionare** | Ramura aprovizionare |
