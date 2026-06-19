@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import { requireUser, isAdmin } from "@/lib/session";
 import { requisitionDetail, commentsFor, isInvolvedInRequisition } from "@/db/queries";
 import { addCommentAction } from "@/app/actions";
+import { getTranslations, getLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/locale";
 import {
-  TASK_TYPE_LABELS,
-  PROCUREMENT_TYPE_LABELS,
+  taskTypeLabel,
+  procurementLabel,
   requisitionStatusBadge,
   formatLei,
 } from "@/lib/labels";
@@ -36,11 +38,18 @@ const TASK_STATUS_TO_STEP: Record<string, StepStatus> = {
   sent_back: "sentback",
 };
 
-const ACTION_TO_AUDIT: Record<string, { type: AuditType; verb: string }> = {
-  create: { type: "created", verb: "a creat referatul" },
-  approve: { type: "approved", verb: "a aprobat" },
-  reject: { type: "rejected", verb: "a respins" },
-  send_back: { type: "sentback", verb: "a trimis înapoi" },
+const ACTION_AUDIT_TYPE: Record<string, AuditType> = {
+  create: "created",
+  approve: "approved",
+  reject: "rejected",
+  send_back: "sentback",
+};
+
+const ACTION_AUDIT_KEY: Record<string, string> = {
+  create: "referatDetail.audit.create",
+  approve: "referatDetail.audit.approve",
+  reject: "referatDetail.audit.reject",
+  send_back: "referatDetail.audit.sendBack",
 };
 
 function Meta({ label, children }: { label: string; children: React.ReactNode }) {
@@ -60,6 +69,8 @@ export default async function ReferatDetailPage({
   searchParams: Promise<{ action?: string }>;
 }) {
   const user = await requireUser();
+  const t = await getTranslations();
+  const locale = (await getLocale()) as Locale;
   const { id } = await params;
   const { action } = await searchParams;
   // Only people involved in the referat (or admins) may view it; 404 otherwise
@@ -72,32 +83,33 @@ export default async function ReferatDetailPage({
   const { requisition: r, tasks, history, activeTask } = detail;
   const canAct = activeTask?.effectiveApproverId === user.id;
   const canSendBack = tasks.some((t) => activeTask && t.stepOrder < activeTask.stepOrder && t.status === "approved");
-  const badge = requisitionStatusBadge(r.status);
+  const badge = requisitionStatusBadge(r.status, locale);
 
   const steps: Step[] = tasks
-    .filter((t) => t.status !== "skipped")
-    .map((t) => {
-      const status = TASK_STATUS_TO_STEP[t.status] ?? "pending";
+    .filter((task) => task.status !== "skipped")
+    .map((task) => {
+      const status = TASK_STATUS_TO_STEP[task.status] ?? "pending";
       const sublabel =
         status === "done"
-          ? t.actedAt
-            ? fmtDateTime(t.actedAt).split(",")[0]
-            : "Aprobat"
+          ? task.actedAt
+            ? fmtDateTime(task.actedAt, locale).split(",")[0]
+            : t("referatDetail.stepper.approved")
           : status === "current"
-            ? "În lucru"
+            ? t("referatDetail.stepper.inProgress")
             : status === "sentback"
-              ? "Retrimis"
-              : "În așteptare";
-      return { label: TASK_TYPE_LABELS[t.taskType] ?? t.taskType, sublabel, status };
+              ? t("referatDetail.stepper.resent")
+              : t("referatDetail.stepper.waiting");
+      return { label: taskTypeLabel(task.taskType, locale), sublabel, status };
     });
 
   const events: AuditEvent[] = history.map((h) => {
-    const map = ACTION_TO_AUDIT[h.action] ?? { type: "comment" as AuditType, verb: h.action };
+    const auditType = ACTION_AUDIT_TYPE[h.action] ?? ("comment" as AuditType);
+    const auditKey = ACTION_AUDIT_KEY[h.action];
     return {
-      type: map.type,
+      type: auditType,
       actor: h.actorName,
-      action: map.verb,
-      time: fmtDateTime(h.createdAt),
+      action: auditKey ? t(auditKey) : h.action,
+      time: fmtDateTime(h.createdAt, locale),
       comment: h.comment ?? undefined,
     };
   });
@@ -108,20 +120,20 @@ export default async function ReferatDetailPage({
   return (
     <div className="avi-screen">
       <Link href="/inbox" className="avi-back">
-        <Icon name="arrow-left" /> Înapoi la inbox
+        <Icon name="arrow-left" /> {t("referatDetail.backToInbox")}
       </Link>
 
       <div className="avi-detail-head">
         <div>
-          <div className="avi-detail-id">Referat #{r.id.slice(0, 8)}</div>
+          <div className="avi-detail-id">{t("referatDetail.idLabel", { id: r.id.slice(0, 8) })}</div>
           <h1 className="avi-detail-title">{r.item}</h1>
           <div className="avi-detail-by">
             <Avatar name={r.requesterName} size="sm" />
             <span>
-              Solicitat de <b>{r.requesterName}</b>
+              {t("referatDetail.requestedBy")} <b>{r.requesterName}</b>
             </span>
             <span className="avi-dot-sep">·</span>
-            <span className="avi-cell-mono">{fmtDateTime(r.createdAt)}</span>
+            <span className="avi-cell-mono">{fmtDateTime(r.createdAt, locale)}</span>
           </div>
         </div>
         <StatusBadge status={badge.tone} label={badge.label} icon="icon" />
@@ -129,42 +141,42 @@ export default async function ReferatDetailPage({
 
       <div className="avi-detail-grid">
         <div className="avi-detail-main">
-          <Card title="Traseu de avizare" subtitle="Pașii aplicabili acestui referat și starea fiecăruia" padding="lg">
+          <Card title={t("referatDetail.stepper.title")} subtitle={t("referatDetail.stepper.subtitle")} padding="lg">
             <Stepper steps={steps} orientation="vertical" />
           </Card>
 
-          <Card title="Date referat" padding="lg">
+          <Card title={t("referatDetail.data.title")} padding="lg">
             <div className="avi-meta-grid">
-              <Meta label="Articol">{r.item}</Meta>
-              <Meta label="Cantitate">
-                <b>{r.quantity}</b> buc.
+              <Meta label={t("referatDetail.data.item")}>{r.item}</Meta>
+              <Meta label={t("referatDetail.data.quantity")}>
+                <b>{r.quantity}</b> {t("common.pieces")}
               </Meta>
-              <Meta label="Centru de cost">
+              <Meta label={t("referatDetail.data.costCenter")}>
                 <Badge variant="outline" icon={<Icon name="building-2" />}>{r.costCenter}</Badge>
               </Meta>
-              <Meta label="Valoare estimată">{formatLei(r.estimatedValueMinor)}</Meta>
+              <Meta label={t("referatDetail.data.estimatedValue")}>{formatLei(r.estimatedValueMinor, locale)}</Meta>
               {r.procurementType && (
-                <Meta label="Tip achiziție">{PROCUREMENT_TYPE_LABELS[r.procurementType] ?? r.procurementType}</Meta>
+                <Meta label={t("referatDetail.data.procurementType")}>{procurementLabel(r.procurementType, locale)}</Meta>
               )}
-              <Meta label="Avize">
-                {[r.needsIt ? "IT" : null, r.needsSsm ? "SSM" : null].filter(Boolean).join(" · ") || "—"}
+              <Meta label={t("referatDetail.data.advisories")}>
+                {[r.needsIt ? "IT" : null, r.needsSsm ? "SSM" : null].filter(Boolean).join(" · ") || t("common.none")}
               </Meta>
               <div className="avi-col-2">
-                <Meta label="Justificare">
+                <Meta label={t("referatDetail.data.justification")}>
                   <span className="avi-justif">{r.justification}</span>
                 </Meta>
               </div>
             </div>
           </Card>
 
-          <Card title="Istoric & audit" subtitle="Toate acțiunile, în ordine cronologică" padding="lg">
+          <Card title={t("referatDetail.history.title")} subtitle={t("referatDetail.history.subtitle")} padding="lg">
             <AuditTimeline events={events} />
           </Card>
 
-          <Card title="Discuție" subtitle="Comentarii și observații pe acest referat" padding="lg">
+          <Card title={t("referatDetail.discussion.title")} subtitle={t("referatDetail.discussion.subtitle")} padding="lg">
             <div className="avi-comments">
               {comments.length === 0 ? (
-                <p className="avi-comments__empty">Niciun comentariu încă. Începe discuția mai jos.</p>
+                <p className="avi-comments__empty">{t("referatDetail.discussion.empty")}</p>
               ) : (
                 comments.map((c) => (
                   <div key={c.id} className="avi-comment">
@@ -172,7 +184,7 @@ export default async function ReferatDetailPage({
                     <div className="avi-comment__body">
                       <div className="avi-comment__head">
                         <span className="avi-comment__author">{c.authorName}</span>
-                        <span className="avi-comment__time">{fmtDateTime(c.createdAt)}</span>
+                        <span className="avi-comment__time">{fmtDateTime(c.createdAt, locale)}</span>
                       </div>
                       <div className="avi-comment__text">{c.body}</div>
                     </div>
@@ -182,10 +194,10 @@ export default async function ReferatDetailPage({
             </div>
             <form action={addCommentAction} className="avi-comment-form">
               <input type="hidden" name="requisitionId" value={r.id} />
-              <Textarea name="body" rows={3} required placeholder="Scrie un comentariu…" aria-label="Comentariu" />
+              <Textarea name="body" rows={3} required placeholder={t("referatDetail.discussion.placeholder")} aria-label={t("referatDetail.discussion.ariaLabel")} />
               <div className="avi-comment-form__actions">
                 <Button type="submit" variant="primary" iconLeft={<Icon name="send" />}>
-                  Trimite comentariul
+                  {t("referatDetail.discussion.submit")}
                 </Button>
               </div>
             </form>
@@ -196,7 +208,7 @@ export default async function ReferatDetailPage({
           {canAct ? (
             <ReferatActionPanel
               requisitionId={r.id}
-              stepLabel={activeTask ? (TASK_TYPE_LABELS[activeTask.taskType] ?? activeTask.taskType) : ""}
+              stepLabel={activeTask ? taskTypeLabel(activeTask.taskType, locale) : ""}
               needsClassification={activeTask?.taskType === "INCADRARE"}
               canSendBack={canSendBack}
               initialMode={initialMode}
@@ -207,15 +219,15 @@ export default async function ReferatDetailPage({
               <div className="avi-actionpanel__readonly">
                 <Icon name="lock" />
                 <div>
-                  <div className="avi-actionpanel__t">Doar vizualizare</div>
-                  <div className="avi-actionpanel__d">Acest referat nu așteaptă o acțiune din partea ta.</div>
+                  <div className="avi-actionpanel__t">{t("referatDetail.readonly.title")}</div>
+                  <div className="avi-actionpanel__d">{t("referatDetail.readonly.description")}</div>
                 </div>
               </div>
               {r.status === "approved" && (
                 <div className="avi-actionpanel__foot">
                   <a className="avi-btn avi-btn--ghost avi-btn--sm" href={`/referate/${r.id}/pdf`} target="_blank" rel="noopener noreferrer">
                     <span className="avi-btn__ico"><Icon name="download" /></span>
-                    <span>Descarcă PDF</span>
+                    <span>{t("common.downloadPdf")}</span>
                   </a>
                 </div>
               )}

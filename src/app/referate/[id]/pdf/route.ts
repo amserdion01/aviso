@@ -3,6 +3,7 @@ import { requireUser, isAdmin } from "@/lib/session";
 import { referatDocument, isInvolvedInRequisition } from "@/db/queries";
 import { renderReferatDocument } from "@/lib/referat-document";
 import { htmlToPdf } from "@/lib/pdf";
+import { readLocaleCookie } from "@/i18n/locale.server";
 
 // PDF rendering (Chromium cold start + render) can take a while on serverless.
 export const maxDuration = 60;
@@ -24,7 +25,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     return new NextResponse("Referatul nu este aprobat încă.", { status: 409 });
   }
 
-  const html = renderReferatDocument(data, new Date());
+  const locale = await readLocaleCookie();
+  const html = renderReferatDocument(data, new Date(), locale);
 
   // On serverless (Vercel): serve the print-ready document as an HTML page that
   // opens the browser's print dialog (→ Save as PDF). No headless Chromium on

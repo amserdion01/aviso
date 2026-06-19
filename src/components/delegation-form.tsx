@@ -2,7 +2,9 @@
 import { useActionState } from "react";
 import { createDelegationAction, type ActionState } from "@/app/actions";
 import { FormField, Input, Select, Switch, Button } from "@/components/ui/primitives";
-import { CAPABILITY_LABELS } from "@/lib/labels";
+import { capabilityLabel } from "@/lib/labels";
+import { useTranslations, useLocale } from "next-intl";
+import type { Locale } from "@/i18n/locale";
 import { Icon } from "@/components/ui/icon";
 
 const initial: ActionState = {};
@@ -13,39 +15,42 @@ interface Props {
   submitLabel?: string;
 }
 
-export function DelegationForm({ users, capabilities, submitLabel = "Adaugă delegare" }: Props) {
+export function DelegationForm({ users, capabilities, submitLabel }: Props) {
+  const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [state, formAction, pending] = useActionState(createDelegationAction, initial);
+  const label = submitLabel ?? t("delegationForm.submitLabel");
 
   return (
     <form action={formAction} className="avi-dialog-form">
-      <FormField label="Înlocuitor" required>
+      <FormField label={t("delegationForm.inlocuitor")} required>
         <Select
           name="delegateId"
           required
           defaultValue=""
-          placeholder="Alege un utilizator…"
+          placeholder={t("delegationForm.inlocuitorPlaceholder")}
           options={users.map((u) => ({ value: u.id, label: `${u.name} (${u.email})` }))}
         />
       </FormField>
 
-      <FormField label="Pentru capabilitatea" hint="Lasă gol pentru toate capabilitățile tale.">
+      <FormField label={t("delegationForm.capability")} hint={t("delegationForm.capabilityHint")}>
         <Select
           name="capability"
           defaultValue=""
-          options={[{ value: "", label: "Toate capabilitățile mele" }, ...capabilities.map((c) => ({ value: c, label: CAPABILITY_LABELS[c] ?? c }))]}
+          options={[{ value: "", label: t("delegationForm.allCapabilities") }, ...capabilities.map((c) => ({ value: c, label: capabilityLabel(c, locale) }))]}
         />
       </FormField>
 
       <div className="avi-two-col">
-        <FormField label="De la" required>
+        <FormField label={t("delegationForm.from")} required>
           <Input name="startsAt" type="date" required />
         </FormField>
-        <FormField label="Până la" required>
+        <FormField label={t("delegationForm.to")} required>
           <Input name="endsAt" type="date" required />
         </FormField>
       </div>
 
-      <Switch name="active" label="Activează imediat" defaultChecked />
+      <Switch name="active" label={t("delegationForm.activateNow")} defaultChecked />
 
       {state.error && (
         <p className="avi-formfield__error">
@@ -55,7 +60,7 @@ export function DelegationForm({ users, capabilities, submitLabel = "Adaugă del
 
       <div>
         <Button type="submit" variant="primary" iconLeft={<Icon name="plus" />} disabled={pending}>
-          {pending ? "Se salvează…" : submitLabel}
+          {pending ? t("common.saving") : label}
         </Button>
       </div>
     </form>

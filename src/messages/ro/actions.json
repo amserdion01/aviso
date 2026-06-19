@@ -1,0 +1,18 @@
+{
+  "invalidData": "Date invalide",
+  "noOrgUnit": "Contul tău nu este asociat unui birou. Contactează administratorul.",
+  "noApprover": "Nu există un aprobator configurat pentru fluxul tău. Contactează administratorul.",
+  "invalidAction": "Acțiune invalidă",
+  "classifyFirst": "Selectează tipul de achiziție (încadrarea) înainte de a aproba.",
+  "notAllowedForTask": "Această acțiune nu este permisă pentru acest task.",
+  "delegateOwnCaps": "Poți delega doar capabilitățile pe care le deții.",
+  "delegateCircular": "Delegarea ar crea un lanț circular (sau te alegi pe tine).",
+  "adminOnlyCreateUser": "Doar administratorii pot crea utilizatori.",
+  "createUserFailed": "Nu am putut crea contul (email deja folosit?).",
+  "adminOnlyEditUser": "Doar administratorii pot modifica utilizatorii.",
+  "adminOnlyCreateCategory": "Doar administratorii pot crea categorii.",
+  "adminOnlyEditCategory": "Doar administratorii pot modifica categoriile.",
+  "categoryNotFound": "Categorie inexistentă.",
+  "adminOnlyEditFlow": "Doar administratorii pot edita fluxul.",
+  "stepNotFound": "Pas inexistent."
+}

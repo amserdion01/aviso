@@ -1,0 +1,79 @@
+{
+  "backToInbox": "Înapoi la inbox",
+  "idLabel": "Referat #{id}",
+  "requestedBy": "Solicitat de",
+  "stepper": {
+    "title": "Traseu de avizare",
+    "subtitle": "Pașii aplicabili acestui referat și starea fiecăruia",
+    "approved": "Aprobat",
+    "inProgress": "În lucru",
+    "resent": "Retrimis",
+    "waiting": "În așteptare"
+  },
+  "audit": {
+    "create": "a creat referatul",
+    "approve": "a aprobat",
+    "reject": "a respins",
+    "sendBack": "a trimis înapoi"
+  },
+  "data": {
+    "title": "Date referat",
+    "item": "Articol",
+    "quantity": "Cantitate",
+    "costCenter": "Centru de cost",
+    "estimatedValue": "Valoare estimată",
+    "procurementType": "Tip achiziție",
+    "advisories": "Avize",
+    "justification": "Justificare"
+  },
+  "history": {
+    "title": "Istoric & audit",
+    "subtitle": "Toate acțiunile, în ordine cronologică"
+  },
+  "discussion": {
+    "title": "Discuție",
+    "subtitle": "Comentarii și observații pe acest referat",
+    "empty": "Niciun comentariu încă. Începe discuția mai jos.",
+    "placeholder": "Scrie un comentariu…",
+    "ariaLabel": "Comentariu",
+    "submit": "Trimite comentariul"
+  },
+  "readonly": {
+    "title": "Doar vizualizare",
+    "description": "Acest referat nu așteaptă o acțiune din partea ta."
+  },
+  "panel": {
+    "yourStep": "Pasul tău:",
+    "chooseAction": "Alege o acțiune pentru a continua traseul.",
+    "approve": "Aprobă",
+    "sendBack": "Trimite înapoi",
+    "reject": "Respinge",
+    "banner": {
+      "approve": "Aprobi acest referat și îl trimiți mai departe pe traseu.",
+      "sendBack": "Trimiți referatul înapoi la pasul anterior pentru corecții.",
+      "reject": "Respingi definitiv acest referat."
+    },
+    "classification": {
+      "label": "Încadrare (tip achiziție)",
+      "placeholder": "Alege tipul…",
+      "achizitii": "Achiziții",
+      "aprovizionare": "Aprovizionare",
+      "servicii": "Servicii"
+    },
+    "comment": {
+      "label": "Comentariu",
+      "placeholder": "Observații…"
+    },
+    "rejectReason": {
+      "label": "Motivul respingerii",
+      "placeholder": "ex. Buget indisponibil în acest trimestru."
+    },
+    "sendBackReason": {
+      "label": "Ce trebuie corectat",
+      "placeholder": "ex. Specifică modelul exact și anexează oferta."
+    },
+    "confirmApprove": "Confirmă aprobarea",
+    "confirmSendBack": "Trimite înapoi",
+    "confirmReject": "Respinge referatul"
+  }
+}

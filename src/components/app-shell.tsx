@@ -2,10 +2,12 @@
 import { Suspense, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Icon, type IconName } from "@/components/ui/icon";
 import { Avatar, CountBadge } from "@/components/ui/primitives";
 import { ToastHost } from "@/components/ui/toast-host";
 import { NotificationsBell, type NotificationItem } from "@/components/notifications-bell";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { signOut } from "@/lib/auth-client";
 
 interface NavDef {
@@ -14,15 +16,6 @@ interface NavDef {
   icon: IconName;
   match: (path: string) => boolean;
 }
-
-const NAV: NavDef[] = [
-  { href: "/inbox", label: "Inboxul meu", icon: "inbox", match: (p) => p === "/inbox" },
-  { href: "/referate/nou", label: "Referat nou", icon: "file-plus-2", match: (p) => p === "/referate/nou" },
-  { href: "/", label: "Toate referatele", icon: "files", match: (p) => p === "/" || (p.startsWith("/referate/") && p !== "/referate/nou") },
-  { href: "/achizitii", label: "Achiziții", icon: "shopping-cart", match: (p) => p.startsWith("/achizitii") },
-  { href: "/rapoarte", label: "Rapoarte", icon: "bar-chart-3", match: (p) => p.startsWith("/rapoarte") },
-  { href: "/admin", label: "Administrare", icon: "settings", match: (p) => p.startsWith("/admin") || p.startsWith("/delegari") },
-];
 
 export function AppShell({
   user,
@@ -41,9 +34,19 @@ export function AppShell({
   notifications: { items: NotificationItem[]; unread: number };
   children: ReactNode;
 }) {
+  const t = useTranslations();
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const [menu, setMenu] = useState(false);
+
+  const NAV: NavDef[] = [
+    { href: "/inbox", label: t("nav.inbox"), icon: "inbox", match: (p) => p === "/inbox" },
+    { href: "/referate/nou", label: t("nav.new"), icon: "file-plus-2", match: (p) => p === "/referate/nou" },
+    { href: "/", label: t("nav.all"), icon: "files", match: (p) => p === "/" || (p.startsWith("/referate/") && p !== "/referate/nou") },
+    { href: "/achizitii", label: t("nav.procurement"), icon: "shopping-cart", match: (p) => p.startsWith("/achizitii") },
+    { href: "/rapoarte", label: t("nav.reports"), icon: "bar-chart-3", match: (p) => p.startsWith("/rapoarte") },
+    { href: "/admin", label: t("nav.admin"), icon: "settings", match: (p) => p.startsWith("/admin") || p.startsWith("/delegari") },
+  ];
 
   async function doSignOut() {
     await signOut();
@@ -62,7 +65,7 @@ export function AppShell({
         </Link>
         <form action="/cauta" className="avi-topbar__search">
           <Icon name="search" />
-          <input name="q" placeholder="Caută referat, articol sau solicitant…" aria-label="Caută" />
+          <input name="q" placeholder={t("nav.searchPlaceholder")} aria-label={t("nav.searchAria")} />
         </form>
         <div className="avi-topbar__right">
           <NotificationsBell items={notifications.items} unread={notifications.unread} />
@@ -82,11 +85,16 @@ export function AppShell({
                   <div className="avi-usermenu__em">{user.email}</div>
                 </div>
                 <Link href="/delegari" className="avi-usermenu__item" onClick={() => setMenu(false)}>
-                  <Icon name="repeat" /> Setează înlocuitor
+                  <Icon name="repeat" /> {t("nav.setSubstitute")}
                 </Link>
                 <div className="avi-usermenu__sep" />
+                <div className="avi-usermenu__lang">
+                  <span className="avi-usermenu__langlbl">{t("nav.language")}</span>
+                  <LanguageSwitcher />
+                </div>
+                <div className="avi-usermenu__sep" />
                 <button className="avi-usermenu__item avi-usermenu__item--danger" onClick={doSignOut}>
-                  <Icon name="log-out" /> Deconectare
+                  <Icon name="log-out" /> {t("nav.signOut")}
                 </button>
               </div>
             )}
@@ -111,9 +119,11 @@ export function AppShell({
             <Link href="/delegari" className="avi-sidebar__sub" style={{ textDecoration: "none" }}>
               <Icon name="shield-check" />
               <div>
-                <div className="avi-sidebar__subt">Înlocuitor activ</div>
+                <div className="avi-sidebar__subt">{t("nav.activeSubstitute")}</div>
                 <div className="avi-sidebar__subd">
-                  {activeSubstitute ? `${activeSubstitute.name} · până la ${activeSubstitute.until}` : "Niciunul setat"}
+                  {activeSubstitute
+                    ? t("nav.substituteUntil", { name: activeSubstitute.name, until: activeSubstitute.until })
+                    : t("nav.noneSet")}
                 </div>
               </div>
             </Link>

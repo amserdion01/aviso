@@ -1,0 +1,25 @@
+{
+  "title": "Autentificare",
+  "sub": "Intră în contul tău pentru a gestiona referatele de necesitate.",
+  "email": "Email",
+  "password": "Parolă",
+  "remember": "Ține-mă minte",
+  "forgot": "Ai uitat parola?",
+  "loading": "Se autentifică…",
+  "submit": "Autentificare",
+  "troubleshoot": "Probleme la conectare? Contactează <it>biroul IT</it>.",
+  "errors": {
+    "invalidCredentials": "Email sau parolă incorecte.",
+    "inactive": "Contul tău este dezactivat. Contactează biroul IT."
+  },
+  "aside": {
+    "quote": "Referate de necesitate, digitalizate.",
+    "lead": "Trimite, urmărește și aprobă cereri de achiziție într-un flux clar, cu traseu de avizare și istoric complet.",
+    "features": {
+      "route": "Traseu de avizare pe roluri",
+      "substitutes": "Înlocuitori pentru aprobatori absenți",
+      "audit": "Istoric și audit complet"
+    }
+  },
+  "footer": "Apa Covasna · Sistem intern HydroKov"
+}

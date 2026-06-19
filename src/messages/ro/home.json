@@ -1,0 +1,24 @@
+{
+  "title": "Toate referatele",
+  "subAll": "Toate referatele din sistem și starea lor curentă.",
+  "subMine": "Referatele inițiate de tine și starea lor curentă.",
+  "subResults": "Rezultate pentru „{query}” — {count} referat(e).",
+  "newReferat": "Referat nou",
+  "table": {
+    "referat": "Referat",
+    "item": "Articol",
+    "requester": "Solicitant",
+    "costCenter": "Centru de cost",
+    "createdAt": "Creat"
+  },
+  "empty": {
+    "noResultsTitle": "Niciun rezultat",
+    "noResultsDescription": "Niciun referat nu corespunde căutării „{query}”.",
+    "viewAll": "Vezi toate referatele",
+    "noneAllTitle": "Niciun referat în sistem",
+    "noneMineTitle": "Niciun referat încă",
+    "noneAllDescription": "Când angajații trimit referate, vor apărea aici cu statusul lor pe traseul de avizare.",
+    "noneMineDescription": "Referatele pe care le inițiezi vor apărea aici, cu statusul lor pe traseul de avizare.",
+    "create": "Creează un referat"
+  }
+}

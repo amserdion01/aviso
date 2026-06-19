@@ -10,6 +10,7 @@ export interface AppUser {
   name: string;
   email: string;
   orgUnitId: string | null;
+  locale: string;
   capabilities: string[];
 }
 
@@ -19,7 +20,7 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   if (!session) return null;
 
   const [row] = await db
-    .select({ id: users.id, name: users.name, email: users.email, orgUnitId: users.orgUnitId, active: users.active })
+    .select({ id: users.id, name: users.name, email: users.email, orgUnitId: users.orgUnitId, locale: users.locale, active: users.active })
     .from(users)
     .where(eq(users.id, session.user.id))
     .limit(1);

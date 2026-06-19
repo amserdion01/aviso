@@ -1,0 +1,76 @@
+{
+  "futureOnlyNote": "Modificările fluxului afectează doar <b>referatele viitoare</b>. Referatele aflate deja pe traseu își păstrează pașii.",
+  "addCategory": "Adaugă categorie",
+  "empty": {
+    "title": "Nicio categorie de avizare",
+    "description": "Creează prima categorie pentru a defini un traseu de avizare."
+  },
+  "toggle": {
+    "deactivate": "Dezactivează categoria",
+    "activate": "Activează categoria"
+  },
+  "card": {
+    "stepCount": "{count} pași",
+    "collapse": "Restrânge categoria",
+    "expand": "Extinde categoria",
+    "editCategory": "Editează categoria {name}",
+    "addStep": "Adaugă pas",
+    "noSteps": {
+      "title": "Niciun pas definit",
+      "description": "Adaugă primul pas din traseul acestei categorii."
+    }
+  },
+  "table": {
+    "step": "Pas",
+    "capability": "Capabilitate",
+    "strategy": "Strategie",
+    "condition": "Condiție",
+    "type": "Tip",
+    "advisory": "Consultativ",
+    "classification": "Încadrare",
+    "moveUp": "Mută în sus",
+    "moveDown": "Mută în jos",
+    "edit": "Editează",
+    "delete": "Șterge"
+  },
+  "confirmDeleteStep": "Ștergi pasul „{label}”? Afectează doar referatele viitoare.",
+  "workflowDialog": {
+    "editTitle": "Editează categoria",
+    "createTitle": "Adaugă categorie",
+    "subtitle": "O categorie definește un traseu de avizare separat.",
+    "nameLabel": "Nume",
+    "namePlaceholder": "ex. Achiziții materiale",
+    "descriptionLabel": "Descriere",
+    "descriptionHint": "Scurtă explicație despre când se folosește această categorie.",
+    "saveEdit": "Salvează categoria",
+    "saveCreate": "Creează categoria"
+  },
+  "stepDialog": {
+    "editTitle": "Editează pasul",
+    "createTitle": "Adaugă pas",
+    "subtitle": "Definește un pas din traseul de avizare.",
+    "labelLabel": "Etichetă",
+    "labelPlaceholder": "ex. Aprobat director economic",
+    "taskTypeLabel": "Tip pas (cod)",
+    "taskTypeHint": "Identificator scurt, ex. DIRECTOR_ECONOMIC.",
+    "capabilityLabel": "Capabilitate necesară",
+    "capabilityPlaceholder": "Alege capabilitatea",
+    "strategyLabel": "Strategie aprobator",
+    "paramLabel": "Parametru strategie",
+    "paramHint": "Doar pentru „Relativ la unitate” (birou / serviciu). Lasă gol altfel.",
+    "paramPlaceholder": "birou / serviciu",
+    "conditionLabel": "Condiție de aplicare",
+    "conditionAlways": "Întotdeauna",
+    "conditionNeedsIt": "Dacă necesită aviz IT",
+    "conditionNeedsSsm": "Dacă necesită aviz SSM",
+    "conditionProcurement": "După tipul de achiziție",
+    "conditionValue": "Peste o valoare (lei)",
+    "procurementLabel": "Tip achiziție",
+    "procurementPlaceholder": "Alege tipul",
+    "valueLabel": "Prag valoare (lei)",
+    "blocking": "Pas blocant (obligatoriu)",
+    "setsProcurement": "Setează tipul de achiziție (încadrare)",
+    "saveEdit": "Salvează pasul",
+    "saveCreate": "Adaugă pasul"
+  }
+}

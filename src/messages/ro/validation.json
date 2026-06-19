@@ -1,0 +1,19 @@
+{
+  "workflowRequired": "Alege o categorie de referat",
+  "itemRequired": "Denumirea articolului este obligatorie",
+  "quantityInt": "Cantitatea trebuie să fie un număr întreg",
+  "quantityPositive": "Cantitatea trebuie să fie pozitivă",
+  "justificationRequired": "Justificarea este obligatorie",
+  "costCenterRequired": "Centrul de cost este obligatoriu",
+  "delegateRequired": "Alege un înlocuitor",
+  "dateRangeOrder": "Data de sfârșit trebuie să fie după cea de început",
+  "nameRequired": "Numele este obligatoriu",
+  "emailInvalid": "Email invalid",
+  "passwordMin": "Parola trebuie să aibă cel puțin 8 caractere",
+  "categoryNameRequired": "Numele categoriei este obligatoriu",
+  "stepLabelRequired": "Eticheta este obligatorie",
+  "stepTypeRequired": "Tipul pasului este obligatoriu",
+  "capabilityRequired": "Capabilitatea este obligatorie",
+  "commentEmpty": "Comentariul nu poate fi gol",
+  "commentTooLong": "Comentariul este prea lung"
+}

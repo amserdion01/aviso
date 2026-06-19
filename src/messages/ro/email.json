@@ -1,0 +1,23 @@
+{
+  "itemLabel": "Referat",
+  "someoneFallback": "Un angajat",
+  "footer": "HydroKov — flux de aprobare a referatelor de necesitate",
+  "approval": {
+    "heading": "Ai un referat de aprobat",
+    "intro": "{requester} a trimis un referat care așteaptă acțiunea ta ({task}).",
+    "cta": "Deschide referatul",
+    "subject": "HydroKov: referat de aprobat — {item}"
+  },
+  "approved": {
+    "heading": "Referat aprobat",
+    "intro": "Referatul tău a fost aprobat pe întreg fluxul.",
+    "cta": "Vezi referatul",
+    "subject": "HydroKov: referat aprobat — {item}"
+  },
+  "rejected": {
+    "heading": "Referat respins",
+    "intro": "Referatul tău a fost respins. Vezi istoricul pentru detalii.",
+    "cta": "Vezi referatul",
+    "subject": "HydroKov: referat respins — {item}"
+  }
+}

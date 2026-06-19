@@ -1,0 +1,30 @@
+{
+  "title": "Inboxul meu",
+  "sub": "Referate care așteaptă aprobarea ta.",
+  "table": {
+    "requester": "Solicitant",
+    "item": "Articol",
+    "yourStep": "Pasul tău",
+    "received": "Primit",
+    "actions": "Acțiuni"
+  },
+  "onBehalfOf": "· în numele {name}",
+  "classify": "Încadrează",
+  "approve": "Aprobă",
+  "sendBack": "Trimite înapoi",
+  "reject": "Respinge",
+  "tabs": {
+    "waiting": "În așteptare",
+    "sent": "Trimise de mine"
+  },
+  "emptyWaiting": {
+    "title": "Inbox gol",
+    "description": "Nu ai niciun referat care așteaptă aprobarea ta. Bună treabă!",
+    "create": "Creează un referat"
+  },
+  "emptySent": {
+    "title": "Niciun referat trimis",
+    "description": "Referatele inițiate de tine apar în „Toate referatele”, cu statusul lor curent.",
+    "viewAll": "Vezi toate referatele"
+  }
+}

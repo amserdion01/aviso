@@ -1,0 +1,14 @@
+{
+  "title": "Delegări / înlocuitori",
+  "sub": "Desemnează un înlocuitor care îți preia taskurile pe o perioadă (concediu etc.).",
+  "addTitle": "Adaugă înlocuitor",
+  "addSubtitle": "Aprobatorul de rezervă preia sarcinile în perioada selectată.",
+  "submitLabel": "Salvează delegarea",
+  "emptyTitle": "Nicio delegare",
+  "emptyDescription": "Delegările pe care le creezi vor apărea aici cu perioada și statusul lor.",
+  "columns": {
+    "inlocuitor": "Înlocuitor",
+    "capability": "Capabilitate",
+    "perioada": "Perioada"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "Administrare",
+  "sub": "Gestionează utilizatorii, rolurile din traseu, înlocuitorii și fluxul de avizare.",
+  "tabs": {
+    "users": "Utilizatori & roluri",
+    "delegations": "Delegări / înlocuitori",
+    "workflow": "Flux de avizare"
+  },
+  "delegations": {
+    "addTitle": "Adaugă înlocuitor",
+    "addSubtitle": "Aprobatorul de rezervă preia sarcinile în perioada selectată.",
+    "submitLabel": "Salvează delegarea",
+    "emptyTitle": "Nicio delegare configurată",
+    "emptyDescription": "Delegările active și programate vor apărea aici.",
+    "columns": {
+      "titular": "Titular",
+      "capability": "Capabilitate",
+      "inlocuitor": "Înlocuitor",
+      "perioada": "Perioada"
+    }
+  }
+}

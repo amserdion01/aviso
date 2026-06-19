@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { eq, desc } from "drizzle-orm";
 import {
   createReferatSchema,
@@ -36,13 +37,22 @@ export interface ActionState {
   ok?: boolean;
 }
 
+type Translator = Awaited<ReturnType<typeof getTranslations>>;
+
+/** Translate a Zod issue: our messages are `validation.*` keys; anything else falls back. */
+function zodError(t: Translator, issues: { message: string }[]): string {
+  const m = issues[0]?.message;
+  return m && m.startsWith("validation.") ? t(m) : t("actions.invalidData");
+}
+
 export async function createReferatAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireUser();
+  const t = await getTranslations();
   if (!user.orgUnitId) {
-    return { error: "Contul tău nu este asociat unui birou. Contactează administratorul." };
+    return { error: t("actions.noOrgUnit") };
   }
 
   const parsed = createReferatSchema.safeParse({
@@ -54,7 +64,7 @@ export async function createReferatAction(
     estimatedValueLei: formData.get("estimatedValueLei") ?? "",
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+    return { error: zodError(t, parsed.error.issues) };
   }
 
   let requisitionId: string;
@@ -73,7 +83,7 @@ export async function createReferatAction(
     });
   } catch (err) {
     if (err instanceof ApproverResolutionError) {
-      return { error: "Nu există un aprobator configurat pentru fluxul tău. Contactează administratorul." };
+      return { error: t("actions.noApprover") };
     }
     throw err;
   }
@@ -89,6 +99,7 @@ export async function createReferatAction(
 
 export async function actReferatAction(formData: FormData): Promise<void> {
   const user = await requireUser();
+  const t = await getTranslations();
   const parsed = actionSchema.safeParse({
     requisitionId: formData.get("requisitionId"),
     action: formData.get("action"),
@@ -96,7 +107,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     classification: formData.get("classification") ?? undefined,
   });
   if (!parsed.success) {
-    throw new Error("Acțiune invalidă");
+    throw new Error(t("actions.invalidAction"));
   }
 
   try {
@@ -110,7 +121,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {
     if (err instanceof ClassificationRequiredError) {
-      throw new Error("Selectează tipul de achiziție (încadrarea) înainte de a aproba.");
+      throw new Error(t("actions.classifyFirst"));
     }
     if (
       err instanceof AuthorizationError ||
@@ -118,7 +129,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
       err instanceof SendBackError
     ) {
       // Authorization / state errors are not retryable from the UI; surface generically.
-      throw new Error("Această acțiune nu este permisă pentru acest task.");
+      throw new Error(t("actions.notAllowedForTask"));
     }
     throw err;
   }
@@ -133,6 +144,7 @@ export async function createDelegationAction(
   formData: FormData,
 ): Promise<ActionState> {
   const user = await requireUser();
+  const t = await getTranslations();
   const parsed = delegationSchema.safeParse({
     delegateId: formData.get("delegateId"),
     capability: formData.get("capability") ?? "",
@@ -140,12 +152,12 @@ export async function createDelegationAction(
     endsAt: formData.get("endsAt"),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+    return { error: zodError(t, parsed.error.issues) };
   }
 
   // You can only delegate a capability you actually hold (null = all of yours).
   if (parsed.data.capability && !user.capabilities.includes(parsed.data.capability)) {
-    return { error: "Poți delega doar capabilitățile pe care le deții." };
+    return { error: t("actions.delegateOwnCaps") };
   }
 
   try {
@@ -158,7 +170,7 @@ export async function createDelegationAction(
     });
   } catch (err) {
     if (err instanceof CircularDelegationError) {
-      return { error: "Delegarea ar crea un lanț circular (sau te alegi pe tine)." };
+      return { error: t("actions.delegateCircular") };
     }
     throw err;
   }
@@ -171,7 +183,8 @@ export async function createDelegationAction(
 /** Admin-only: create a user (via Better Auth), set org unit + capabilities. */
 export async function createUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot crea utilizatori." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyCreateUser") };
 
   const parsed = createUserSchema.safeParse({
     name: formData.get("name"),
@@ -180,7 +193,7 @@ export async function createUserAction(_prev: ActionState, formData: FormData): 
     orgUnitId: formData.get("orgUnitId") ?? undefined,
     capabilities: formData.getAll("capabilities"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
 
   let userId: string;
   try {
@@ -189,7 +202,7 @@ export async function createUserAction(_prev: ActionState, formData: FormData): 
     });
     userId = res.user.id;
   } catch {
-    return { error: "Nu am putut crea contul (email deja folosit?)." };
+    return { error: t("actions.createUserFailed") };
   }
 
   await db.update(users).set({ orgUnitId: parsed.data.orgUnitId }).where(eq(users.id, userId));
@@ -207,7 +220,8 @@ export async function createUserAction(_prev: ActionState, formData: FormData): 
 /** Admin-only: update a user's name, org unit, and capabilities. */
 export async function updateUserAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot modifica utilizatorii." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyEditUser") };
 
   const parsed = updateUserSchema.safeParse({
     userId: formData.get("userId"),
@@ -215,7 +229,7 @@ export async function updateUserAction(_prev: ActionState, formData: FormData): 
     orgUnitId: formData.get("orgUnitId") ?? undefined,
     capabilities: formData.getAll("capabilities"),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
 
   await db.update(users).set({ name: parsed.data.name, orgUnitId: parsed.data.orgUnitId }).where(eq(users.id, parsed.data.userId));
   // Replace the capability set.
@@ -256,9 +270,10 @@ export async function addCommentAction(formData: FormData): Promise<void> {
 /** Admin-only: create a new workflow (category). */
 export async function createWorkflowAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot crea categorii." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyCreateCategory") };
   const parsed = workflowSchema.safeParse({ name: formData.get("name"), description: formData.get("description") ?? undefined });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
   await db.insert(workflows).values({ id: crypto.randomUUID(), name: parsed.data.name, description: parsed.data.description });
   revalidatePath("/admin");
   return { ok: true };
@@ -267,14 +282,15 @@ export async function createWorkflowAction(_prev: ActionState, formData: FormDat
 /** Admin-only: rename / re-describe a workflow. */
 export async function updateWorkflowAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot modifica categoriile." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyEditCategory") };
   const parsed = workflowSchema.safeParse({
     workflowId: formData.get("workflowId"),
     name: formData.get("name"),
     description: formData.get("description") ?? undefined,
   });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
-  if (!parsed.data.workflowId) return { error: "Categorie inexistentă." };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
+  if (!parsed.data.workflowId) return { error: t("actions.categoryNotFound") };
   await db
     .update(workflows)
     .set({ name: parsed.data.name, description: parsed.data.description })
@@ -286,7 +302,7 @@ export async function updateWorkflowAction(_prev: ActionState, formData: FormDat
 /** Admin-only: activate / deactivate a workflow (soft delete). */
 export async function setWorkflowActiveAction(workflowId: string, active: boolean): Promise<void> {
   const me = await requireUser();
-  if (!isAdmin(me)) throw new Error("Doar administratorii pot modifica categoriile.");
+  if (!isAdmin(me)) throw new Error((await getTranslations())("actions.adminOnlyEditCategory"));
   await db.update(workflows).set({ active }).where(eq(workflows.id, workflowId));
   revalidatePath("/admin");
 }
@@ -310,9 +326,10 @@ function parseStep(formData: FormData) {
 /** Admin-only: append a new step to the approval-chain template. */
 export async function addStepAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot edita fluxul." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyEditFlow") };
   const parsed = parseStep(formData);
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
 
   // step_order is per-workflow.
   const [last] = await db
@@ -341,10 +358,11 @@ export async function addStepAction(_prev: ActionState, formData: FormData): Pro
 /** Admin-only: update an existing step's definition (not its order). */
 export async function updateStepAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const me = await requireUser();
-  if (!isAdmin(me)) return { error: "Doar administratorii pot edita fluxul." };
+  const t = await getTranslations();
+  if (!isAdmin(me)) return { error: t("actions.adminOnlyEditFlow") };
   const parsed = parseStep(formData);
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Date invalide" };
-  if (!parsed.data.stepId) return { error: "Pas inexistent." };
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
+  if (!parsed.data.stepId) return { error: t("actions.stepNotFound") };
 
   await db
     .update(approvalSteps)
@@ -366,7 +384,7 @@ export async function updateStepAction(_prev: ActionState, formData: FormData): 
 /** Admin-only: delete a step from the template. Affects only future referate. */
 export async function deleteStepAction(stepId: string): Promise<void> {
   const me = await requireUser();
-  if (!isAdmin(me)) throw new Error("Doar administratorii pot edita fluxul.");
+  if (!isAdmin(me)) throw new Error((await getTranslations())("actions.adminOnlyEditFlow"));
   await db.delete(approvalSteps).where(eq(approvalSteps.id, stepId));
   revalidatePath("/admin");
 }
@@ -374,7 +392,7 @@ export async function deleteStepAction(stepId: string): Promise<void> {
 /** Admin-only: swap a step with its neighbour to reorder the chain. */
 export async function moveStepAction(stepId: string, direction: "up" | "down"): Promise<void> {
   const me = await requireUser();
-  if (!isAdmin(me)) throw new Error("Doar administratorii pot edita fluxul.");
+  if (!isAdmin(me)) throw new Error((await getTranslations())("actions.adminOnlyEditFlow"));
 
   // Reorder only within the moved step's own workflow.
   const [moved] = await db.select({ workflowId: approvalSteps.workflowId }).from(approvalSteps).where(eq(approvalSteps.id, stepId)).limit(1);
@@ -415,7 +433,7 @@ export async function markNotificationsReadAction(): Promise<void> {
 export async function setUserActiveAction(userId: string, active: boolean): Promise<void> {
   const me = await requireUser();
   if (!isAdmin(me)) {
-    throw new Error("Doar administratorii pot modifica utilizatorii.");
+    throw new Error((await getTranslations())("actions.adminOnlyEditUser"));
   }
   await db.update(users).set({ active }).where(eq(users.id, userId));
   // Deactivation takes effect immediately: drop the user's sessions so they

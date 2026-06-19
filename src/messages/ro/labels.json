@@ -1,0 +1,67 @@
+{
+  "status": { "in_progress": "În curs", "approved": "Aprobat", "rejected": "Respins" },
+  "taskStatus": {
+    "pending": "În așteptare",
+    "waiting": "De aprobat",
+    "approved": "Aprobat",
+    "rejected": "Respins",
+    "sent_back": "Trimis înapoi",
+    "skipped": "Omis"
+  },
+  "taskType": {
+    "VERIFICARE_SEF_BIROU": "Verificare șef birou",
+    "APROBAT_DIRECTOR": "Aprobat director",
+    "SEF_BIROU": "Verificare șef birou/sector",
+    "SEF_SERVICIU": "Verificare șef serviciu/secție",
+    "INREGISTRARE": "Înregistrare",
+    "IT": "IT",
+    "SSM": "SSM",
+    "RU": "RU",
+    "MAGAZIE": "Verificare magazie",
+    "DIRECTOR_ECONOMIC": "Aprobat director economic",
+    "INCADRARE": "Achiziții — încadrare",
+    "ACHIZITII": "Achiziții",
+    "APROVIZIONARE": "Aprovizionare",
+    "SERVICII": "Servicii",
+    "DIRECTOR": "Aprobat director"
+  },
+  "procurementType": { "achizitii": "Achiziții", "aprovizionare": "Aprovizionare", "servicii": "Servicii" },
+  "action": { "create": "Creare", "approve": "Aprobare", "reject": "Respingere", "send_back": "Trimis înapoi" },
+  "capability": {
+    "angajat": "Angajat",
+    "sef_birou": "Șef birou",
+    "sef_serviciu": "Șef serviciu",
+    "secretariat": "Secretariat",
+    "inregistrare": "Secretariat",
+    "it": "IT",
+    "ssm": "SSM",
+    "ru": "Resurse umane",
+    "magazie": "Magazie",
+    "director_economic": "Director economic",
+    "incadrare": "Achiziții — încadrare",
+    "achizitii": "Achiziții",
+    "aprovizionare": "Aprovizionare",
+    "servicii": "Servicii",
+    "director": "Director",
+    "director_tehnic": "Director tehnic",
+    "director_general": "Director general",
+    "admin": "Administrator"
+  },
+  "approverStrategy": {
+    "capability": "După capabilitate",
+    "org_relative": "Relativ la unitate",
+    "director_by_unit": "Director pe unitate"
+  },
+  "statusBadge": { "approved": "Finalizat", "rejected": "Respins", "in_progress": "În curs" },
+  "condition": {
+    "always": "Întotdeauna",
+    "composite": "Condiție compusă",
+    "needsIt": "Dacă necesită aviz IT",
+    "needsSsm": "Dacă necesită aviz SSM",
+    "procurementType": "Dacă tip achiziție = {type}",
+    "value": "Dacă valoarea > {amount} lei",
+    "advanced": "Condiție avansată"
+  },
+  "currencyUnit": "lei",
+  "userFallback": "Utilizator"
+}

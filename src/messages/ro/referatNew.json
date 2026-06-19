@@ -1,0 +1,39 @@
+{
+  "title": "Referat nou de necesitate",
+  "sub": "Completează detaliile cererii. După trimitere intră pe traseul de avizare.",
+  "fields": {
+    "workflow": {
+      "label": "Categorie / tip referat",
+      "hint": "Determină traseul de avizare.",
+      "placeholder": "Alege categoria"
+    },
+    "item": {
+      "label": "Articol",
+      "hint": "Denumirea exactă a produsului sau serviciului.",
+      "placeholder": "ex. Laptop Dell Latitude 5540"
+    },
+    "quantity": {
+      "label": "Cantitate"
+    },
+    "estimatedValue": {
+      "label": "Valoare estimată",
+      "placeholder": "0,00"
+    },
+    "costCenter": {
+      "label": "Centru de cost",
+      "placeholder": "Alege centrul de cost"
+    },
+    "justification": {
+      "label": "Justificare",
+      "hint": "Explică necesitatea achiziției — va fi vizibilă aprobatorilor.",
+      "placeholder": "ex. Laptopurile actuale nu mai pornesc și blochează activitatea biroului IT…"
+    },
+    "approvals": {
+      "label": "Avize necesare",
+      "needsIt": "Necesită aviz IT",
+      "needsSsm": "Necesită aviz SSM"
+    }
+  },
+  "flowNote": "După trimitere, referatul intră pe traseul de avizare pe roluri (șef birou → șef serviciu → … → director), iar fiecare aprobator poate aproba, respinge sau trimite înapoi.",
+  "submit": "Trimite referatul"
+}

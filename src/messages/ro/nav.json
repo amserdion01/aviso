@@ -1,0 +1,16 @@
+{
+  "inbox": "Inboxul meu",
+  "new": "Referat nou",
+  "all": "Toate referatele",
+  "procurement": "Achiziții",
+  "reports": "Rapoarte",
+  "admin": "Administrare",
+  "searchPlaceholder": "Caută referat, articol sau solicitant…",
+  "searchAria": "Caută",
+  "setSubstitute": "Setează înlocuitor",
+  "signOut": "Deconectare",
+  "activeSubstitute": "Înlocuitor activ",
+  "noneSet": "Niciunul setat",
+  "substituteUntil": "{name} · până la {until}",
+  "language": "Limbă"
+}

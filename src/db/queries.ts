@@ -3,7 +3,6 @@ import { alias } from "drizzle-orm/pg-core";
 import { db } from "./index";
 import { approvalSteps, approvalTasks, delegations, orgUnits, requisitionComments, requisitionTransitions, requisitions, userCapabilities, users, workflows } from "./schema";
 import { activeDelegationsForDelegate } from "./delegations-repo";
-import { TASK_TYPE_LABELS } from "@/lib/labels";
 
 /**
  * Tasks waiting in a given approver's inbox — their own plus any routed to them
@@ -121,7 +120,8 @@ export interface NotificationRow {
   requisitionId: string;
   item: string;
   actorName: string | null;
-  taskLabel: string | null;
+  /** Raw task-type code (e.g. SEF_BIROU); translate to a label at render time. */
+  taskType: string | null;
   createdAt: Date;
   unread: boolean;
 }
@@ -192,7 +192,7 @@ export async function notificationsFor(userId: string): Promise<{ items: Notific
       requisitionId: e.requisitionId,
       item: e.item,
       actorName: e.actorName,
-      taskLabel: null,
+      taskType: null,
       createdAt: e.createdAt,
     })),
     ...todos.map((t) => ({
@@ -200,7 +200,7 @@ export async function notificationsFor(userId: string): Promise<{ items: Notific
       requisitionId: t.requisitionId,
       item: t.item,
       actorName: null,
-      taskLabel: TASK_TYPE_LABELS[t.taskType] ?? t.taskType,
+      taskType: t.taskType,
       createdAt: t.arrivedAt ?? new Date(0),
     })),
   ];

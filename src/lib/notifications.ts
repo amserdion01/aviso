@@ -5,20 +5,47 @@ import { db } from "@/db";
 import { requisitions, users } from "@/db/schema";
 import { sendMail } from "./mail";
 import { NotificationEmail } from "@/emails/notification";
-import { TASK_TYPE_LABELS } from "./labels";
+import { taskTypeLabel } from "./labels";
+import { loadMessages } from "@/i18n/messages";
+import { coerceLocale } from "@/i18n/locale";
 import { activeTask, type WorkflowState } from "@/domain/workflow";
+import type { Locale } from "@/i18n/locale";
 
 const APP_URL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 
+interface EmailBlock {
+  heading: string;
+  intro: string;
+  cta: string;
+  subject: string;
+}
+interface EmailDict {
+  itemLabel: string;
+  someoneFallback: string;
+  footer: string;
+  approval: EmailBlock;
+  approved: EmailBlock;
+  rejected: EmailBlock;
+}
+const emailDict = (locale: Locale): EmailDict => loadMessages(locale).email as unknown as EmailDict;
+
 async function userById(id: string) {
-  const [row] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, id)).limit(1);
+  const [row] = await db
+    .select({ name: users.name, email: users.email, locale: users.locale })
+    .from(users)
+    .where(eq(users.id, id))
+    .limit(1);
   return row ?? null;
 }
+
+const fill = (tpl: string, vars: Record<string, string>) =>
+  tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`);
 
 /**
  * Send the appropriate notification for the workflow's current state:
  *  - a step is waiting -> notify that approver ("you have a referat to approve")
  *  - finished (approved/rejected) -> notify the requester
+ * Each email renders in the RECIPIENT's preferred language (users.locale).
  * Used after both creation and every action. Never throws.
  */
 export async function notifyForState(requisitionId: string, state: WorkflowState): Promise<void> {
@@ -36,39 +63,49 @@ export async function notifyForState(requisitionId: string, state: WorkflowState
       const approver = await userById(active.effectiveApproverId);
       const requester = await userById(state.requesterId);
       if (!approver) return;
+      const locale = coerceLocale(approver.locale);
+      const e = emailDict(locale);
       const html = await render(
         NotificationEmail({
-          heading: "Ai un referat de aprobat",
-          intro: `${requester?.name ?? "Un angajat"} a trimis un referat care așteaptă acțiunea ta (${TASK_TYPE_LABELS[active.taskType] ?? active.taskType}).`,
-          itemLabel: "Referat",
+          heading: e.approval.heading,
+          intro: fill(e.approval.intro, {
+            requester: requester?.name ?? e.someoneFallback,
+            task: taskTypeLabel(active.taskType, locale),
+          }),
+          itemLabel: e.itemLabel,
           itemValue: req.item,
-          ctaLabel: "Deschide referatul",
+          ctaLabel: e.approval.cta,
           ctaUrl: url,
+          footer: e.footer,
+          locale,
         }),
       );
-      await sendMail({ to: approver.email, subject: `HydroKov: referat de aprobat — ${req.item}`, html });
+      await sendMail({ to: approver.email, subject: fill(e.approval.subject, { item: req.item }), html });
       return;
     }
 
     // finished -> notify requester
     const requester = await userById(state.requesterId);
     if (!requester) return;
+    const locale = coerceLocale(requester.locale);
     const approved = state.status === "approved";
+    const em = emailDict(locale);
+    const block = approved ? em.approved : em.rejected;
     const html = await render(
       NotificationEmail({
-        heading: approved ? "Referat aprobat" : "Referat respins",
-        intro: approved
-          ? "Referatul tău a fost aprobat pe întreg fluxul."
-          : "Referatul tău a fost respins. Vezi istoricul pentru detalii.",
-        itemLabel: "Referat",
+        heading: block.heading,
+        intro: block.intro,
+        itemLabel: em.itemLabel,
         itemValue: req.item,
-        ctaLabel: "Vezi referatul",
+        ctaLabel: block.cta,
         ctaUrl: url,
+        footer: em.footer,
+        locale,
       }),
     );
     await sendMail({
       to: requester.email,
-      subject: `HydroKov: referat ${approved ? "aprobat" : "respins"} — ${req.item}`,
+      subject: fill(block.subject, { item: req.item }),
       html,
     });
   } catch (err) {

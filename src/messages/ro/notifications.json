@@ -1,0 +1,13 @@
+{
+  "title": "Notificări",
+  "ariaLabel": "Notificări",
+  "empty": "Nicio notificare deocamdată.",
+  "lines": {
+    "rejected": "{actor} a respins referatul",
+    "sentback": "{actor} a trimis înapoi referatul",
+    "finalized": "Referatul tău a fost aprobat complet",
+    "todoTyped": "De aprobat ({task})",
+    "todo": "Ai un referat de aprobat",
+    "approved": "{actor} a avizat referatul"
+  }
+}

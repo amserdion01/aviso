@@ -1,74 +1,39 @@
-/** Romanian display labels for the slice's enums. */
+/**
+ * Enum → display-label accessors. Locale-aware (ro default / hu), backed by the
+ * `labels` message fragments. These are plain synchronous functions so they work
+ * everywhere — server components, client components, and pure server modules
+ * (queries, PDF, email) — by passing the active locale (useLocale()/getLocale(),
+ * or the recipient/viewer locale for email/PDF). Display only: the stored enum
+ * codes (status, taskType, capability, …) never change.
+ */
+import { intlLocale, type Locale } from "@/i18n/locale";
+import roLabels from "@/messages/ro/labels.json";
+import huLabels from "@/messages/hu/labels.json";
 
-export const STATUS_LABELS: Record<string, string> = {
-  in_progress: "În curs",
-  approved: "Aprobat",
-  rejected: "Respins",
-};
+type LabelGroups = typeof roLabels;
+type GroupKey = "status" | "taskStatus" | "taskType" | "procurementType" | "action" | "capability" | "approverStrategy" | "statusBadge";
 
-export const TASK_STATUS_LABELS: Record<string, string> = {
-  pending: "În așteptare",
-  waiting: "De aprobat",
-  approved: "Aprobat",
-  rejected: "Respins",
-  sent_back: "Trimis înapoi",
-  skipped: "Omis",
-};
+const DATA: Record<Locale, Record<string, unknown>> = { ro: roLabels, hu: huLabels };
 
-export const TASK_TYPE_LABELS: Record<string, string> = {
-  // slice
-  VERIFICARE_SEF_BIROU: "Verificare șef birou",
-  APROBAT_DIRECTOR: "Aprobat director",
-  // real chain
-  SEF_BIROU: "Verificare șef birou/sector",
-  SEF_SERVICIU: "Verificare șef serviciu/secție",
-  INREGISTRARE: "Înregistrare",
-  IT: "IT",
-  SSM: "SSM",
-  RU: "RU",
-  MAGAZIE: "Verificare magazie",
-  DIRECTOR_ECONOMIC: "Aprobat director economic",
-  INCADRARE: "Achiziții — încadrare",
-  ACHIZITII: "Achiziții",
-  APROVIZIONARE: "Aprovizionare",
-  SERVICII: "Servicii",
-  DIRECTOR: "Aprobat director",
-};
+function group(locale: Locale, name: GroupKey): Record<string, string> {
+  const loc = (DATA[locale]?.[name] as Record<string, string>) ?? {};
+  const ro = (DATA.ro[name] as Record<string, string>) ?? {};
+  return { ...ro, ...loc };
+}
+function lookup(locale: Locale, name: GroupKey, code: string): string {
+  return group(locale, name)[code] ?? code;
+}
+function scalar(locale: Locale, key: keyof LabelGroups, fallback: string): string {
+  return (DATA[locale]?.[key] as string) || (DATA.ro[key] as string) || fallback;
+}
 
-export const PROCUREMENT_TYPE_LABELS: Record<string, string> = {
-  achizitii: "Achiziții",
-  aprovizionare: "Aprovizionare",
-  servicii: "Servicii",
-};
-
-export const ACTION_LABELS: Record<string, string> = {
-  create: "Creare",
-  approve: "Aprobare",
-  reject: "Respingere",
-  send_back: "Trimis înapoi",
-};
-
-/** Friendly per-capability labels, plus a helper to pick a user's primary role. */
-export const CAPABILITY_LABELS: Record<string, string> = {
-  angajat: "Angajat",
-  sef_birou: "Șef birou",
-  sef_serviciu: "Șef serviciu",
-  secretariat: "Secretariat",
-  inregistrare: "Secretariat",
-  it: "IT",
-  ssm: "SSM",
-  ru: "Resurse umane",
-  magazie: "Magazie",
-  director_economic: "Director economic",
-  incadrare: "Achiziții — încadrare",
-  achizitii: "Achiziții",
-  aprovizionare: "Aprovizionare",
-  servicii: "Servicii",
-  director: "Director",
-  director_tehnic: "Director tehnic",
-  director_general: "Director general",
-  admin: "Administrator",
-};
+export const statusLabel = (code: string, locale: Locale = "ro") => lookup(locale, "status", code);
+export const taskStatusLabel = (code: string, locale: Locale = "ro") => lookup(locale, "taskStatus", code);
+export const taskTypeLabel = (code: string, locale: Locale = "ro") => lookup(locale, "taskType", code);
+export const procurementLabel = (code: string, locale: Locale = "ro") => lookup(locale, "procurementType", code);
+export const actionLabel = (code: string, locale: Locale = "ro") => lookup(locale, "action", code);
+export const capabilityLabel = (code: string, locale: Locale = "ro") => lookup(locale, "capability", code);
+export const approverStrategyLabel = (code: string, locale: Locale = "ro") => lookup(locale, "approverStrategy", code);
 
 /** Capabilities an admin can assign to a user (canonical set; ordered). */
 export const ASSIGNABLE_CAPABILITIES = [
@@ -107,48 +72,57 @@ const ROLE_PRIORITY = [
   "angajat",
 ];
 
-/** The most senior capability a user holds, as a display label. */
-export function primaryRole(capabilities: string[]): string {
+/** The most senior capability code a user holds (pure; translate at the call site). */
+export function primaryCapability(capabilities: string[]): string | null {
   for (const cap of ROLE_PRIORITY) {
-    if (capabilities.includes(cap)) return CAPABILITY_LABELS[cap] ?? cap;
+    if (capabilities.includes(cap)) return cap;
   }
-  return capabilities.length ? (CAPABILITY_LABELS[capabilities[0]] ?? capabilities[0]) : "Utilizator";
+  return capabilities[0] ?? null;
 }
 
-export const APPROVER_STRATEGY_LABELS: Record<string, string> = {
-  capability: "După capabilitate",
-  org_relative: "Relativ la unitate",
-  director_by_unit: "Director pe unitate",
-};
-
-/** Human summary (Romanian) of an approval step's applies_when condition. */
-export function describeCondition(cond: unknown): string {
-  if (cond == null) return "Întotdeauna";
-  const c = cond as Record<string, unknown>;
-  if ("all" in c) return "Condiție compusă";
-  if (c.field === "needsIt") return "Dacă necesită aviz IT";
-  if (c.field === "needsSsm") return "Dacă necesită aviz SSM";
-  if (c.field === "procurementType") return `Dacă tip achiziție = ${PROCUREMENT_TYPE_LABELS[String(c.eq)] ?? c.eq}`;
-  if (c.field === "estimatedValueMinor") return `Dacă valoarea > ${((Number(c.gt) || 0) / 100).toLocaleString("ro-RO")} lei`;
-  return "Condiție avansată";
+/** The most senior capability a user holds, as a display label. */
+export function primaryRole(capabilities: string[], locale: Locale = "ro"): string {
+  const cap = primaryCapability(capabilities);
+  return cap ? capabilityLabel(cap, locale) : scalar(locale, "userFallback", "Utilizator");
 }
 
-/** Maps a requisition's stored status to a design-system status badge. */
-export function requisitionStatusBadge(status: string): {
-  tone: "pending" | "approved" | "rejected" | "sentback" | "finalized" | "neutral";
-  label: string;
-} {
+export type StatusTone = "pending" | "approved" | "rejected" | "sentback" | "finalized" | "neutral";
+
+/** Maps a requisition's stored status to a design-system status badge (tone + label). */
+export function requisitionStatusBadge(status: string, locale: Locale = "ro"): { tone: StatusTone; label: string } {
+  const labels = group(locale, "statusBadge");
   switch (status) {
     case "approved":
-      return { tone: "finalized", label: "Finalizat" };
+      return { tone: "finalized", label: labels.approved ?? "Finalizat" };
     case "rejected":
-      return { tone: "rejected", label: "Respins" };
+      return { tone: "rejected", label: labels.rejected ?? "Respins" };
     default:
-      return { tone: "pending", label: "În curs" };
+      return { tone: "pending", label: labels.in_progress ?? "În curs" };
   }
 }
 
-export function formatLei(minor: number | null): string {
+/** Human summary of an approval step's applies_when condition. */
+export function describeCondition(cond: unknown, locale: Locale = "ro"): string {
+  const c = (cond ?? null) as Record<string, unknown> | null;
+  const cd = (DATA[locale]?.condition ?? DATA.ro.condition ?? {}) as Record<string, string>;
+  const ro = (DATA.ro.condition ?? {}) as Record<string, string>;
+  const phrase = (k: string) => cd[k] ?? ro[k] ?? k;
+  if (c == null) return phrase("always");
+  if ("all" in c) return phrase("composite");
+  if (c.field === "needsIt") return phrase("needsIt");
+  if (c.field === "needsSsm") return phrase("needsSsm");
+  if (c.field === "procurementType") {
+    return phrase("procurementType").replace("{type}", procurementLabel(String(c.eq), locale));
+  }
+  if (c.field === "estimatedValueMinor") {
+    const amount = ((Number(c.gt) || 0) / 100).toLocaleString(intlLocale(locale));
+    return phrase("value").replace("{amount}", amount);
+  }
+  return phrase("advanced");
+}
+
+export function formatLei(minor: number | null, locale: Locale = "ro"): string {
   if (minor === null) return "—";
-  return `${(minor / 100).toLocaleString("ro-RO", { minimumFractionDigits: 2 })} lei`;
+  const unit = scalar(locale, "currencyUnit", "lei");
+  return `${(minor / 100).toLocaleString(intlLocale(locale), { minimumFractionDigits: 2 })} ${unit}`;
 }

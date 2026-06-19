@@ -1,0 +1,11 @@
+{
+  "submitLabel": "Adaugă delegare",
+  "inlocuitor": "Înlocuitor",
+  "inlocuitorPlaceholder": "Alege un utilizator…",
+  "capability": "Pentru capabilitatea",
+  "capabilityHint": "Lasă gol pentru toate capabilitățile tale.",
+  "allCapabilities": "Toate capabilitățile mele",
+  "from": "De la",
+  "to": "Până la",
+  "activateNow": "Activează imediat"
+}

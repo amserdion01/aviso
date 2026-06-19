@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import { useTranslations } from "next-intl";
 import { createReferatAction, type ActionState } from "@/app/actions";
 import { Card, FormField, Input, Textarea, Select, Checkbox, Button } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
@@ -17,6 +18,7 @@ const COST_CENTERS = [
 ];
 
 export function CreateReferatForm({ workflows }: { workflows: { id: string; name: string }[] }) {
+  const t = useTranslations();
   const [state, formAction, pending] = useActionState(createReferatAction, initial);
   const singleWorkflow = workflows.length === 1;
 
@@ -25,55 +27,55 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
       <Card padding="lg">
         <div className="avi-form-grid">
           <div className="avi-col-2">
-            <FormField label="Categorie / tip referat" htmlFor="r-workflow" required hint="Determină traseul de avizare.">
+            <FormField label={t("referatNew.fields.workflow.label")} htmlFor="r-workflow" required hint={t("referatNew.fields.workflow.hint")}>
               <Select
                 id="r-workflow"
                 name="workflowId"
                 required
                 defaultValue={singleWorkflow ? workflows[0].id : ""}
-                placeholder={singleWorkflow ? undefined : "Alege categoria"}
+                placeholder={singleWorkflow ? undefined : t("referatNew.fields.workflow.placeholder")}
                 options={workflows.map((w) => ({ value: w.id, label: w.name }))}
               />
             </FormField>
           </div>
 
           <div className="avi-col-2">
-            <FormField label="Articol" htmlFor="r-articol" required hint="Denumirea exactă a produsului sau serviciului.">
-              <Input id="r-articol" name="item" required prefix={<Icon name="package" />} placeholder="ex. Laptop Dell Latitude 5540" />
+            <FormField label={t("referatNew.fields.item.label")} htmlFor="r-articol" required hint={t("referatNew.fields.item.hint")}>
+              <Input id="r-articol" name="item" required prefix={<Icon name="package" />} placeholder={t("referatNew.fields.item.placeholder")} />
             </FormField>
           </div>
 
-          <FormField label="Cantitate" htmlFor="r-cant" required>
-            <Input id="r-cant" name="quantity" type="number" min={1} defaultValue={1} required suffix="buc." />
+          <FormField label={t("referatNew.fields.quantity.label")} htmlFor="r-cant" required>
+            <Input id="r-cant" name="quantity" type="number" min={1} defaultValue={1} required suffix={t("common.pieces")} />
           </FormField>
 
-          <FormField label="Valoare estimată" htmlFor="r-val" optional>
-            <Input id="r-val" name="estimatedValueLei" type="number" min={0} step="0.01" suffix="RON" placeholder="0,00" />
+          <FormField label={t("referatNew.fields.estimatedValue.label")} htmlFor="r-val" optional>
+            <Input id="r-val" name="estimatedValueLei" type="number" min={0} step="0.01" suffix="RON" placeholder={t("referatNew.fields.estimatedValue.placeholder")} />
           </FormField>
 
           <div className="avi-col-2">
-            <FormField label="Centru de cost" htmlFor="r-centru" required>
-              <Select id="r-centru" name="costCenter" required defaultValue="" placeholder="Alege centrul de cost" options={COST_CENTERS} />
+            <FormField label={t("referatNew.fields.costCenter.label")} htmlFor="r-centru" required>
+              <Select id="r-centru" name="costCenter" required defaultValue="" placeholder={t("referatNew.fields.costCenter.placeholder")} options={COST_CENTERS} />
             </FormField>
           </div>
 
           <div className="avi-col-2">
-            <FormField label="Justificare" htmlFor="r-just" required hint="Explică necesitatea achiziției — va fi vizibilă aprobatorilor.">
+            <FormField label={t("referatNew.fields.justification.label")} htmlFor="r-just" required hint={t("referatNew.fields.justification.hint")}>
               <Textarea
                 id="r-just"
                 name="justification"
                 rows={4}
                 required
-                placeholder="ex. Laptopurile actuale nu mai pornesc și blochează activitatea biroului IT…"
+                placeholder={t("referatNew.fields.justification.placeholder")}
               />
             </FormField>
           </div>
 
           <div className="avi-col-2">
-            <FormField label="Avize necesare">
+            <FormField label={t("referatNew.fields.approvals.label")}>
               <div style={{ display: "flex", gap: "var(--space-8)", flexWrap: "wrap" }}>
-                <Checkbox name="needsIt" label="Necesită aviz IT" />
-                <Checkbox name="needsSsm" label="Necesită aviz SSM" />
+                <Checkbox name="needsIt" label={t("referatNew.fields.approvals.needsIt")} />
+                <Checkbox name="needsSsm" label={t("referatNew.fields.approvals.needsSsm")} />
               </div>
             </FormField>
           </div>
@@ -81,10 +83,7 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
 
         <div className="avi-form-note">
           <Icon name="info" />
-          <span>
-            După trimitere, referatul intră pe traseul de avizare pe roluri (șef birou → șef serviciu → … → director),
-            iar fiecare aprobator poate aproba, respinge sau trimite înapoi.
-          </span>
+          <span>{t("referatNew.flowNote")}</span>
         </div>
 
         {state.error && (
@@ -98,7 +97,7 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
           <ResetLink />
           <div style={{ flex: 1 }} />
           <Button type="submit" variant="primary" iconLeft={<Icon name="send" />} disabled={pending}>
-            {pending ? "Se trimite…" : "Trimite referatul"}
+            {pending ? t("common.sending") : t("referatNew.submit")}
           </Button>
         </div>
       </Card>
@@ -107,9 +106,10 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
 }
 
 function ResetLink() {
+  const t = useTranslations();
   return (
     <Button type="reset" variant="ghost">
-      Renunță
+      {t("common.cancel")}
     </Button>
   );
 }

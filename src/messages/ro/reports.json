@@ -1,0 +1,33 @@
+{
+  "title": "Rapoarte",
+  "sub": "Indicatori despre fluxul de avizare al referatelor.",
+  "days": "{value} zile",
+  "stats": {
+    "totalReferate": "Total referate",
+    "finalized": "Finalizate",
+    "finalizedValue": "Valoare finalizată",
+    "avgTime": "Timp mediu avizare"
+  },
+  "statusDistribution": "Distribuție pe status",
+  "statusGroups": {
+    "inProgress": "În curs",
+    "finalized": "Finalizate",
+    "rejected": "Respinse"
+  },
+  "queueByStep": {
+    "title": "Coadă pe pas",
+    "subtitle": "Referate care așteaptă acum la fiecare pas",
+    "stepHeader": "Pas",
+    "countHeader": "Referate",
+    "emptyTitle": "Nicio coadă",
+    "emptyDescription": "Niciun referat nu așteaptă aprobare în acest moment."
+  },
+  "spend": {
+    "title": "Cheltuieli pe centru de cost",
+    "subtitle": "Valoarea estimată a referatelor finalizate",
+    "costCenterHeader": "Centru de cost",
+    "valueHeader": "Valoare estimată",
+    "emptyTitle": "Niciun referat finalizat",
+    "emptyDescription": "Cheltuielile vor apărea aici după primele referate avizate complet."
+  }
+}

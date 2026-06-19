@@ -1,0 +1,26 @@
+{
+  "addUser": "Adaugă utilizator",
+  "columns": {
+    "user": "Utilizator",
+    "roles": "Roluri în traseu",
+    "dept": "Departament",
+    "active": "Activ"
+  },
+  "editAria": "Editează {name}",
+  "dialog": {
+    "createTitle": "Adaugă utilizator",
+    "editTitle": "Editează utilizatorul",
+    "createSubtitle": "Creează un cont și atribuie rolurile din traseu.",
+    "editSubtitle": "Actualizează rolurile și departamentul.",
+    "name": "Nume",
+    "namePlaceholder": "ex. Ion Popescu",
+    "email": "Email",
+    "emailPlaceholder": "nume@apacovasna.ro",
+    "password": "Parolă",
+    "passwordHint": "Minim 8 caractere.",
+    "dept": "Departament",
+    "noDept": "Fără departament",
+    "roles": "Roluri în traseu",
+    "createSubmit": "Creează utilizatorul"
+  }
+}

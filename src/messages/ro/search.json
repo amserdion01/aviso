@@ -1,0 +1,22 @@
+{
+  "title": "Căutare",
+  "sub": "Caută în referatele tale și în cele care îți sunt repartizate.",
+  "placeholder": "Articol, centru de cost, solicitant sau ID referat…",
+  "ariaSearch": "Caută",
+  "table": {
+    "referat": "Referat",
+    "item": "Articol",
+    "requester": "Solicitant",
+    "costCenter": "Centru de cost",
+    "createdAt": "Creat"
+  },
+  "groups": {
+    "inProgress": "În curs",
+    "finalized": "Finalizate",
+    "rejected": "Respinse"
+  },
+  "promptTitle": "Caută referate",
+  "promptDescription": "Introdu un termen pentru a căuta după articol, centru de cost, solicitant sau ID.",
+  "noResultsTitle": "Niciun rezultat",
+  "noResultsDescription": "Niciun referat nu corespunde căutării „{query}”."
+}

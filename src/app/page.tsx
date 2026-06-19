@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getTranslations, getLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/locale";
 import { requireUser, canSeeAllRequisitions } from "@/lib/session";
 import { myRequisitions, allRequisitions } from "@/db/queries";
 import { requisitionStatusBadge } from "@/lib/labels";
@@ -28,6 +30,8 @@ interface Row {
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const user = await requireUser();
+  const t = await getTranslations();
+  const locale = (await getLocale()) as Locale;
   const seeAll = canSeeAllRequisitions(user);
   const { q } = await searchParams;
   const query = (q ?? "").trim();
@@ -42,7 +46,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const columns: Column<Row>[] = [
     {
       key: "id",
-      header: "Referat",
+      header: t("home.table.referat"),
       render: (r) => (
         <Link href={`/referate/${r.id}`} className="avi-cell-mono avi-cell-strong avi-link">
           #{r.id.slice(0, 8)}
@@ -51,11 +55,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     },
     {
       key: "item",
-      header: "Articol",
+      header: t("home.table.item"),
       render: (r) => (
         <div>
           <div className="avi-cell-strong">{r.item}</div>
-          <div className="avi-cell-muted">{r.quantity} buc.</div>
+          <div className="avi-cell-muted">{r.quantity} {t("common.pieces")}</div>
         </div>
       ),
     },
@@ -63,7 +67,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       ? [
           {
             key: "solicitant",
-            header: "Solicitant",
+            header: t("home.table.requester"),
             render: (r: Row) => (
               <div className="avi-cell-user">
                 <Avatar name={r.requesterName} size="sm" />
@@ -75,29 +79,27 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       : []),
     {
       key: "costCenter",
-      header: "Centru de cost",
+      header: t("home.table.costCenter"),
       render: (r) => <Badge variant="outline" icon={<Icon name="building-2" />}>{r.costCenter}</Badge>,
     },
-    { key: "createdAt", header: "Creat", render: (r) => <span className="avi-cell-mono">{fmtDate(r.createdAt)}</span> },
+    { key: "createdAt", header: t("home.table.createdAt"), render: (r) => <span className="avi-cell-mono">{fmtDate(r.createdAt, locale)}</span> },
     {
       key: "status",
-      header: "Status",
+      header: t("common.status"),
       render: (r) => {
-        const b = requisitionStatusBadge(r.status);
+        const b = requisitionStatusBadge(r.status, locale);
         return <StatusBadge status={b.tone} label={b.label} size="sm" />;
       },
     },
   ];
 
-  const baseSub = seeAll
-    ? "Toate referatele din sistem și starea lor curentă."
-    : "Referatele inițiate de tine și starea lor curentă.";
+  const baseSub = seeAll ? t("home.subAll") : t("home.subMine");
 
   return (
     <div className="avi-screen">
-      <PageHead title="Toate referatele" sub={query ? `Rezultate pentru „${query}” — ${rows.length} referat(e).` : baseSub}>
+      <PageHead title={t("home.title")} sub={query ? t("home.subResults", { query, count: rows.length }) : baseSub}>
         <ButtonLink href="/referate/nou" variant="primary" iconLeft={<Icon name="file-plus-2" />}>
-          Referat nou
+          {t("home.newReferat")}
         </ButtonLink>
       </PageHead>
 
@@ -106,26 +108,22 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {query ? (
             <EmptyState
               icon="search"
-              title="Niciun rezultat"
-              description={`Niciun referat nu corespunde căutării „${query}”.`}
+              title={t("home.empty.noResultsTitle")}
+              description={t("home.empty.noResultsDescription", { query })}
               actions={
                 <ButtonLink href="/" variant="secondary" iconLeft={<Icon name="files" />}>
-                  Vezi toate referatele
+                  {t("home.empty.viewAll")}
                 </ButtonLink>
               }
             />
           ) : (
             <EmptyState
               icon="files"
-              title={seeAll ? "Niciun referat în sistem" : "Niciun referat încă"}
-              description={
-                seeAll
-                  ? "Când angajații trimit referate, vor apărea aici cu statusul lor pe traseul de avizare."
-                  : "Referatele pe care le inițiezi vor apărea aici, cu statusul lor pe traseul de avizare."
-              }
+              title={seeAll ? t("home.empty.noneAllTitle") : t("home.empty.noneMineTitle")}
+              description={seeAll ? t("home.empty.noneAllDescription") : t("home.empty.noneMineDescription")}
               actions={
                 <ButtonLink href="/referate/nou" variant="secondary" iconLeft={<Icon name="file-plus-2" />}>
-                  Creează un referat
+                  {t("home.empty.create")}
                 </ButtonLink>
               }
             />

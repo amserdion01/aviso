@@ -1,6 +1,8 @@
 import type { ReferatDocumentData } from "@/db/queries";
-import { TASK_TYPE_LABELS, PROCUREMENT_TYPE_LABELS, formatLei } from "./labels";
+import { taskTypeLabel, procurementLabel, formatLei } from "./labels";
 import { formatDate, formatDateTime } from "./format";
+import { loadMessages } from "@/i18n/messages";
+import { type Locale } from "@/i18n/locale";
 
 const COMPANY_NAME = process.env.COMPANY_NAME ?? "Compania de Apă";
 
@@ -16,11 +18,12 @@ function shortId(id: string): string {
   return id.slice(0, 8).toUpperCase();
 }
 
-const dateFmt = (d: Date | null) => (d ? formatDate(d) : "—");
-const dateTimeFmt = (d: Date) => formatDateTime(d);
-
 /** Renders the finalized referat as a self-contained, print-ready HTML document. */
-export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Date): string {
+export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Date, locale: Locale = "ro"): string {
+  const p = loadMessages(locale).pdf as Record<string, string>;
+  const dateFmt = (d: Date | null) => (d ? formatDate(d, locale) : "—");
+  const dateTimeFmt = (d: Date) => formatDateTime(d, locale);
+
   const signed = data.steps.filter((s) => s.status === "approved");
   const orgLine = [data.serviciuName, data.birouName].filter(Boolean).join(" / ") || "—";
 
@@ -29,19 +32,19 @@ export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Da
       (s, i) => `
       <tr>
         <td class="num">${i + 1}</td>
-        <td>${esc(TASK_TYPE_LABELS[s.taskType] ?? s.taskType)}</td>
+        <td>${esc(taskTypeLabel(s.taskType, locale))}</td>
         <td>${esc(s.actedByName ?? "—")}</td>
         <td class="center">${dateFmt(s.actedAt)}</td>
-        <td class="center ok">✓ Aprobat</td>
+        <td class="center ok">✓ ${esc(p.approved)}</td>
       </tr>`,
     )
     .join("");
 
-  const avize = [data.needsIt ? "IT" : null, data.needsSsm ? "SSM" : null].filter(Boolean).join(", ") || "Niciunul";
-  const procurement = data.procurementType ? PROCUREMENT_TYPE_LABELS[data.procurementType] ?? data.procurementType : "—";
+  const avize = [data.needsIt ? "IT" : null, data.needsSsm ? "SSM" : null].filter(Boolean).join(", ") || p.none;
+  const procurement = data.procurementType ? procurementLabel(data.procurementType, locale) : "—";
 
   return `<!doctype html>
-<html lang="ro">
+<html lang="${locale}">
 <head>
 <meta charset="utf-8" />
 <style>
@@ -77,49 +80,49 @@ export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Da
 <body>
   <div class="doc">
     <div class="topbar">
-      <div class="company">${esc(COMPANY_NAME)}<small>Flux intern de aprobare — referate de necesitate</small></div>
+      <div class="company">${esc(COMPANY_NAME)}<small>${esc(p.companySub)}</small></div>
       <div class="meta">
-        <div><b>Nr. referat:</b> ${esc(shortId(data.id))}</div>
-        <div><b>Data:</b> ${dateFmt(data.createdAt)}</div>
+        <div><b>${esc(p.nrReferat)}</b> ${esc(shortId(data.id))}</div>
+        <div><b>${esc(p.date)}</b> ${dateFmt(data.createdAt)}</div>
       </div>
     </div>
 
     <div class="title-wrap">
-      <h1>REFERAT DE NECESITATE</h1>
-      <div class="subtitle">Document aprobat electronic</div>
-      <div class="stamp">APROBAT</div>
+      <h1>${esc(p.docTitle)}</h1>
+      <div class="subtitle">${esc(p.docSubtitle)}</div>
+      <div class="stamp">${esc(p.stamp)}</div>
     </div>
 
-    <h2>Solicitant</h2>
+    <h2>${esc(p.requester)}</h2>
     <table class="kv">
-      <tr><td class="k">Nume</td><td class="v">${esc(data.requesterName)}</td></tr>
-      <tr><td class="k">Serviciu / Birou</td><td class="v">${esc(orgLine)}</td></tr>
-      <tr><td class="k">Centru de cost</td><td class="v">${esc(data.costCenter)}</td></tr>
+      <tr><td class="k">${esc(p.name)}</td><td class="v">${esc(data.requesterName)}</td></tr>
+      <tr><td class="k">${esc(p.serviceOffice)}</td><td class="v">${esc(orgLine)}</td></tr>
+      <tr><td class="k">${esc(p.costCenter)}</td><td class="v">${esc(data.costCenter)}</td></tr>
     </table>
 
-    <h2>Obiectul referatului</h2>
+    <h2>${esc(p.object)}</h2>
     <table class="kv">
-      <tr><td class="k">Articol / serviciu</td><td class="v">${esc(data.item)}</td></tr>
-      <tr><td class="k">Cantitate</td><td class="v">${esc(data.quantity)}</td></tr>
-      <tr><td class="k">Valoare estimată</td><td class="v">${esc(formatLei(data.estimatedValueMinor))}</td></tr>
-      <tr><td class="k">Tip achiziție</td><td class="v">${esc(procurement)}</td></tr>
-      <tr><td class="k">Avize necesare</td><td class="v">${esc(avize)}</td></tr>
+      <tr><td class="k">${esc(p.itemService)}</td><td class="v">${esc(data.item)}</td></tr>
+      <tr><td class="k">${esc(p.quantity)}</td><td class="v">${esc(data.quantity)}</td></tr>
+      <tr><td class="k">${esc(p.estimatedValue)}</td><td class="v">${esc(formatLei(data.estimatedValueMinor, locale))}</td></tr>
+      <tr><td class="k">${esc(p.procurementType)}</td><td class="v">${esc(procurement)}</td></tr>
+      <tr><td class="k">${esc(p.advisories)}</td><td class="v">${esc(avize)}</td></tr>
     </table>
     <div style="margin-top:8px">
-      <div class="k" style="color:#6b7280;margin-bottom:4px">Justificare</div>
+      <div class="k" style="color:#6b7280;margin-bottom:4px">${esc(p.justification)}</div>
       <div class="just">${esc(data.justification)}</div>
     </div>
 
-    <h2>Flux de aprobare</h2>
+    <h2>${esc(p.approvalFlow)}</h2>
     <table class="chain">
       <thead>
-        <tr><th class="num">#</th><th>Etapă</th><th>Aprobator</th><th class="center">Data</th><th class="center">Stare</th></tr>
+        <tr><th class="num">#</th><th>${esc(p.stepHeader)}</th><th>${esc(p.approverHeader)}</th><th class="center">${esc(p.dateHeader)}</th><th class="center">${esc(p.stateHeader)}</th></tr>
       </thead>
       <tbody>${rows || `<tr><td colspan="5" class="center">—</td></tr>`}</tbody>
     </table>
 
     <div class="footer">
-      <span>Document generat electronic la ${dateTimeFmt(generatedAt)}. Nu necesită semnătură olografă.</span>
+      <span>${esc(p.generatedAt.replace("{date}", dateTimeFmt(generatedAt)))}</span>
       <span>${esc(shortId(data.id))}</span>
     </div>
   </div>

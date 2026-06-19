@@ -17,12 +17,23 @@ export interface NotificationEmailProps {
   itemValue: string;
   ctaLabel: string;
   ctaUrl: string;
+  footer?: string;
+  locale?: string;
 }
 
-/** Generic Romanian notification template for the approval workflow. */
-export function NotificationEmail({ heading, intro, itemLabel, itemValue, ctaLabel, ctaUrl }: NotificationEmailProps) {
+/** Generic notification template for the approval workflow (localized by caller). */
+export function NotificationEmail({
+  heading,
+  intro,
+  itemLabel,
+  itemValue,
+  ctaLabel,
+  ctaUrl,
+  footer = "HydroKov — flux de aprobare a referatelor de necesitate",
+  locale = "ro",
+}: NotificationEmailProps) {
   return (
-    <Html lang="ro">
+    <Html lang={locale}>
       <Head />
       <Preview>{intro}</Preview>
       <Body style={{ backgroundColor: "#f4f4f5", fontFamily: "Arial, sans-serif" }}>
@@ -40,7 +51,7 @@ export function NotificationEmail({ heading, intro, itemLabel, itemValue, ctaLab
             {ctaLabel}
           </Button>
           <Text style={{ fontSize: "12px", color: "#9ca3af", marginTop: "20px" }}>
-            HydroKov — flux de aprobare a referatelor de necesitate
+            {footer}
           </Text>
         </Container>
       </Body>

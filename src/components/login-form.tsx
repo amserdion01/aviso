@@ -1,11 +1,14 @@
 "use client";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { signIn, signOut } from "@/lib/auth-client";
 import { checkActiveStatusAction } from "@/app/actions";
+import { syncLocaleCookieFromUser } from "@/app/locale-actions";
 import { Button, Checkbox, FormField, Input } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
 export function LoginForm() {
+  const t = useTranslations();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -18,16 +21,18 @@ export function LoginForm() {
     const { error } = await signIn.email({ email, password });
     if (error) {
       setLoading(false);
-      setError("Email sau parolă incorecte.");
+      setError(t("login.errors.invalidCredentials"));
       return;
     }
     // Better Auth doesn't know about our `active` flag — block deactivated accounts here.
     if ((await checkActiveStatusAction()) === "inactive") {
       await signOut();
       setLoading(false);
-      setError("Contul tău este dezactivat. Contactează biroul IT.");
+      setError(t("login.errors.inactive"));
       return;
     }
+    // Seed the locale cookie from the user's saved preference before navigating.
+    await syncLocaleCookieFromUser();
     // Full navigation (not router.push) so the freshly-set session cookie is
     // sent on the request for "/"; a client navigation can race the cookie and
     // bounce back to /login. Keep `loading` true — the page reloads.
@@ -41,10 +46,10 @@ export function LoginForm() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/aviso-wordmark.svg" width={190} height={36} alt="HydroKov" />
         </div>
-        <h1 className="avi-login__title">Autentificare</h1>
-        <p className="avi-login__sub">Intră în contul tău pentru a gestiona referatele de necesitate.</p>
+        <h1 className="avi-login__title">{t("login.title")}</h1>
+        <p className="avi-login__sub">{t("login.sub")}</p>
         <form className="avi-login__form" onSubmit={onSubmit}>
-          <FormField label="Email" htmlFor="li-email">
+          <FormField label={t("login.email")} htmlFor="li-email">
             <Input
               id="li-email"
               type="email"
@@ -56,7 +61,7 @@ export function LoginForm() {
               placeholder="nume@apacovasna.ro"
             />
           </FormField>
-          <FormField label="Parolă" htmlFor="li-pass">
+          <FormField label={t("login.password")} htmlFor="li-pass">
             <Input
               id="li-pass"
               type="password"
@@ -69,8 +74,8 @@ export function LoginForm() {
             />
           </FormField>
           <div className="avi-login__row">
-            <Checkbox label="Ține-mă minte" defaultChecked />
-            <a href="#recuperare" onClick={(e) => e.preventDefault()}>Ai uitat parola?</a>
+            <Checkbox label={t("login.remember")} defaultChecked />
+            <a href="#recuperare" onClick={(e) => e.preventDefault()}>{t("login.forgot")}</a>
           </div>
           {error && (
             <p className="avi-login__error">
@@ -78,28 +83,32 @@ export function LoginForm() {
             </p>
           )}
           <Button type="submit" variant="primary" size="lg" fullWidth disabled={loading}>
-            {loading ? "Se autentifică…" : "Autentificare"}
+            {loading ? t("login.loading") : t("login.submit")}
           </Button>
         </form>
         <div className="avi-login__foot">
-          Probleme la conectare? Contactează <a href="#it" onClick={(e) => e.preventDefault()}>biroul IT</a>.
+          {t.rich("login.troubleshoot", {
+            it: (chunks) => (
+              <a href="#it" onClick={(e) => e.preventDefault()}>
+                {chunks}
+              </a>
+            ),
+          })}
         </div>
       </div>
       <div className="avi-login__aside">
         <div className="avi-login__aside-inner">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/aviso-mark.svg" width={40} height={40} alt="" />
-          <div className="avi-login__quote">Referate de necesitate, digitalizate.</div>
-          <p className="avi-login__lead">
-            Trimite, urmărește și aprobă cereri de achiziție într-un flux clar, cu traseu de avizare și istoric complet.
-          </p>
+          <div className="avi-login__quote">{t("login.aside.quote")}</div>
+          <p className="avi-login__lead">{t("login.aside.lead")}</p>
           <ul className="avi-login__list">
-            <li><Icon name="route" /> Traseu de avizare pe roluri</li>
-            <li><Icon name="users" /> Înlocuitori pentru aprobatori absenți</li>
-            <li><Icon name="history" /> Istoric și audit complet</li>
+            <li><Icon name="route" /> {t("login.aside.features.route")}</li>
+            <li><Icon name="users" /> {t("login.aside.features.substitutes")}</li>
+            <li><Icon name="history" /> {t("login.aside.features.audit")}</li>
           </ul>
         </div>
-        <div className="avi-login__copy">Apa Covasna · Sistem intern HydroKov</div>
+        <div className="avi-login__copy">{t("login.footer")}</div>
       </div>
     </div>
   );

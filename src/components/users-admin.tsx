@@ -17,7 +17,9 @@ import {
 import { Dialog } from "@/components/ui/dialog";
 import { Icon } from "@/components/ui/icon";
 import { UserActiveToggle } from "@/components/user-active-toggle";
-import { ASSIGNABLE_CAPABILITIES, CAPABILITY_LABELS } from "@/lib/labels";
+import { ASSIGNABLE_CAPABILITIES, capabilityLabel } from "@/lib/labels";
+import { useTranslations, useLocale } from "next-intl";
+import type { Locale } from "@/i18n/locale";
 
 export interface AdminUser {
   id: string;
@@ -39,12 +41,14 @@ type DialogState = { mode: "create" } | { mode: "edit"; user: AdminUser } | null
 const initial: ActionState = {};
 
 export function UsersAdmin({ users, orgUnits }: { users: AdminUser[]; orgUnits: OrgUnitOption[] }) {
+  const t = useTranslations();
+  const locale = useLocale() as Locale;
   const [dialog, setDialog] = useState<DialogState>(null);
 
   const columns: Column<AdminUser>[] = [
     {
       key: "name",
-      header: "Utilizator",
+      header: t("usersAdmin.columns.user"),
       render: (u) => (
         <div className="avi-cell-user">
           <Avatar name={u.name} size="sm" />
@@ -57,30 +61,30 @@ export function UsersAdmin({ users, orgUnits }: { users: AdminUser[]; orgUnits: 
     },
     {
       key: "roles",
-      header: "Roluri în traseu",
+      header: t("usersAdmin.columns.roles"),
       render: (u) => (
         <div style={{ display: "flex", flexWrap: "wrap", gap: "var(--space-3)" }}>
           {u.capabilities.length ? (
             u.capabilities.map((c) => (
               <Badge key={c} variant={c === "admin" || c.startsWith("director") ? "accent" : "default"}>
-                {CAPABILITY_LABELS[c] ?? c}
+                {capabilityLabel(c, locale)}
               </Badge>
             ))
           ) : (
-            <span className="avi-cell-muted">—</span>
+            <span className="avi-cell-muted">{t("common.none")}</span>
           )}
         </div>
       ),
     },
-    { key: "dept", header: "Departament", render: (u) => <span className="avi-cell-muted">{u.deptName ?? "—"}</span> },
-    { key: "active", header: "Activ", align: "center", render: (u) => <UserActiveToggle userId={u.id} active={u.active} /> },
+    { key: "dept", header: t("usersAdmin.columns.dept"), render: (u) => <span className="avi-cell-muted">{u.deptName ?? t("common.none")}</span> },
+    { key: "active", header: t("usersAdmin.columns.active"), align: "center", render: (u) => <UserActiveToggle userId={u.id} active={u.active} /> },
     {
       key: "act",
       header: "",
       align: "right",
       render: (u) => (
         <div className="avi-rowactions">
-          <IconButton aria-label={`Editează ${u.name}`} onClick={() => setDialog({ mode: "edit", user: u })}>
+          <IconButton aria-label={t("usersAdmin.editAria", { name: u.name })} onClick={() => setDialog({ mode: "edit", user: u })}>
             <Icon name="pencil" />
           </IconButton>
         </div>
@@ -92,7 +96,7 @@ export function UsersAdmin({ users, orgUnits }: { users: AdminUser[]; orgUnits: 
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)" }}>
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <Button variant="primary" iconLeft={<Icon name="user-plus" />} onClick={() => setDialog({ mode: "create" })}>
-          Adaugă utilizator
+          {t("usersAdmin.addUser")}
         </Button>
       </div>
       <Table columns={columns} data={users} rowKey={(u) => u.id} />
@@ -118,6 +122,8 @@ function UserFormDialog({
   orgUnits: OrgUnitOption[];
   onClose: () => void;
 }) {
+  const t = useTranslations();
+  const locale = useLocale() as Locale;
   const router = useRouter();
   const isEdit = state.mode === "edit";
   const user = isEdit ? state.user : null;
@@ -136,37 +142,37 @@ function UserFormDialog({
       open
       size="lg"
       onClose={onClose}
-      title={isEdit ? "Editează utilizatorul" : "Adaugă utilizator"}
-      subtitle={isEdit ? "Actualizează rolurile și departamentul." : "Creează un cont și atribuie rolurile din traseu."}
+      title={isEdit ? t("usersAdmin.dialog.editTitle") : t("usersAdmin.dialog.createTitle")}
+      subtitle={isEdit ? t("usersAdmin.dialog.editSubtitle") : t("usersAdmin.dialog.createSubtitle")}
     >
       <form action={formAction} className="avi-dialog-form">
         {isEdit && <input type="hidden" name="userId" value={user!.id} />}
 
-        <FormField label="Nume" htmlFor="u-name" required>
-          <Input id="u-name" name="name" required defaultValue={user?.name ?? ""} placeholder="ex. Ion Popescu" />
+        <FormField label={t("usersAdmin.dialog.name")} htmlFor="u-name" required>
+          <Input id="u-name" name="name" required defaultValue={user?.name ?? ""} placeholder={t("usersAdmin.dialog.namePlaceholder")} />
         </FormField>
 
         {!isEdit && (
           <div className="avi-two-col">
-            <FormField label="Email" htmlFor="u-email" required>
-              <Input id="u-email" name="email" type="email" required placeholder="nume@apacovasna.ro" />
+            <FormField label={t("usersAdmin.dialog.email")} htmlFor="u-email" required>
+              <Input id="u-email" name="email" type="email" required placeholder={t("usersAdmin.dialog.emailPlaceholder")} />
             </FormField>
-            <FormField label="Parolă" htmlFor="u-pass" required hint="Minim 8 caractere.">
+            <FormField label={t("usersAdmin.dialog.password")} htmlFor="u-pass" required hint={t("usersAdmin.dialog.passwordHint")}>
               <Input id="u-pass" name="password" type="password" required minLength={8} />
             </FormField>
           </div>
         )}
 
-        <FormField label="Departament" htmlFor="u-dept">
+        <FormField label={t("usersAdmin.dialog.dept")} htmlFor="u-dept">
           <Select
             id="u-dept"
             name="orgUnitId"
             defaultValue={user?.orgUnitId ?? ""}
-            options={[{ value: "", label: "Fără departament" }, ...orgUnits.map((o) => ({ value: o.id, label: `${o.name} (${o.kind})` }))]}
+            options={[{ value: "", label: t("usersAdmin.dialog.noDept") }, ...orgUnits.map((o) => ({ value: o.id, label: `${o.name} (${o.kind})` }))]}
           />
         </FormField>
 
-        <FormField label="Roluri în traseu">
+        <FormField label={t("usersAdmin.dialog.roles")}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4) var(--space-6)" }}>
             {ASSIGNABLE_CAPABILITIES.map((cap) => (
               <Checkbox
@@ -174,7 +180,7 @@ function UserFormDialog({
                 name="capabilities"
                 value={cap}
                 defaultChecked={user?.capabilities.includes(cap) ?? false}
-                label={CAPABILITY_LABELS[cap] ?? cap}
+                label={capabilityLabel(cap, locale)}
               />
             ))}
           </div>
@@ -188,11 +194,11 @@ function UserFormDialog({
 
         <div className="avi-actionpanel__row">
           <Button type="button" variant="ghost" onClick={onClose}>
-            Anulează
+            {t("common.cancel")}
           </Button>
           <div style={{ flex: 1 }} />
           <Button type="submit" variant="primary" disabled={pending}>
-            {pending ? "Se salvează…" : isEdit ? "Salvează modificările" : "Creează utilizatorul"}
+            {pending ? t("common.saving") : isEdit ? t("common.saveChanges") : t("usersAdmin.dialog.createSubmit")}
           </Button>
         </div>
       </form>

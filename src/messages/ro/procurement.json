@@ -1,0 +1,21 @@
+{
+  "title": "Achiziții",
+  "sub": "Referate avizate complet, gata pentru procesul de achiziție.",
+  "table": {
+    "referat": "Referat",
+    "item": "Articol",
+    "costCenter": "Centru de cost",
+    "requester": "Solicitant",
+    "estimatedValue": "Valoare est.",
+    "approvedAt": "Aprobat"
+  },
+  "stats": {
+    "readyForProcurement": "Gata de achiziție",
+    "estimatedValue": "Valoare estimată",
+    "totalItems": "Articole totale"
+  },
+  "empty": {
+    "title": "Niciun referat finalizat",
+    "description": "Referatele avizate complet vor apărea aici, gata de descărcat ca PDF pentru achiziție."
+  }
+}
