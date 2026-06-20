@@ -20,7 +20,7 @@ export type TaskStatus =
   | "sent_back"
   | "skipped";
 
-export type RequisitionStatus = "in_progress" | "approved" | "rejected" | "seap_initiated";
+export type RequisitionStatus = "in_progress" | "approved" | "rejected" | "seap_initiated" | "returned";
 
 export type ApprovalAction = "approve" | "reject" | "send_back";
 export type TransitionAction = ApprovalAction | "create";
@@ -113,6 +113,8 @@ export interface ActInput {
   valuation?: { valueMinor: number; inSeapCatalog: boolean };
   /** send_back only: the step order to return to (any earlier step). Defaults to the step's onSendBack. */
   sendBackTo?: number;
+  /** send_back only: return the referat to the requester for edits (status → 'returned'). */
+  toRequester?: boolean;
 }
 
 export class AuthorizationError extends Error {
@@ -325,6 +327,15 @@ export function act(state: WorkflowState, input: ActInput): WorkflowState {
       break;
     }
     case "send_back": {
+      // Return to the requester for edits: the referat leaves the chain (no active
+      // task) into the 'returned' state; resubmit() restarts it.
+      if (input.toRequester) {
+        for (const tk of tasks) {
+          if (tk.status !== "skipped") tk.status = "pending";
+        }
+        nextStatus = "returned";
+        break;
+      }
       // Resolve the destination step order: an explicit choice (any earlier step)
       // overrides the step's configured default (onSendBack / "previous").
       let destOrder: number | undefined;
@@ -368,6 +379,49 @@ export function act(state: WorkflowState, input: ActInput): WorkflowState {
       fromStatus: state.status,
       toStatus: nextStatus,
       comment,
+    }),
+  };
+}
+
+/**
+ * Resubmit a requisition that was returned to the requester. Resets the chain
+ * (all tasks pending, first applicable becomes waiting) and clears the achiziții
+ * evaluation (procurementType + inSeapCatalog) so the flow re-walks afresh.
+ * `contextOverride` carries any edited routing attrs (e.g. a new estimated value).
+ */
+export function resubmit(state: WorkflowState, actorId: string, contextOverride: Partial<RequisitionContext> = {}): WorkflowState {
+  if (state.status !== "returned") {
+    throw new SendBackError("Only a returned requisition can be resubmitted");
+  }
+  const context: RequisitionContext = {
+    ...state.context,
+    ...contextOverride,
+    procurementType: null,
+    inSeapCatalog: null,
+  };
+  const tasks = state.tasks.map((t) => ({ ...t, status: "pending" as TaskStatus }));
+  let activated = false;
+  for (const task of tasks) {
+    const step = state.steps.find((s) => s.order === task.stepOrder)!;
+    if (applies(step.appliesWhen ?? null, context)) {
+      task.status = "waiting";
+      activated = true;
+      break;
+    }
+    task.status = "skipped";
+  }
+  const nextStatus: RequisitionStatus = activated ? "in_progress" : "approved";
+  return {
+    ...state,
+    status: nextStatus,
+    context,
+    tasks,
+    transitions: appendTransition(state.transitions, {
+      actorId,
+      action: "create",
+      fromStatus: "returned",
+      toStatus: nextStatus,
+      comment: null,
     }),
   };
 }

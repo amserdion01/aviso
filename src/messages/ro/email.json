@@ -25,5 +25,11 @@
     "intro": "Referatul tău a fost evaluat și inițiat direct în SEAP (achiziție sub prag, produs aflat în catalog).",
     "cta": "Vezi referatul",
     "subject": "HydroKov: referat inițiat în SEAP — {item}"
+  },
+  "returned": {
+    "heading": "Referat returnat pentru modificări",
+    "intro": "Referatul tău a fost returnat de un aprobator. Modifică ce este necesar și retrimite-l.",
+    "cta": "Modifică referatul",
+    "subject": "HydroKov: referat returnat — {item}"
   }
 }

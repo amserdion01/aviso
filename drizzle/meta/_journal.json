@@ -64,6 +64,13 @@
       "when": 1781954725146,
       "tag": "0008_outstanding_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1781959949748,
+      "tag": "0009_quick_silver_fox",
+      "breakpoints": true
     }
   ]
 }

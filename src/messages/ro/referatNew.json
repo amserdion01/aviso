@@ -45,5 +45,8 @@
     "hint": "Obligatorie când achiziția nu este în PAAP — explică de ce nu a fost programată."
   },
   "flowNote": "După trimitere, referatul intră pe traseul de avizare pe roluri (șef birou → șef serviciu → … → director), iar fiecare aprobator poate aproba, respinge sau trimite înapoi.",
-  "submit": "Trimite referatul"
+  "submit": "Trimite referatul",
+  "editTitle": "Editează referatul",
+  "editSub": "Referatul ți-a fost returnat pentru corecții. Actualizează datele și retrimite-l pe traseul de avizare.",
+  "resubmit": "Retrimite referatul"
 }

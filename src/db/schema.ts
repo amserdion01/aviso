@@ -27,7 +27,7 @@ export const TASK_STATUSES = [
   "skipped",
 ] as const;
 
-export const REQUISITION_STATUSES = ["in_progress", "approved", "rejected", "seap_initiated"] as const;
+export const REQUISITION_STATUSES = ["in_progress", "approved", "rejected", "seap_initiated", "returned"] as const;
 
 export const TRANSITION_ACTIONS = ["create", "approve", "reject", "send_back"] as const;
 
@@ -182,7 +182,7 @@ export const requisitions = pgTable("requisitions", {
   status: text("status").notNull().default("in_progress"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
-  check("requisitions_status_chk", sql`${t.status} in ('in_progress','approved','rejected','seap_initiated')`),
+  check("requisitions_status_chk", sql`${t.status} in ('in_progress','approved','rejected','seap_initiated','returned')`),
   check("requisitions_doctype_chk", sql`${t.docType} in ('comanda_interna','referat')`),
   check("requisitions_quantity_chk", sql`${t.quantity} > 0`),
   index("requisitions_requester_idx").on(t.requesterId),

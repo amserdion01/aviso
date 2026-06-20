@@ -25,5 +25,11 @@
     "intro": "A referátumát értékelték és közvetlenül a SEAP-ban kezdeményezték (küszöb alatti beszerzés, katalógusban szereplő termék).",
     "cta": "Referátum megtekintése",
     "subject": "HydroKov: SEAP-ben kezdeményezett referátum — {item}"
+  },
+  "returned": {
+    "heading": "Referátum visszaküldve módosításra",
+    "intro": "Egy jóváhagyó visszaküldte a referátumát. Módosítsa a szükséges részeket, és küldje be újra.",
+    "cta": "Referátum módosítása",
+    "subject": "HydroKov: visszaküldött referátum — {item}"
   }
 }

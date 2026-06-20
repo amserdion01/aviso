@@ -45,5 +45,8 @@
     "hint": "Kötelező, ha a beszerzés nem szerepel a PAAP-ban — indokolja meg, miért nem volt betervezve."
   },
   "flowNote": "Beküldés után a referátum a szerepkör alapú jóváhagyási útvonalra kerül (irodavezető → szolgálatvezető → … → igazgató), és minden jóváhagyó jóváhagyhatja, elutasíthatja vagy visszaküldheti.",
-  "submit": "Referátum beküldése"
+  "submit": "Referátum beküldése",
+  "editTitle": "Referátum szerkesztése",
+  "editSub": "A referátumot javításra visszaküldték Önnek. Frissítse az adatokat, és küldje vissza a jóváhagyási útvonalra.",
+  "resubmit": "Referátum újraküldése"
 }

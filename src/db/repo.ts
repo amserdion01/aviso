@@ -14,7 +14,9 @@ import { DIRECTOR_TYPE_CAPABILITY } from "@/domain/chain";
 import { isActiveDelegate } from "./delegations-repo";
 import {
   act,
+  resubmit,
   createWorkflow,
+  AuthorizationError,
   type ActInput,
   type Condition,
   type SendBackTarget,
@@ -313,6 +315,7 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
       classification: input.classification,
       valuation: input.valuation,
       sendBackTo: input.sendBackTo,
+      toRequester: input.toRequester,
     });
 
     await tx
@@ -356,6 +359,78 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
       fromStatus: newTransition.fromStatus,
       toStatus: newTransition.toStatus,
       comment: newTransition.comment,
+      isMostRecent: true,
+    });
+
+    return next;
+  });
+}
+
+export interface ResubmitInput {
+  requisitionId: string;
+  actorId: string;
+  item: string;
+  quantity: number;
+  justification: string;
+  costCenter: string;
+  estimatedValueMinor?: number | null;
+  inPaap: boolean;
+  docType: "comanda_interna" | "referat";
+  notaJustificativa?: string | null;
+}
+
+/**
+ * The requester edits a returned requisition and resubmits it. Resets the chain
+ * and clears the achiziții evaluation, in one transaction. Only the requester may
+ * resubmit, and only while the referat is 'returned'.
+ */
+export async function resubmitRequisition(input: ResubmitInput): Promise<WorkflowState> {
+  return db.transaction(async (tx) => {
+    const state = await loadState(tx, input.requisitionId);
+    if (state.status !== "returned") throw new Error("Requisition is not in the 'returned' state");
+    if (state.requesterId !== input.actorId) throw new AuthorizationError(input.actorId);
+
+    const next = resubmit(state, input.actorId, { estimatedValueMinor: input.estimatedValueMinor ?? null });
+
+    await tx
+      .update(requisitions)
+      .set({
+        item: input.item,
+        quantity: input.quantity,
+        justification: input.justification,
+        costCenter: input.costCenter,
+        estimatedValueMinor: input.estimatedValueMinor ?? null,
+        inPaap: input.inPaap,
+        docType: input.docType,
+        notaJustificativa: input.notaJustificativa ?? null,
+        procurementType: null,
+        inSeapCatalog: null,
+        status: next.status,
+      })
+      .where(eq(requisitions.id, input.requisitionId));
+
+    // Reset every task (fresh chain): clear prior approvals.
+    for (const task of next.tasks) {
+      await tx
+        .update(approvalTasks)
+        .set({ status: task.status, actedBy: null, actedAt: null })
+        .where(and(eq(approvalTasks.requisitionId, input.requisitionId), eq(approvalTasks.stepOrder, task.stepOrder)));
+    }
+
+    await tx
+      .update(requisitionTransitions)
+      .set({ isMostRecent: false })
+      .where(eq(requisitionTransitions.requisitionId, input.requisitionId));
+    const nt = next.transitions[next.transitions.length - 1];
+    await tx.insert(requisitionTransitions).values({
+      id: randomUUID(),
+      requisitionId: input.requisitionId,
+      seq: nt.seq,
+      actorId: nt.actorId,
+      action: nt.action,
+      fromStatus: nt.fromStatus,
+      toStatus: nt.toStatus,
+      comment: nt.comment,
       isMostRecent: true,
     });
 

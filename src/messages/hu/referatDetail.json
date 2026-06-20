@@ -46,6 +46,11 @@
     "title": "Csak megtekintés",
     "description": "Ez a referátum nem vár intézkedésre Öntől."
   },
+  "returned": {
+    "title": "Referátum javításra visszaküldve",
+    "description": "Egy jóváhagyó visszaküldte Önnek ezt a referátumot. Tekintse át az előzményben szereplő észrevételeket, végezze el a szükséges javításokat, és küldje vissza. Újraküldéskor a jóváhagyási útvonal elölről indul.",
+    "editButton": "Szerkesztés és újraküldés"
+  },
   "panel": {
     "yourStep": "Az Ön lépése:",
     "chooseAction": "Válasszon műveletet az útvonal folytatásához.",
@@ -88,7 +93,8 @@
     "sendBackTarget": {
       "label": "Visszaküldés a lépéshez",
       "previous": "Előző lépés (alapértelmezett)",
-      "hint": "Bármelyik korábbi lépést kiválaszthatja; az utána következő lépések újraindulnak."
+      "hint": "Bármelyik korábbi lépést kiválaszthatja; az utána következő lépések újraindulnak.",
+      "requester": "Igénylő (javításra)"
     },
     "confirmApprove": "Jóváhagyás megerősítése",
     "confirmSendBack": "Visszaküldés",

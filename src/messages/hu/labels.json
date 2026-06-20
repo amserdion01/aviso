@@ -1,5 +1,5 @@
 {
-  "status": { "in_progress": "Folyamatban", "approved": "Jóváhagyva", "rejected": "Elutasítva", "seap_initiated": "SEAP-ben kezdeményezve" },
+  "status": { "in_progress": "Folyamatban", "approved": "Jóváhagyva", "rejected": "Elutasítva", "seap_initiated": "SEAP-ben kezdeményezve", "returned": "Visszaküldve" },
   "docType": { "comanda_interna": "Belső megrendelés", "referat": "Szükségességi referátum" },
   "taskStatus": {
     "pending": "Várakozik",
@@ -60,7 +60,7 @@
     "org_relative": "Egységhez viszonyítva",
     "director_by_unit": "Igazgató egység szerint"
   },
-  "statusBadge": { "approved": "Lezárva", "rejected": "Elutasítva", "in_progress": "Folyamatban", "seap_initiated": "SEAP-ben kezdeményezve" },
+  "statusBadge": { "approved": "Lezárva", "rejected": "Elutasítva", "in_progress": "Folyamatban", "seap_initiated": "SEAP-ben kezdeményezve", "returned": "Visszaküldve módosításra" },
   "condition": {
     "always": "Mindig",
     "composite": "Összetett feltétel",

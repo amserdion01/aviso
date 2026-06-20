@@ -3,6 +3,7 @@ import {
   applies,
   createWorkflow,
   act,
+  resubmit,
   activeTask,
   ValuationRequiredError,
   AuthorizationError,
@@ -179,5 +180,27 @@ describe("reject + send-back", () => {
     const a = activeTask(s)!;
     // step 4 (Director Economic) is not an earlier step relative to achiziții (order 2)
     expect(() => act(s, { actorId: a.effectiveApproverId, action: "send_back", sendBackTo: 4 })).toThrow();
+  });
+
+  it("send back to the requester → 'returned'; resubmit restarts the chain", () => {
+    let s = approveActive(start()); // superior -> achiziții waiting
+    const a = activeTask(s)!;
+    s = act(s, { actorId: a.effectiveApproverId, action: "send_back", toRequester: true, comment: "corectați cantitatea" });
+    expect(s.status).toBe("returned");
+    expect(activeTask(s)).toBeUndefined(); // no step is waiting while with the requester
+    const ret = s.transitions[s.transitions.length - 1];
+    expect(ret.action).toBe("send_back");
+    expect(ret.toStatus).toBe("returned");
+
+    // The requester resubmits → chain restarts at the first step.
+    s = resubmit(s, s.requesterId);
+    expect(s.status).toBe("in_progress");
+    expect(activeTask(s)!.taskType).toBe("AVIZARE_SUPERIOR");
+    const re = s.transitions[s.transitions.length - 1];
+    expect(re.fromStatus).toBe("returned");
+    expect(re.toStatus).toBe("in_progress");
+
+    // Resubmitting something not returned throws.
+    expect(() => resubmit(s, s.requesterId)).toThrow();
   });
 });

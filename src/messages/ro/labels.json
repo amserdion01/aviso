@@ -1,5 +1,5 @@
 {
-  "status": { "in_progress": "În curs", "approved": "Aprobat", "rejected": "Respins", "seap_initiated": "Inițiat în SEAP" },
+  "status": { "in_progress": "În curs", "approved": "Aprobat", "rejected": "Respins", "seap_initiated": "Inițiat în SEAP", "returned": "Returnat" },
   "docType": { "comanda_interna": "Comandă internă", "referat": "Referat de necesitate" },
   "taskStatus": {
     "pending": "În așteptare",
@@ -60,7 +60,7 @@
     "org_relative": "Relativ la unitate",
     "director_by_unit": "Director pe unitate"
   },
-  "statusBadge": { "approved": "Finalizat", "rejected": "Respins", "in_progress": "În curs", "seap_initiated": "Inițiat în SEAP" },
+  "statusBadge": { "approved": "Finalizat", "rejected": "Respins", "in_progress": "În curs", "seap_initiated": "Inițiat în SEAP", "returned": "Returnat la solicitant" },
   "condition": {
     "always": "Întotdeauna",
     "composite": "Condiție compusă",

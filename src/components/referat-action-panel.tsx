@@ -97,13 +97,16 @@ export function ReferatActionPanel({
             </>
           )}
 
-          {mode === "send_back" && sendBackTargets.length > 0 && (
+          {mode === "send_back" && (
             <FormField label={t("referatDetail.panel.sendBackTarget.label")} hint={t("referatDetail.panel.sendBackTarget.hint")}>
               <Select
                 name="sendBackTo"
                 defaultValue=""
                 placeholder={t("referatDetail.panel.sendBackTarget.previous")}
-                options={sendBackTargets.map((tg) => ({ value: String(tg.order), label: tg.label }))}
+                options={[
+                  ...sendBackTargets.map((tg) => ({ value: String(tg.order), label: tg.label })),
+                  { value: "requester", label: t("referatDetail.panel.sendBackTarget.requester") },
+                ]}
               />
             </FormField>
           )}

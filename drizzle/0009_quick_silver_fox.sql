@@ -1,0 +1,2 @@
+ALTER TABLE "requisitions" DROP CONSTRAINT "requisitions_status_chk";--> statement-breakpoint
+ALTER TABLE "requisitions" ADD CONSTRAINT "requisitions_status_chk" CHECK ("requisitions"."status" in ('in_progress','approved','rejected','seap_initiated','returned'));

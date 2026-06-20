@@ -529,6 +529,7 @@ export async function requisitionDetail(id: string) {
     .select({
       id: requisitions.id,
       requesterId: requisitions.requesterId,
+      workflowId: requisitions.workflowId,
       orgUnitId: requisitions.orgUnitId,
       item: requisitions.item,
       quantity: requisitions.quantity,

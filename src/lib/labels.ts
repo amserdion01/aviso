@@ -80,6 +80,8 @@ export function requisitionStatusBadge(status: string, locale: Locale = "ro"): {
       return { tone: "finalized", label: labels.approved ?? "Finalizat" };
     case "seap_initiated":
       return { tone: "approved", label: labels.seap_initiated ?? "Inițiat în SEAP" };
+    case "returned":
+      return { tone: "sentback", label: labels.returned ?? "Returnat la solicitant" };
     case "rejected":
       return { tone: "rejected", label: labels.rejected ?? "Respins" };
     default:

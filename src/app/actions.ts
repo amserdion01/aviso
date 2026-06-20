@@ -22,7 +22,7 @@ import { db } from "@/db";
 import { users, userCapabilities, requisitionComments, sessions, approvalSteps, workflows } from "@/db/schema";
 import { auth } from "@/lib/auth";
 import { isInvolvedInRequisition } from "@/db/queries";
-import { actOnTask, createRequisition, getWorkflowState, ApproverResolutionError } from "@/db/repo";
+import { actOnTask, createRequisition, getWorkflowState, resubmitRequisition, ApproverResolutionError } from "@/db/repo";
 import { notifyForState } from "@/lib/notifications";
 import { createDelegation, CircularDelegationError } from "@/db/delegations-repo";
 import {
@@ -104,6 +104,9 @@ export async function createReferatAction(
 export async function actReferatAction(formData: FormData): Promise<void> {
   const user = await requireUser();
   const t = await getTranslations();
+  // The send-back target select uses the sentinel "requester" to route back to the solicitant.
+  const sbRaw = formData.get("sendBackTo");
+  const toRequester = sbRaw === "requester";
   const parsed = actionSchema.safeParse({
     requisitionId: formData.get("requisitionId"),
     action: formData.get("action"),
@@ -111,7 +114,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     classification: formData.get("classification") ?? undefined,
     valuationLei: formData.get("valuationLei") ?? undefined,
     inSeapCatalog: formData.get("inSeapCatalog") ?? undefined,
-    sendBackTo: formData.get("sendBackTo") ?? undefined,
+    sendBackTo: toRequester ? undefined : (sbRaw ?? undefined),
   });
   if (!parsed.success) {
     throw new Error(t("actions.invalidAction"));
@@ -132,6 +135,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
       classification: parsed.data.classification,
       valuation,
       sendBackTo: parsed.data.sendBackTo,
+      toRequester,
     });
     after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {
@@ -155,6 +159,45 @@ export async function actReferatAction(formData: FormData): Promise<void> {
   revalidatePath(`/referate/${parsed.data.requisitionId}`);
   revalidatePath("/inbox");
   redirect(`/referate/${parsed.data.requisitionId}?flash=${parsed.data.action}`);
+}
+
+/** The requester edits a returned referat and resubmits it (restarts the chain). */
+export async function resubmitReferatAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const user = await requireUser();
+  const t = await getTranslations();
+  const requisitionId = String(formData.get("requisitionId") ?? "");
+  const parsed = createReferatSchema.safeParse({
+    workflowId: formData.get("workflowId"),
+    item: formData.get("item"),
+    quantity: formData.get("quantity"),
+    justification: formData.get("justification"),
+    costCenter: formData.get("costCenter"),
+    estimatedValueLei: formData.get("estimatedValueLei") ?? "",
+    inPaap: formData.get("inPaap") === "on",
+    notaJustificativa: formData.get("notaJustificativa") ?? "",
+  });
+  if (!parsed.success) return { error: zodError(t, parsed.error.issues) };
+
+  try {
+    const next = await resubmitRequisition({
+      requisitionId,
+      actorId: user.id,
+      item: parsed.data.item,
+      quantity: parsed.data.quantity,
+      justification: parsed.data.justification,
+      costCenter: parsed.data.costCenter,
+      estimatedValueMinor: leiToBani(parsed.data.estimatedValueLei),
+      inPaap: parsed.data.inPaap,
+      docType: parsed.data.inPaap ? "comanda_interna" : "referat",
+      notaJustificativa: parsed.data.notaJustificativa || null,
+    });
+    after(() => notifyForState(requisitionId, next));
+  } catch (err) {
+    if (err instanceof AuthorizationError) return { error: t("actions.notAllowedForTask") };
+    throw err;
+  }
+
+  redirect(`/referate/${requisitionId}?flash=create`);
 }
 
 export async function createDelegationAction(

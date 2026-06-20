@@ -149,6 +149,24 @@ export default async function ReferatDetailPage({
 
       <div className="avi-detail-grid">
         <div className="avi-detail-main">
+          {r.status === "returned" && user.id === r.requesterId && (
+            <Card padding="lg">
+              <div className="avi-actionpanel__readonly">
+                <Icon name="corner-up-left" />
+                <div style={{ flex: 1 }}>
+                  <div className="avi-actionpanel__t">{t("referatDetail.returned.title")}</div>
+                  <div className="avi-actionpanel__d">{t("referatDetail.returned.description")}</div>
+                  <div style={{ marginTop: "0.75rem" }}>
+                    <Link href={`/referate/${r.id}/editeaza`} className="avi-btn avi-btn--primary avi-btn--sm">
+                      <span className="avi-btn__ico"><Icon name="pencil" /></span>
+                      <span>{t("referatDetail.returned.editButton")}</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
+
           <Card title={t("referatDetail.stepper.title")} subtitle={t("referatDetail.stepper.subtitle")} padding="lg">
             <Stepper steps={steps} orientation="vertical" />
           </Card>

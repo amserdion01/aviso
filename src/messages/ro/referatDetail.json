@@ -46,6 +46,11 @@
     "title": "Doar vizualizare",
     "description": "Acest referat nu așteaptă o acțiune din partea ta."
   },
+  "returned": {
+    "title": "Referat returnat pentru corecții",
+    "description": "Un aprobator ți-a returnat acest referat. Verifică observațiile din istoric, fă corecțiile necesare și retrimite-l. La retrimitere, traseul de avizare se reia de la început.",
+    "editButton": "Editează și retrimite"
+  },
   "panel": {
     "yourStep": "Pasul tău:",
     "chooseAction": "Alege o acțiune pentru a continua traseul.",
@@ -88,7 +93,8 @@
     "sendBackTarget": {
       "label": "Trimite înapoi la pasul",
       "previous": "Pasul anterior (implicit)",
-      "hint": "Poți alege orice pas anterior; pașii de după el se reiau."
+      "hint": "Poți alege orice pas anterior; pașii de după el se reiau.",
+      "requester": "Solicitant (pentru corecții)"
     },
     "confirmApprove": "Confirmă aprobarea",
     "confirmSendBack": "Trimite înapoi",

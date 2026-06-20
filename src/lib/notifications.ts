@@ -27,6 +27,7 @@ interface EmailDict {
   approved: EmailBlock;
   rejected: EmailBlock;
   seap: EmailBlock;
+  returned: EmailBlock;
 }
 const emailDict = (locale: Locale): EmailDict => loadMessages(locale).email as unknown as EmailDict;
 
@@ -90,9 +91,16 @@ export async function notifyForState(requisitionId: string, state: WorkflowState
     if (!requester) return;
     const locale = coerceLocale(requester.locale);
     const em = emailDict(locale);
-    // Three terminal outcomes: rejected, initiated-in-SEAP, or fully approved.
+    // Outcomes routed to the requester: rejected, returned-for-edits,
+    // initiated-in-SEAP, or fully approved.
     const block =
-      state.status === "rejected" ? em.rejected : state.status === "seap_initiated" ? em.seap : em.approved;
+      state.status === "rejected"
+        ? em.rejected
+        : state.status === "returned"
+          ? em.returned
+          : state.status === "seap_initiated"
+            ? em.seap
+            : em.approved;
     const html = await render(
       NotificationEmail({
         heading: block.heading,
