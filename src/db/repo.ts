@@ -37,6 +37,10 @@ export interface CreateRequisitionInput {
   needsIt?: boolean;
   needsSsm?: boolean;
   workflowId: string;
+  // HYDROKOV document type: in PAAP → comandă internă, else referat (+ notă justificativă)
+  docType?: "comanda_interna" | "referat";
+  inPaap?: boolean;
+  notaJustificativa?: string | null;
 }
 
 export class ApproverResolutionError extends Error {
@@ -63,6 +67,7 @@ function rowToStepDef(row: StepRow): StepDef {
     onSendBack: parseSendBack(row.onSendBack),
     blocking: row.blocking,
     setsProcurementType: row.setsProcurementType,
+    setsValuation: row.setsValuation,
   };
 }
 
@@ -101,10 +106,14 @@ async function firstUserWithCapability(tx: Tx, capability: string, orgFilter?: R
  *  - director_by_unit: the director whose type matches the requester's serviciu
  * Phase 3 layers active delegations on top of this.
  */
-async function resolveApprover(tx: Tx, row: StepRow, requesterOrgUnitId: string): Promise<string> {
+async function resolveApprover(tx: Tx, row: StepRow, requesterOrgUnitId: string, requesterId: string): Promise<string> {
   let userId: string | null = null;
 
-  if (row.approverStrategy === "capability") {
+  if (row.approverStrategy === "superior") {
+    // HYDROKOV avizare: the requester's DIRECT hierarchical superior (one level).
+    const [me] = await tx.select({ superiorId: users.superiorId }).from(users).where(eq(users.id, requesterId)).limit(1);
+    userId = me?.superiorId ?? null;
+  } else if (row.approverStrategy === "capability") {
     userId = await firstUserWithCapability(tx, row.requiredCapability);
   } else if (row.approverStrategy === "org_relative") {
     if (row.approverParam === "serviciu") {
@@ -140,7 +149,7 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
 
     const approverByOrder = new Map<number, string>();
     for (const row of templateRows) {
-      approverByOrder.set(row.stepOrder, await resolveApprover(tx, row, input.orgUnitId));
+      approverByOrder.set(row.stepOrder, await resolveApprover(tx, row, input.orgUnitId, input.requesterId));
     }
 
     const state = createWorkflow(
@@ -152,6 +161,7 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
         needsSsm: input.needsSsm ?? false,
         procurementType: null,
         estimatedValueMinor: input.estimatedValueMinor ?? null,
+        inSeapCatalog: null,
       },
     );
 
@@ -165,6 +175,9 @@ export async function createRequisition(input: CreateRequisitionInput): Promise<
       justification: input.justification,
       costCenter: input.costCenter,
       estimatedValueMinor: input.estimatedValueMinor ?? null,
+      docType: input.docType ?? (input.inPaap ? "comanda_interna" : "referat"),
+      inPaap: input.inPaap ?? false,
+      notaJustificativa: input.notaJustificativa ?? null,
       needsIt: input.needsIt ?? false,
       needsSsm: input.needsSsm ?? false,
       status: state.status,
@@ -210,6 +223,7 @@ async function loadState(exec: Exec, requisitionId: string): Promise<WorkflowSta
       needsSsm: requisitions.needsSsm,
       procurementType: requisitions.procurementType,
       estimatedValueMinor: requisitions.estimatedValueMinor,
+      inSeapCatalog: requisitions.inSeapCatalog,
     })
     .from(requisitions)
     .where(eq(requisitions.id, requisitionId))
@@ -238,6 +252,7 @@ async function loadState(exec: Exec, requisitionId: string): Promise<WorkflowSta
       needsSsm: req.needsSsm,
       procurementType: req.procurementType,
       estimatedValueMinor: req.estimatedValueMinor,
+      inSeapCatalog: req.inSeapCatalog,
     },
     steps,
     tasks: taskRows.map((t) => ({
@@ -296,11 +311,17 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
       action: input.action,
       comment: input.comment,
       classification: input.classification,
+      valuation: input.valuation,
     });
 
     await tx
       .update(requisitions)
-      .set({ status: next.status, procurementType: next.context.procurementType })
+      .set({
+        status: next.status,
+        procurementType: next.context.procurementType,
+        estimatedValueMinor: next.context.estimatedValueMinor,
+        inSeapCatalog: next.context.inSeapCatalog ?? null,
+      })
       .where(eq(requisitions.id, input.requisitionId));
 
     for (const task of next.tasks) {

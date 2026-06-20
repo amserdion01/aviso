@@ -1,5 +1,6 @@
 {
-  "status": { "in_progress": "Folyamatban", "approved": "Jóváhagyva", "rejected": "Elutasítva" },
+  "status": { "in_progress": "Folyamatban", "approved": "Jóváhagyva", "rejected": "Elutasítva", "seap_initiated": "SEAP-ben kezdeményezve" },
+  "docType": { "comanda_interna": "Belső megrendelés", "referat": "Szükségességi referátum" },
   "taskStatus": {
     "pending": "Várakozik",
     "waiting": "Jóváhagyásra vár",
@@ -9,6 +10,10 @@
     "skipped": "Kihagyva"
   },
   "taskType": {
+    "AVIZARE_SUPERIOR": "Közvetlen felettes jóváhagyása",
+    "ACHIZITII_EVALUARE": "Beszerzési iroda — ajánlat értékelése",
+    "COORD_ACHIZITII": "Beszerzési koordinátor aláírása",
+    "DIRECTOR_GENERAL": "Vezérigazgatói aláírás",
     "VERIFICARE_SEF_BIROU": "Irodavezetői ellenőrzés",
     "APROBAT_DIRECTOR": "Igazgatói jóváhagyás",
     "SEF_BIROU": "Iroda-/szektorvezetői ellenőrzés",
@@ -29,6 +34,9 @@
   "action": { "create": "Létrehozás", "approve": "Jóváhagyás", "reject": "Elutasítás", "send_back": "Visszaküldés" },
   "capability": {
     "angajat": "Alkalmazott",
+    "sef_ierarhic": "Közvetlen felettes",
+    "birou_achizitii": "Beszerzési iroda",
+    "coord_achizitii": "Beszerzési koordinátor",
     "sef_birou": "Irodavezető",
     "sef_serviciu": "Szolgálatvezető",
     "secretariat": "Titkárság",
@@ -52,7 +60,7 @@
     "org_relative": "Egységhez viszonyítva",
     "director_by_unit": "Igazgató egység szerint"
   },
-  "statusBadge": { "approved": "Lezárva", "rejected": "Elutasítva", "in_progress": "Folyamatban" },
+  "statusBadge": { "approved": "Lezárva", "rejected": "Elutasítva", "in_progress": "Folyamatban", "seap_initiated": "SEAP-ben kezdeményezve" },
   "condition": {
     "always": "Mindig",
     "composite": "Összetett feltétel",

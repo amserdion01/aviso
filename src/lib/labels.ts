@@ -35,40 +35,23 @@ export const actionLabel = (code: string, locale: Locale = "ro") => lookup(local
 export const capabilityLabel = (code: string, locale: Locale = "ro") => lookup(locale, "capability", code);
 export const approverStrategyLabel = (code: string, locale: Locale = "ro") => lookup(locale, "approverStrategy", code);
 
-/** Capabilities an admin can assign to a user (canonical set; ordered). */
+/** Capabilities an admin can assign to a user (HYDROKOV roles; ordered). */
 export const ASSIGNABLE_CAPABILITIES = [
   "angajat",
-  "sef_birou",
-  "sef_serviciu",
-  "secretariat",
-  "it",
-  "ssm",
-  "ru",
-  "magazie",
+  "sef_ierarhic",
+  "birou_achizitii",
+  "coord_achizitii",
   "director_economic",
-  "achizitii",
-  "aprovizionare",
-  "servicii",
-  "director_tehnic",
   "director_general",
   "admin",
 ] as const;
 
 const ROLE_PRIORITY = [
   "director_general",
-  "director",
-  "director_tehnic",
   "director_economic",
-  "achizitii",
-  "incadrare",
-  "magazie",
-  "ru",
-  "it",
-  "ssm",
-  "secretariat",
-  "inregistrare",
-  "sef_serviciu",
-  "sef_birou",
+  "coord_achizitii",
+  "birou_achizitii",
+  "sef_ierarhic",
   "angajat",
 ];
 

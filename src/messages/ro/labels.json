@@ -1,5 +1,6 @@
 {
-  "status": { "in_progress": "În curs", "approved": "Aprobat", "rejected": "Respins" },
+  "status": { "in_progress": "În curs", "approved": "Aprobat", "rejected": "Respins", "seap_initiated": "Inițiat în SEAP" },
+  "docType": { "comanda_interna": "Comandă internă", "referat": "Referat de necesitate" },
   "taskStatus": {
     "pending": "În așteptare",
     "waiting": "De aprobat",
@@ -9,6 +10,10 @@
     "skipped": "Omis"
   },
   "taskType": {
+    "AVIZARE_SUPERIOR": "Avizare superior ierarhic",
+    "ACHIZITII_EVALUARE": "Birou Achiziții — evaluare ofertă",
+    "COORD_ACHIZITII": "Semnătură coordonator achiziții",
+    "DIRECTOR_GENERAL": "Semnătură director general",
     "VERIFICARE_SEF_BIROU": "Verificare șef birou",
     "APROBAT_DIRECTOR": "Aprobat director",
     "SEF_BIROU": "Verificare șef birou/sector",
@@ -29,6 +34,9 @@
   "action": { "create": "Creare", "approve": "Aprobare", "reject": "Respingere", "send_back": "Trimis înapoi" },
   "capability": {
     "angajat": "Angajat",
+    "sef_ierarhic": "Șef ierarhic",
+    "birou_achizitii": "Birou Achiziții",
+    "coord_achizitii": "Coordonator Achiziții",
     "sef_birou": "Șef birou",
     "sef_serviciu": "Șef serviciu",
     "secretariat": "Secretariat",
@@ -52,7 +60,7 @@
     "org_relative": "Relativ la unitate",
     "director_by_unit": "Director pe unitate"
   },
-  "statusBadge": { "approved": "Finalizat", "rejected": "Respins", "in_progress": "În curs" },
+  "statusBadge": { "approved": "Finalizat", "rejected": "Respins", "in_progress": "În curs", "seap_initiated": "Inițiat în SEAP" },
   "condition": {
     "always": "Întotdeauna",
     "composite": "Condiție compusă",

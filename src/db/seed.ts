@@ -2,78 +2,42 @@ import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
 import { approvalSteps, orgUnits, userCapabilities, users, workflows } from "./schema";
-import { REAL_CHAIN, type ChainStepSeed } from "@/domain/chain";
+import { HYDROKOV_CHAIN, type ChainStepSeed } from "@/domain/chain";
 import { auth } from "@/lib/auth";
 
 /**
- * Idempotent dev seed:
- *  - the real approval-chain template (approval_steps)
- *  - one serviciu/birou org unit
- *  - one user per capability in the chain (created via Better Auth so login works)
+ * Idempotent dev seed for the real HYDROKOV direct-purchase flow:
+ *  - the HYDROKOV approval template (approval_steps)
+ *  - one serviciu/birou org unit (regional centers deferred)
+ *  - users for each role + the hierarchical superior chain (users.superior_id)
  *
  * Run: pnpm db:seed   (requires docker compose postgres + db:migrate)
  */
 
 const PASSWORD = "Parola123!";
 
-export const STANDARD_WORKFLOW = {
-  id: "wf-standard",
-  name: "Standard",
-  description: "Fluxul complet de avizare a referatelor de necesitate.",
+export const HYDROKOV_WORKFLOW = {
+  id: "wf-hydrokov",
+  name: "Achiziție directă HYDROKOV",
+  description: "Avizare superior ierarhic → Birou Achiziții (evaluare valoare + SEAP) → ramificare pe valoare/SEAP.",
 };
 
-/** All seeded workflow categories, each with its own ordered chain. */
+/** The single seeded workflow (admin-configurable categories are a separate lot). */
 export const WORKFLOWS: Array<{ id: string; name: string; description: string; steps: ChainStepSeed[] }> = [
-  { ...STANDARD_WORKFLOW, steps: REAL_CHAIN },
-  {
-    id: "wf-achizitii-mici",
-    name: "Achiziții mici",
-    description: "Flux scurt pentru achiziții de valoare mică.",
-    steps: [
-      { order: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou/sector" },
-      { order: 2, taskType: "DIRECTOR_ECONOMIC", requiredCapability: "director_economic", approverStrategy: "capability", label: "Aprobat director economic" },
-      { order: 3, taskType: "ACHIZITII", requiredCapability: "achizitii", approverStrategy: "capability", label: "Achiziții" },
-    ],
-  },
-  {
-    id: "wf-servicii-it",
-    name: "Servicii IT",
-    description: "Achiziții și servicii IT, cu aviz obligatoriu de la IT.",
-    steps: [
-      { order: 1, taskType: "SEF_BIROU", requiredCapability: "sef_birou", approverStrategy: "org_relative", approverParam: "birou", label: "Verificare șef birou/sector" },
-      { order: 2, taskType: "IT", requiredCapability: "it", approverStrategy: "capability", label: "Aviz IT" },
-      { order: 3, taskType: "DIRECTOR_ECONOMIC", requiredCapability: "director_economic", approverStrategy: "capability", label: "Aprobat director economic" },
-      { order: 4, taskType: "ACHIZITII", requiredCapability: "achizitii", approverStrategy: "capability", label: "Achiziții" },
-    ],
-  },
-  {
-    id: "wf-reparatii-urgente",
-    name: "Reparații urgente",
-    description: "Traseu rapid pentru reparații urgente, doar șef serviciu + director.",
-    steps: [
-      { order: 1, taskType: "SEF_SERVICIU", requiredCapability: "sef_serviciu", approverStrategy: "org_relative", approverParam: "serviciu", label: "Verificare șef serviciu/secție" },
-      { order: 2, taskType: "DIRECTOR", requiredCapability: "director", approverStrategy: "director_by_unit", label: "Aprobat director" },
-    ],
-  },
+  { ...HYDROKOV_WORKFLOW, steps: HYDROKOV_CHAIN },
 ];
 
 const SERVICIU = { id: "srv-tehnic", name: "Tehnic", kind: "serviciu" as const, directorType: "Director tehnic" };
 const BIROU = { id: "br-proiectare", name: "Proiectare", kind: "birou" as const, parentId: "srv-tehnic" };
 
-const USERS = [
-  { name: "Ana Angajat", email: "angajat@aviso.local", caps: ["angajat"] },
-  { name: "Bogdan Șef Birou", email: "sefbirou@aviso.local", caps: ["angajat", "sef_birou"] },
-  { name: "Cristina Șef Serviciu", email: "sefserviciu@aviso.local", caps: ["sef_serviciu"] },
-  { name: "Secretariat", email: "secretariat@aviso.local", caps: ["secretariat"] },
-  { name: "Responsabil IT", email: "it@aviso.local", caps: ["it"] },
-  { name: "Responsabil SSM", email: "ssm@aviso.local", caps: ["ssm"] },
-  { name: "Resurse Umane", email: "ru@aviso.local", caps: ["ru"] },
-  { name: "Gestionar Magazie", email: "magazie@aviso.local", caps: ["magazie"] },
-  { name: "Director Economic", email: "direconomic@aviso.local", caps: ["director_economic"] },
-  { name: "Achiziții", email: "achizitii@aviso.local", caps: ["achizitii"] },
-  { name: "Aprovizionare", email: "aprovizionare@aviso.local", caps: ["aprovizionare"] },
-  { name: "Servicii", email: "servicii@aviso.local", caps: ["servicii"] },
-  { name: "Director Tehnic", email: "dirtehnic@aviso.local", caps: ["director_tehnic"] },
+/** Users + roles + the direct superior (by email) that drives the avizare step. */
+const USERS: Array<{ name: string; email: string; caps: string[]; superior?: string }> = [
+  { name: "Ana Angajat", email: "angajat@aviso.local", caps: ["angajat"], superior: "sefbirou@aviso.local" },
+  { name: "Bogdan Șef Birou", email: "sefbirou@aviso.local", caps: ["angajat", "sef_ierarhic"], superior: "sefserviciu@aviso.local" },
+  { name: "Cristina Șef Serviciu", email: "sefserviciu@aviso.local", caps: ["sef_ierarhic"], superior: "dirgeneral@aviso.local" },
+  { name: "Birou Achiziții", email: "achizitii@aviso.local", caps: ["birou_achizitii"], superior: "coordachizitii@aviso.local" },
+  { name: "Coordonator Achiziții", email: "coordachizitii@aviso.local", caps: ["coord_achizitii"], superior: "dirgeneral@aviso.local" },
+  { name: "Director Economic", email: "direconomic@aviso.local", caps: ["director_economic"], superior: "dirgeneral@aviso.local" },
   { name: "Director General", email: "dirgeneral@aviso.local", caps: ["director_general", "admin"] },
 ];
 
@@ -101,6 +65,7 @@ async function seedTemplate() {
         onSendBack: s.onSendBack ?? "previous",
         blocking: s.blocking ?? true,
         setsProcurementType: s.setsProcurementType ?? false,
+        setsValuation: s.setsValuation ?? false,
         label: s.label,
       })),
     );
@@ -114,14 +79,23 @@ async function main() {
   await db.insert(orgUnits).values(SERVICIU).onConflictDoNothing();
   await db.insert(orgUnits).values(BIROU).onConflictDoNothing();
 
+  // Pass 1: create users + capabilities; remember email → id.
+  const idByEmail = new Map<string, string>();
   for (const u of USERS) {
     const id = await ensureUser(u.name, u.email);
+    idByEmail.set(u.email, id);
     await db.update(users).set({ orgUnitId: BIROU.id }).where(eq(users.id, id));
     await db
       .insert(userCapabilities)
       .values(u.caps.map((capability) => ({ userId: id, capability })))
       .onConflictDoNothing();
     console.log(`  ✓ ${u.email}  [${u.caps.join(", ")}]`);
+  }
+
+  // Pass 2: wire the hierarchical superior (drives the dynamic avizare step).
+  for (const u of USERS) {
+    const superiorId = u.superior ? idByEmail.get(u.superior) ?? null : null;
+    await db.update(users).set({ superiorId }).where(eq(users.id, idByEmail.get(u.email)!));
   }
 
   console.log(`\nSeeded ${USERS.length} users in "${BIROU.name}" / "${SERVICIU.name}". Password: ${PASSWORD}`);
