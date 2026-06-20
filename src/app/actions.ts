@@ -30,6 +30,7 @@ import {
   WorkflowFinishedError,
   SendBackError,
   ClassificationRequiredError,
+  ValuationRequiredError,
 } from "@/domain/workflow";
 
 export interface ActionState {
@@ -62,6 +63,8 @@ export async function createReferatAction(
     justification: formData.get("justification"),
     costCenter: formData.get("costCenter"),
     estimatedValueLei: formData.get("estimatedValueLei") ?? "",
+    inPaap: formData.get("inPaap") === "on",
+    notaJustificativa: formData.get("notaJustificativa") ?? "",
   });
   if (!parsed.success) {
     return { error: zodError(t, parsed.error.issues) };
@@ -78,8 +81,9 @@ export async function createReferatAction(
       justification: parsed.data.justification,
       costCenter: parsed.data.costCenter,
       estimatedValueMinor: leiToBani(parsed.data.estimatedValueLei),
-      needsIt: formData.get("needsIt") === "on",
-      needsSsm: formData.get("needsSsm") === "on",
+      inPaap: parsed.data.inPaap,
+      docType: parsed.data.inPaap ? "comanda_interna" : "referat",
+      notaJustificativa: parsed.data.notaJustificativa || null,
     });
   } catch (err) {
     if (err instanceof ApproverResolutionError) {
@@ -105,10 +109,18 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     action: formData.get("action"),
     comment: formData.get("comment") ?? undefined,
     classification: formData.get("classification") ?? undefined,
+    valuationLei: formData.get("valuationLei") ?? undefined,
+    inSeapCatalog: formData.get("inSeapCatalog") ?? undefined,
   });
   if (!parsed.success) {
     throw new Error(t("actions.invalidAction"));
   }
+
+  // Birou Achiziții evaluation: pass value + SEAP answer when both are provided.
+  const valuation =
+    parsed.data.valuationLei != null && parsed.data.inSeapCatalog
+      ? { valueMinor: leiToBani(parsed.data.valuationLei)!, inSeapCatalog: parsed.data.inSeapCatalog === "da" }
+      : undefined;
 
   try {
     const next = await actOnTask({
@@ -117,11 +129,15 @@ export async function actReferatAction(formData: FormData): Promise<void> {
       action: parsed.data.action,
       comment: parsed.data.comment,
       classification: parsed.data.classification,
+      valuation,
     });
     after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {
     if (err instanceof ClassificationRequiredError) {
       throw new Error(t("actions.classifyFirst"));
+    }
+    if (err instanceof ValuationRequiredError) {
+      throw new Error(t("actions.valuationRequired"));
     }
     if (
       err instanceof AuthorizationError ||

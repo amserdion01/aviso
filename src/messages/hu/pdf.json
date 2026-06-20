@@ -23,5 +23,9 @@
   "dateHeader": "Dátum",
   "stateHeader": "Állapot",
   "approved": "Jóváhagyva",
-  "generatedAt": "A dokumentum elektronikusan készült: {date}. Nem igényel kézi aláírást."
+  "generatedAt": "A dokumentum elektronikusan készült: {date}. Nem igényel kézi aláírást.",
+  "docTitleComanda": "BELSŐ MEGRENDELÉS",
+  "docTitleReferat": "SZÜKSÉGESSÉGI REFERÁTUM",
+  "stampSeap": "SEAP-BEN KEZDEMÉNYEZVE",
+  "nota": "Indoklás (PAAP-on kívül)"
 }

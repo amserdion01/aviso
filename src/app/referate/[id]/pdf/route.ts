@@ -20,9 +20,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
   const data = await referatDocument(id);
   if (!data) return new NextResponse("Referat inexistent", { status: 404 });
-  // The finalized PDF is produced only after the chain is fully approved.
-  if (data.status !== "approved") {
-    return new NextResponse("Referatul nu este aprobat încă.", { status: 409 });
+  // The official document is produced only at a terminal state: fully approved,
+  // or initiated in SEAP (the <5000 + SEAP branch).
+  if (data.status !== "approved" && data.status !== "seap_initiated") {
+    return new NextResponse("Referatul nu este finalizat încă.", { status: 409 });
   }
 
   const locale = await readLocaleCookie();

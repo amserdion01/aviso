@@ -17,7 +17,8 @@
     },
     "estimatedValue": {
       "label": "Valoare estimată",
-      "placeholder": "0,00"
+      "placeholder": "0,00",
+      "hint": "Estimare orientativă. Valoarea finală este stabilită de Biroul Achiziții."
     },
     "costCenter": {
       "label": "Centru de cost",
@@ -33,6 +34,15 @@
       "needsIt": "Necesită aviz IT",
       "needsSsm": "Necesită aviz SSM"
     }
+  },
+  "paap": {
+    "label": "Achiziția este în PAAP",
+    "hint": "Dacă este în PAAP (Programul anual al achizițiilor publice) → comandă internă; altfel → referat de necesitate."
+  },
+  "nota": {
+    "label": "Notă justificativă",
+    "placeholder": "ex. Achiziția nu a putut fi prevăzută în PAAP deoarece necesitatea a apărut neașteptat în urma unei avarii…",
+    "hint": "Obligatorie când achiziția nu este în PAAP — explică de ce nu a fost programată."
   },
   "flowNote": "După trimitere, referatul intră pe traseul de avizare pe roluri (șef birou → șef serviciu → … → director), iar fiecare aprobator poate aproba, respinge sau trimite înapoi.",
   "submit": "Trimite referatul"

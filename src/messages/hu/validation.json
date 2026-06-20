@@ -15,5 +15,6 @@
   "stepTypeRequired": "A lépés típusa kötelező",
   "capabilityRequired": "A hatáskör kötelező",
   "commentEmpty": "A megjegyzés nem lehet üres",
-  "commentTooLong": "A megjegyzés túl hosszú"
+  "commentTooLong": "A megjegyzés túl hosszú",
+  "notaRequired": "Az indoklás kötelező (a tétel nem szerepel a PAAP-ban)"
 }

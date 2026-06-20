@@ -1,8 +1,8 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
 import { createReferatAction, type ActionState } from "@/app/actions";
-import { Card, FormField, Input, Textarea, Select, Checkbox, Button } from "@/components/ui/primitives";
+import { Card, FormField, Input, Textarea, Select, Switch, Button } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
 const initial: ActionState = {};
@@ -21,6 +21,7 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
   const t = useTranslations();
   const [state, formAction, pending] = useActionState(createReferatAction, initial);
   const singleWorkflow = workflows.length === 1;
+  const [inPaap, setInPaap] = useState(false);
 
   return (
     <form action={formAction}>
@@ -49,7 +50,7 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
             <Input id="r-cant" name="quantity" type="number" min={1} defaultValue={1} required suffix={t("common.pieces")} />
           </FormField>
 
-          <FormField label={t("referatNew.fields.estimatedValue.label")} htmlFor="r-val" optional optionalLabel={t("common.optional")}>
+          <FormField label={t("referatNew.fields.estimatedValue.label")} htmlFor="r-val" optional optionalLabel={t("common.optional")} hint={t("referatNew.fields.estimatedValue.hint")}>
             <Input id="r-val" name="estimatedValueLei" type="number" min={0} step="0.01" suffix="RON" placeholder={t("referatNew.fields.estimatedValue.placeholder")} />
           </FormField>
 
@@ -72,13 +73,29 @@ export function CreateReferatForm({ workflows }: { workflows: { id: string; name
           </div>
 
           <div className="avi-col-2">
-            <FormField label={t("referatNew.fields.approvals.label")}>
-              <div style={{ display: "flex", gap: "var(--space-8)", flexWrap: "wrap" }}>
-                <Checkbox name="needsIt" label={t("referatNew.fields.approvals.needsIt")} />
-                <Checkbox name="needsSsm" label={t("referatNew.fields.approvals.needsSsm")} />
-              </div>
+            <FormField label={t("referatNew.paap.label")} hint={t("referatNew.paap.hint")}>
+              <Switch
+                name="inPaap"
+                checked={inPaap}
+                onChange={(e) => setInPaap(e.currentTarget.checked)}
+                label={t("referatNew.paap.label")}
+              />
             </FormField>
           </div>
+
+          {!inPaap && (
+            <div className="avi-col-2">
+              <FormField label={t("referatNew.nota.label")} htmlFor="r-nota" required hint={t("referatNew.nota.hint")}>
+                <Textarea
+                  id="r-nota"
+                  name="notaJustificativa"
+                  rows={3}
+                  required
+                  placeholder={t("referatNew.nota.placeholder")}
+                />
+              </FormField>
+            </div>
+          )}
         </div>
 
         <div className="avi-form-note">

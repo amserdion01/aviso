@@ -23,5 +23,9 @@
   "dateHeader": "Data",
   "stateHeader": "Stare",
   "approved": "Aprobat",
-  "generatedAt": "Document generat electronic la {date}. Nu necesită semnătură olografă."
+  "generatedAt": "Document generat electronic la {date}. Nu necesită semnătură olografă.",
+  "docTitleComanda": "COMANDĂ INTERNĂ",
+  "docTitleReferat": "REFERAT DE NECESITATE",
+  "stampSeap": "INIȚIAT ÎN SEAP",
+  "nota": "Notă justificativă (în afara PAAP)"
 }

@@ -8,16 +8,25 @@ import { ASSIGNABLE_CAPABILITIES } from "@/lib/labels";
  * Zod messages are message KEYS (validation.*) translated at the server-action
  * boundary, so errors surface in the user's language.
  */
-export const createReferatSchema = z.object({
-  workflowId: z.string().min(1, "validation.workflowRequired"),
-  item: z.string().trim().min(2, "validation.itemRequired"),
-  quantity: z.coerce.number().int("validation.quantityInt").positive("validation.quantityPositive"),
-  justification: z.string().trim().min(3, "validation.justificationRequired"),
-  costCenter: z.string().trim().min(1, "validation.costCenterRequired"),
-  estimatedValueLei: z
-    .union([z.coerce.number().nonnegative(), z.literal("").transform(() => undefined)])
-    .optional(),
-});
+export const createReferatSchema = z
+  .object({
+    workflowId: z.string().min(1, "validation.workflowRequired"),
+    item: z.string().trim().min(2, "validation.itemRequired"),
+    quantity: z.coerce.number().int("validation.quantityInt").positive("validation.quantityPositive"),
+    justification: z.string().trim().min(3, "validation.justificationRequired"),
+    costCenter: z.string().trim().min(1, "validation.costCenterRequired"),
+    estimatedValueLei: z
+      .union([z.coerce.number().nonnegative(), z.literal("").transform(() => undefined)])
+      .optional(),
+    // in PAAP → comandă internă; not in PAAP → referat de necesitate (+ notă justificativă)
+    inPaap: z.boolean().default(false),
+    notaJustificativa: z.string().trim().optional(),
+  })
+  // A referat (not in PAAP) requires a justification note.
+  .refine((d) => d.inPaap || (d.notaJustificativa?.length ?? 0) >= 3, {
+    path: ["notaJustificativa"],
+    message: "validation.notaRequired",
+  });
 
 export type CreateReferatInput = z.infer<typeof createReferatSchema>;
 
@@ -26,6 +35,11 @@ export const actionSchema = z.object({
   action: z.enum(["approve", "reject", "send_back"]),
   comment: z.string().trim().max(2000).optional(),
   classification: z.enum(["achizitii", "aprovizionare", "servicii"]).optional(),
+  // Birou Achiziții evaluation step: calculated value (lei) + SEAP-catalog answer.
+  valuationLei: z
+    .union([z.coerce.number().nonnegative(), z.literal("").transform(() => undefined)])
+    .optional(),
+  inSeapCatalog: z.enum(["da", "nu"]).optional(),
 });
 
 export const delegationSchema = z

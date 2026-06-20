@@ -77,6 +77,10 @@ export async function referatDocument(id: string) {
       justification: requisitions.justification,
       costCenter: requisitions.costCenter,
       estimatedValueMinor: requisitions.estimatedValueMinor,
+      docType: requisitions.docType,
+      inPaap: requisitions.inPaap,
+      inSeapCatalog: requisitions.inSeapCatalog,
+      notaJustificativa: requisitions.notaJustificativa,
       needsIt: requisitions.needsIt,
       needsSsm: requisitions.needsSsm,
       procurementType: requisitions.procurementType,
@@ -238,7 +242,7 @@ export async function reportsData() {
     .select({ status: requisitions.status, n: count() })
     .from(requisitions)
     .groupBy(requisitions.status);
-  const byStatus: Record<string, number> = { in_progress: 0, approved: 0, rejected: 0 };
+  const byStatus: Record<string, number> = { in_progress: 0, approved: 0, rejected: 0, seap_initiated: 0 };
   for (const r of statusRows) byStatus[r.status] = Number(r.n);
   const total = Object.values(byStatus).reduce((a, b) => a + b, 0);
 
@@ -259,7 +263,7 @@ export async function reportsData() {
   const spendRows = await db
     .select({ costCenter: requisitions.costCenter, total: sum(requisitions.estimatedValueMinor) })
     .from(requisitions)
-    .where(eq(requisitions.status, "approved"))
+    .where(inArray(requisitions.status, ["approved", "seap_initiated"]))
     .groupBy(requisitions.costCenter);
   const spendByCostCenter = spendRows
     .map((r) => ({ costCenter: r.costCenter, total: Number(r.total ?? 0) }))
@@ -338,7 +342,8 @@ export async function finalizedRequisitions() {
       requisitionTransitions,
       and(eq(requisitionTransitions.requisitionId, requisitions.id), eq(requisitionTransitions.isMostRecent, true)),
     )
-    .where(eq(requisitions.status, "approved"))
+    // "completed" = fully approved OR initiated in SEAP (both terminal, document-ready)
+    .where(inArray(requisitions.status, ["approved", "seap_initiated"]))
     .orderBy(desc(requisitionTransitions.createdAt));
 }
 
@@ -530,6 +535,10 @@ export async function requisitionDetail(id: string) {
       justification: requisitions.justification,
       costCenter: requisitions.costCenter,
       estimatedValueMinor: requisitions.estimatedValueMinor,
+      docType: requisitions.docType,
+      inPaap: requisitions.inPaap,
+      inSeapCatalog: requisitions.inSeapCatalog,
+      notaJustificativa: requisitions.notaJustificativa,
       needsIt: requisitions.needsIt,
       needsSsm: requisitions.needsSsm,
       procurementType: requisitions.procurementType,

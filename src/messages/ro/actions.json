@@ -14,5 +14,6 @@
   "adminOnlyEditCategory": "Doar administratorii pot modifica categoriile.",
   "categoryNotFound": "Categorie inexistentă.",
   "adminOnlyEditFlow": "Doar administratorii pot edita fluxul.",
-  "stepNotFound": "Pas inexistent."
+  "stepNotFound": "Pas inexistent.",
+  "valuationRequired": "Introdu valoarea calculată și răspunsul privind catalogul SEAP înainte de a aproba."
 }

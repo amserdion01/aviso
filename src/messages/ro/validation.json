@@ -15,5 +15,6 @@
   "stepTypeRequired": "Tipul pasului este obligatoriu",
   "capabilityRequired": "Capabilitatea este obligatorie",
   "commentEmpty": "Comentariul nu poate fi gol",
-  "commentTooLong": "Comentariul este prea lung"
+  "commentTooLong": "Comentariul este prea lung",
+  "notaRequired": "Nota justificativă este obligatorie (articolul nu este în PAAP)"
 }

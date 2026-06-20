@@ -14,5 +14,6 @@
   "adminOnlyEditCategory": "Csak adminisztrátorok módosíthatják a kategóriákat.",
   "categoryNotFound": "A kategória nem létezik.",
   "adminOnlyEditFlow": "Csak adminisztrátorok szerkeszthetik a folyamatot.",
-  "stepNotFound": "A lépés nem létezik."
+  "stepNotFound": "A lépés nem létezik.",
+  "valuationRequired": "A jóváhagyás előtt adja meg a kiszámított értéket és a SEAP-katalógusra vonatkozó választ."
 }

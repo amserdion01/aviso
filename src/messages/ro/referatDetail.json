@@ -24,6 +24,10 @@
     "estimatedValue": "Valoare estimată",
     "procurementType": "Tip achiziție",
     "advisories": "Avize",
+    "docType": "Tip document",
+    "inPaap": "În PAAP",
+    "inSeapCatalog": "În catalog SEAP",
+    "nota": "Notă justificativă",
     "justification": "Justificare"
   },
   "history": {
@@ -59,6 +63,15 @@
       "achizitii": "Achiziții",
       "aprovizionare": "Aprovizionare",
       "servicii": "Servicii"
+    },
+    "valuation": {
+      "valueLabel": "Valoare estimată (Achiziții)",
+      "valuePlaceholder": "0,00",
+      "seapLabel": "Există în catalogul SEAP?",
+      "seapPlaceholder": "Alege…",
+      "seapYes": "Da, există în catalog SEAP",
+      "seapNo": "Nu există în catalog SEAP",
+      "hint": "Valoarea și disponibilitatea în catalogul SEAP determină pașii următori ai traseului."
     },
     "comment": {
       "label": "Comentariu",

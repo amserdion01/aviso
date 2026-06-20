@@ -11,7 +11,7 @@ import roLabels from "@/messages/ro/labels.json";
 import huLabels from "@/messages/hu/labels.json";
 
 type LabelGroups = typeof roLabels;
-type GroupKey = "status" | "taskStatus" | "taskType" | "procurementType" | "action" | "capability" | "approverStrategy" | "statusBadge";
+type GroupKey = "status" | "taskStatus" | "taskType" | "procurementType" | "action" | "capability" | "approverStrategy" | "statusBadge" | "docType";
 
 const DATA: Record<Locale, Record<string, unknown>> = { ro: roLabels, hu: huLabels };
 
@@ -34,6 +34,7 @@ export const procurementLabel = (code: string, locale: Locale = "ro") => lookup(
 export const actionLabel = (code: string, locale: Locale = "ro") => lookup(locale, "action", code);
 export const capabilityLabel = (code: string, locale: Locale = "ro") => lookup(locale, "capability", code);
 export const approverStrategyLabel = (code: string, locale: Locale = "ro") => lookup(locale, "approverStrategy", code);
+export const docTypeLabel = (code: string, locale: Locale = "ro") => lookup(locale, "docType", code);
 
 /** Capabilities an admin can assign to a user (HYDROKOV roles; ordered). */
 export const ASSIGNABLE_CAPABILITIES = [
@@ -77,6 +78,8 @@ export function requisitionStatusBadge(status: string, locale: Locale = "ro"): {
   switch (status) {
     case "approved":
       return { tone: "finalized", label: labels.approved ?? "Finalizat" };
+    case "seap_initiated":
+      return { tone: "approved", label: labels.seap_initiated ?? "Inițiat în SEAP" };
     case "rejected":
       return { tone: "rejected", label: labels.rejected ?? "Respins" };
     default:

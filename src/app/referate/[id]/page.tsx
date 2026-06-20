@@ -8,6 +8,7 @@ import type { Locale } from "@/i18n/locale";
 import {
   taskTypeLabel,
   procurementLabel,
+  docTypeLabel,
   requisitionStatusBadge,
   formatLei,
 } from "@/lib/labels";
@@ -158,9 +159,18 @@ export default async function ReferatDetailPage({
               {r.procurementType && (
                 <Meta label={t("referatDetail.data.procurementType")}>{procurementLabel(r.procurementType, locale)}</Meta>
               )}
-              <Meta label={t("referatDetail.data.advisories")}>
-                {[r.needsIt ? "IT" : null, r.needsSsm ? "SSM" : null].filter(Boolean).join(" · ") || t("common.none")}
-              </Meta>
+              <Meta label={t("referatDetail.data.docType")}>{docTypeLabel(r.docType, locale)}</Meta>
+              <Meta label={t("referatDetail.data.inPaap")}>{r.inPaap ? t("common.yes") : t("common.no")}</Meta>
+              {r.inSeapCatalog !== null && (
+                <Meta label={t("referatDetail.data.inSeapCatalog")}>{r.inSeapCatalog ? t("common.yes") : t("common.no")}</Meta>
+              )}
+              {r.notaJustificativa && (
+                <div className="avi-col-2">
+                  <Meta label={t("referatDetail.data.nota")}>
+                    <span className="avi-justif">{r.notaJustificativa}</span>
+                  </Meta>
+                </div>
+              )}
               <div className="avi-col-2">
                 <Meta label={t("referatDetail.data.justification")}>
                   <span className="avi-justif">{r.justification}</span>
@@ -210,9 +220,10 @@ export default async function ReferatDetailPage({
               requisitionId={r.id}
               stepLabel={activeTask ? taskTypeLabel(activeTask.taskType, locale) : ""}
               needsClassification={activeTask?.taskType === "INCADRARE"}
+              needsValuation={activeTask?.taskType === "ACHIZITII_EVALUARE"}
               canSendBack={canSendBack}
               initialMode={initialMode}
-              pdfHref={r.status === "approved" ? `/referate/${r.id}/pdf` : undefined}
+              pdfHref={r.status === "approved" || r.status === "seap_initiated" ? `/referate/${r.id}/pdf` : undefined}
             />
           ) : (
             <div className="avi-actionpanel">
@@ -223,7 +234,7 @@ export default async function ReferatDetailPage({
                   <div className="avi-actionpanel__d">{t("referatDetail.readonly.description")}</div>
                 </div>
               </div>
-              {r.status === "approved" && (
+              {(r.status === "approved" || r.status === "seap_initiated") && (
                 <div className="avi-actionpanel__foot">
                   <a className="avi-btn avi-btn--ghost avi-btn--sm" href={`/referate/${r.id}/pdf`} target="_blank" rel="noopener noreferrer">
                     <span className="avi-btn__ico"><Icon name="download" /></span>

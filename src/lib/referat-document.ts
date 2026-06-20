@@ -88,9 +88,9 @@ export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Da
     </div>
 
     <div class="title-wrap">
-      <h1>${esc(p.docTitle)}</h1>
+      <h1>${esc(data.docType === "comanda_interna" ? p.docTitleComanda : p.docTitleReferat)}</h1>
       <div class="subtitle">${esc(p.docSubtitle)}</div>
-      <div class="stamp">${esc(p.stamp)}</div>
+      <div class="stamp">${esc(data.status === "seap_initiated" ? p.stampSeap : p.stamp)}</div>
     </div>
 
     <h2>${esc(p.requester)}</h2>
@@ -112,6 +112,10 @@ export function renderReferatDocument(data: ReferatDocumentData, generatedAt: Da
       <div class="k" style="color:#6b7280;margin-bottom:4px">${esc(p.justification)}</div>
       <div class="just">${esc(data.justification)}</div>
     </div>
+    ${data.notaJustificativa ? `<div style="margin-top:8px">
+      <div class="k" style="color:#6b7280;margin-bottom:4px">${esc(p.nota)}</div>
+      <div class="just">${esc(data.notaJustificativa)}</div>
+    </div>` : ""}
 
     <h2>${esc(p.approvalFlow)}</h2>
     <table class="chain">

@@ -17,7 +17,8 @@
     },
     "estimatedValue": {
       "label": "Becsült érték",
-      "placeholder": "0,00"
+      "placeholder": "0,00",
+      "hint": "Tájékoztató jellegű becslés. A végleges értéket a Beszerzési iroda állapítja meg."
     },
     "costCenter": {
       "label": "Költséghely",
@@ -33,6 +34,15 @@
       "needsIt": "IT-jóváhagyás szükséges",
       "needsSsm": "Munkavédelmi jóváhagyás szükséges"
     }
+  },
+  "paap": {
+    "label": "A beszerzés szerepel a PAAP-ban",
+    "hint": "Ha szerepel a PAAP-ban (éves közbeszerzési terv) → belső megrendelés; egyébként → szükségességi referátum."
+  },
+  "nota": {
+    "label": "Indoklási megjegyzés",
+    "placeholder": "pl. A beszerzést nem lehetett a PAAP-ban előre tervezni, mert a szükséglet egy meghibásodás következtében váratlanul merült fel…",
+    "hint": "Kötelező, ha a beszerzés nem szerepel a PAAP-ban — indokolja meg, miért nem volt betervezve."
   },
   "flowNote": "Beküldés után a referátum a szerepkör alapú jóváhagyási útvonalra kerül (irodavezető → szolgálatvezető → … → igazgató), és minden jóváhagyó jóváhagyhatja, elutasíthatja vagy visszaküldheti.",
   "submit": "Referátum beküldése"

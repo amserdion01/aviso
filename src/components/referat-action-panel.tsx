@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { actReferatAction } from "@/app/actions";
-import { Button, FormField, Textarea, Select } from "@/components/ui/primitives";
+import { Button, FormField, Textarea, Select, Input } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 
 type Mode = "approve" | "reject" | "send_back";
@@ -17,6 +17,7 @@ export function ReferatActionPanel({
   requisitionId,
   stepLabel,
   needsClassification,
+  needsValuation,
   canSendBack,
   initialMode,
   pdfHref,
@@ -24,6 +25,7 @@ export function ReferatActionPanel({
   requisitionId: string;
   stepLabel: string;
   needsClassification: boolean;
+  needsValuation: boolean;
   canSendBack: boolean;
   initialMode: Mode | null;
   pdfHref?: string;
@@ -72,6 +74,24 @@ export function ReferatActionPanel({
                 { value: "servicii", label: t("referatDetail.panel.classification.servicii") },
               ]} />
             </FormField>
+          )}
+
+          {mode === "approve" && needsValuation && (
+            <>
+              <FormField label={t("referatDetail.panel.valuation.valueLabel")} required>
+                <Input name="valuationLei" type="number" min={0} step="0.01" required suffix="RON" placeholder={t("referatDetail.panel.valuation.valuePlaceholder")} />
+              </FormField>
+              <FormField label={t("referatDetail.panel.valuation.seapLabel")} required>
+                <Select name="inSeapCatalog" required defaultValue="" placeholder={t("referatDetail.panel.valuation.seapPlaceholder")} options={[
+                  { value: "da", label: t("referatDetail.panel.valuation.seapYes") },
+                  { value: "nu", label: t("referatDetail.panel.valuation.seapNo") },
+                ]} />
+              </FormField>
+              <div className="avi-form-note">
+                <Icon name="info" />
+                <span>{t("referatDetail.panel.valuation.hint")}</span>
+              </div>
+            </>
           )}
 
           {mode === "approve" ? (

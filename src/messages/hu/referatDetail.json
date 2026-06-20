@@ -24,6 +24,10 @@
     "estimatedValue": "Becsült érték",
     "procurementType": "Beszerzés típusa",
     "advisories": "Jóváhagyások",
+    "docType": "Dokumentum típusa",
+    "inPaap": "PAAP-ban szerepel",
+    "inSeapCatalog": "SEAP-katalógusban szerepel",
+    "nota": "Indoklási megjegyzés",
     "justification": "Indoklás"
   },
   "history": {
@@ -59,6 +63,15 @@
       "achizitii": "Beszerzés",
       "aprovizionare": "Ellátás",
       "servicii": "Szolgáltatások"
+    },
+    "valuation": {
+      "valueLabel": "Becsült érték (Beszerzés)",
+      "valuePlaceholder": "0,00",
+      "seapLabel": "Szerepel a SEAP-katalógusban?",
+      "seapPlaceholder": "Válasszon…",
+      "seapYes": "Igen, szerepel a SEAP-katalógusban",
+      "seapNo": "Nem szerepel a SEAP-katalógusban",
+      "hint": "Az érték és a SEAP-katalógusban való elérhetőség határozza meg az útvonal következő lépéseit."
     },
     "comment": {
       "label": "Megjegyzés",
