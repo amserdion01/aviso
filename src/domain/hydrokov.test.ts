@@ -1,0 +1,155 @@
+import { describe, it, expect } from "vitest";
+import {
+  applies,
+  createWorkflow,
+  act,
+  activeTask,
+  ValuationRequiredError,
+  AuthorizationError,
+  type Condition,
+  type RequisitionContext,
+  type StepDef,
+  type WorkflowState,
+} from "./workflow";
+import { HYDROKOV_CHAIN, HYDROKOV_THRESHOLD_MINOR } from "./chain";
+
+const T = HYDROKOV_THRESHOLD_MINOR; // 500000 bani = 5000 lei
+
+const STEPS: StepDef[] = HYDROKOV_CHAIN.map((s) => ({
+  order: s.order,
+  taskType: s.taskType,
+  requiredCapability: s.requiredCapability,
+  label: s.label,
+  approverStrategy: s.approverStrategy,
+  appliesWhen: s.appliesWhen ?? null,
+  setsValuation: s.setsValuation,
+}));
+
+const ctx = (over: Partial<RequisitionContext> = {}): RequisitionContext => ({
+  needsIt: false,
+  needsSsm: false,
+  procurementType: null,
+  estimatedValueMinor: null,
+  inSeapCatalog: null,
+  ...over,
+});
+
+/** Approver id per step order (the pure engine resolves via this callback). */
+const approver = (step: StepDef) => `u-${step.order}`;
+const start = () => createWorkflow("requester", STEPS, approver, ctx());
+
+function approveActive(state: WorkflowState, extra: Partial<Parameters<typeof act>[1]> = {}): WorkflowState {
+  const a = activeTask(state)!;
+  return act(state, { actorId: a.effectiveApproverId, action: "approve", ...extra });
+}
+
+const taskByType = (s: WorkflowState, type: string) => s.tasks.find((t) => t.taskType === type)!;
+
+describe("applies() — HYDROKOV operators", () => {
+  it("gte / lt on value", () => {
+    expect(applies({ field: "estimatedValueMinor", gte: T }, ctx({ estimatedValueMinor: T }))).toBe(true);
+    expect(applies({ field: "estimatedValueMinor", gte: T }, ctx({ estimatedValueMinor: T - 1 }))).toBe(false);
+    expect(applies({ field: "estimatedValueMinor", lt: T }, ctx({ estimatedValueMinor: T - 1 }))).toBe(true);
+    expect(applies({ field: "estimatedValueMinor", lt: T }, ctx({ estimatedValueMinor: T }))).toBe(false);
+  });
+
+  it("inSeapCatalog eq — null matches neither", () => {
+    expect(applies({ field: "inSeapCatalog", eq: true }, ctx({ inSeapCatalog: true }))).toBe(true);
+    expect(applies({ field: "inSeapCatalog", eq: false }, ctx({ inSeapCatalog: false }))).toBe(true);
+    expect(applies({ field: "inSeapCatalog", eq: false }, ctx({ inSeapCatalog: null }))).toBe(false);
+  });
+
+  it("any / all combinators", () => {
+    const externalOrder: Condition = {
+      all: [{ field: "estimatedValueMinor", lt: T }, { field: "inSeapCatalog", eq: false }],
+    };
+    expect(applies(externalOrder, ctx({ estimatedValueMinor: 300000, inSeapCatalog: false }))).toBe(true);
+    expect(applies(externalOrder, ctx({ estimatedValueMinor: 300000, inSeapCatalog: true }))).toBe(false);
+    const needsDirectors: Condition = {
+      any: [{ field: "estimatedValueMinor", gte: T }, externalOrder],
+    };
+    expect(applies(needsDirectors, ctx({ estimatedValueMinor: 600000, inSeapCatalog: true }))).toBe(true);
+    expect(applies(needsDirectors, ctx({ estimatedValueMinor: 300000, inSeapCatalog: true }))).toBe(false);
+  });
+});
+
+describe("HYDROKOV materialization", () => {
+  it("starts at the superior avizare; rest pending", () => {
+    const s = start();
+    expect(activeTask(s)!.taskType).toBe("AVIZARE_SUPERIOR");
+    expect(taskByType(s, "ACHIZITII_EVALUARE").status).toBe("pending");
+    expect(s.status).toBe("in_progress");
+  });
+
+  it("approving the valuation step without a valuation throws", () => {
+    const s = approveActive(start()); // superior approves -> Achiziții waiting
+    expect(() => approveActive(s)).toThrow(ValuationRequiredError);
+  });
+
+  it("rejects an actor who is not the routed approver", () => {
+    const s = start();
+    expect(() => act(s, { actorId: "intruder", action: "approve" })).toThrow(AuthorizationError);
+  });
+});
+
+describe("branch ≥ 5000 lei → directori secvențial → approved", () => {
+  it("superior → achiziții(6000) → dir economic → dir general → approved", () => {
+    let s = approveActive(start()); // superior
+    s = approveActive(s, { valuation: { valueMinor: 600000, inSeapCatalog: true } }); // achiziții
+    expect(activeTask(s)!.taskType).toBe("DIRECTOR_ECONOMIC");
+    expect(taskByType(s, "COORD_ACHIZITII").status).toBe("skipped"); // not external order
+    s = approveActive(s); // dir economic
+    expect(activeTask(s)!.taskType).toBe("DIRECTOR_GENERAL");
+    s = approveActive(s); // dir general
+    expect(s.status).toBe("approved");
+    expect(activeTask(s)).toBeUndefined();
+  });
+});
+
+describe("branch < 5000 + SEAP → inițiat în SEAP (terminal, fără directori)", () => {
+  it("superior → achiziții(3000, seap) → seap_initiated", () => {
+    let s = approveActive(start()); // superior
+    s = approveActive(s, { valuation: { valueMinor: 300000, inSeapCatalog: true } }); // achiziții
+    expect(s.status).toBe("seap_initiated");
+    expect(activeTask(s)).toBeUndefined();
+    expect(taskByType(s, "DIRECTOR_ECONOMIC").status).toBe("skipped");
+    expect(taskByType(s, "DIRECTOR_GENERAL").status).toBe("skipped");
+    expect(taskByType(s, "COORD_ACHIZITII").status).toBe("skipped");
+  });
+});
+
+describe("branch < 5000 fără SEAP → comandă externă (coord + directori)", () => {
+  it("superior → achiziții(3000, no seap) → coord → dir economic → dir general → approved", () => {
+    let s = approveActive(start()); // superior
+    s = approveActive(s, { valuation: { valueMinor: 300000, inSeapCatalog: false } }); // achiziții
+    expect(activeTask(s)!.taskType).toBe("COORD_ACHIZITII");
+    s = approveActive(s); // coord achiziții
+    expect(activeTask(s)!.taskType).toBe("DIRECTOR_ECONOMIC");
+    s = approveActive(s); // dir economic
+    expect(activeTask(s)!.taskType).toBe("DIRECTOR_GENERAL");
+    s = approveActive(s); // dir general
+    expect(s.status).toBe("approved");
+  });
+});
+
+describe("reject + send-back", () => {
+  it("reject at achiziții → rejected, pending skipped, transition recorded", () => {
+    let s = approveActive(start());
+    const a = activeTask(s)!;
+    s = act(s, { actorId: a.effectiveApproverId, action: "reject", comment: "fără buget" });
+    expect(s.status).toBe("rejected");
+    expect(taskByType(s, "DIRECTOR_ECONOMIC").status).toBe("skipped");
+    const last = s.transitions[s.transitions.length - 1];
+    expect(last.action).toBe("reject");
+    expect(last.comment).toBe("fără buget");
+    expect(last.isMostRecent).toBe(true);
+  });
+
+  it("send-back from achiziții returns to the superior avizare", () => {
+    let s = approveActive(start()); // superior approved -> achiziții waiting
+    const a = activeTask(s)!;
+    s = act(s, { actorId: a.effectiveApproverId, action: "send_back", comment: "completați oferta" });
+    expect(activeTask(s)!.taskType).toBe("AVIZARE_SUPERIOR");
+    expect(taskByType(s, "ACHIZITII_EVALUARE").status).toBe("pending");
+  });
+});

@@ -27,13 +27,16 @@ export const TASK_STATUSES = [
   "skipped",
 ] as const;
 
-export const REQUISITION_STATUSES = ["in_progress", "approved", "rejected"] as const;
+export const REQUISITION_STATUSES = ["in_progress", "approved", "rejected", "seap_initiated"] as const;
 
 export const TRANSITION_ACTIONS = ["create", "approve", "reject", "send_back"] as const;
 
-export const APPROVER_STRATEGIES = ["org_relative", "capability", "director_by_unit"] as const;
+export const APPROVER_STRATEGIES = ["org_relative", "capability", "director_by_unit", "superior"] as const;
 
 export const ORG_UNIT_KINDS = ["serviciu", "birou"] as const;
+
+/** Document type: internal order (item in approved PAAP) vs necessity referat (not in PAAP). */
+export const DOC_TYPES = ["comanda_interna", "referat"] as const;
 
 // ---------------------------------------------------------------------------
 // Identity & org structure
@@ -51,6 +54,8 @@ export const users = pgTable("users", {
   image: text("image"),
   username: text("username"),
   orgUnitId: text("org_unit_id").references(() => orgUnits.id),
+  // direct hierarchical superior (dynamic avizare); null for the top of the org
+  superiorId: text("superior_id"),
   active: boolean("active").notNull().default(true),
   // preferred UI language; also used to localize notification emails (ro default / hu)
   locale: text("locale").notNull().default("ro"),
@@ -160,16 +165,25 @@ export const requisitions = pgTable("requisitions", {
   quantity: integer("quantity").notNull(),
   justification: text("justification").notNull(),
   costCenter: text("cost_center").notNull(),
-  // estimated value in minor units (bani); never a float
+  // estimated value in minor units (bani); never a float. Authoritative value is
+  // set by the Achiziții evaluation step (may be null until then).
   estimatedValueMinor: integer("estimated_value_minor"),
-  // attributes that drive conditional routing (Phase 2)
+  // HYDROKOV document type: comanda_interna (in PAAP) | referat (not in PAAP)
+  docType: text("doc_type").notNull().default("referat"),
+  inPaap: boolean("in_paap").notNull().default(false),
+  // set by Achiziții at evaluation: is the product in the SEAP catalog?
+  inSeapCatalog: boolean("in_seap_catalog"),
+  // referat only: nota justificativă (required when not in PAAP)
+  notaJustificativa: text("nota_justificativa"),
+  // attributes that drive conditional routing (legacy; kept for admin-config workflows)
   needsIt: boolean("needs_it").notNull().default(false),
   needsSsm: boolean("needs_ssm").notNull().default(false),
   procurementType: text("procurement_type"), // achizitii | aprovizionare | servicii (set at incadrare)
   status: text("status").notNull().default("in_progress"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
-  check("requisitions_status_chk", sql`${t.status} in ('in_progress','approved','rejected')`),
+  check("requisitions_status_chk", sql`${t.status} in ('in_progress','approved','rejected','seap_initiated')`),
+  check("requisitions_doctype_chk", sql`${t.docType} in ('comanda_interna','referat')`),
   check("requisitions_quantity_chk", sql`${t.quantity} > 0`),
   index("requisitions_requester_idx").on(t.requesterId),
 ]);
@@ -196,11 +210,13 @@ export const approvalSteps = pgTable("approval_steps", {
   blocking: boolean("blocking").notNull().default(true),
   // true for the achiziții-încadrare step whose approval sets procurement_type
   setsProcurementType: boolean("sets_procurement_type").notNull().default(false),
+  // true for the Achiziții evaluation step whose approval sets value + in_seap_catalog
+  setsValuation: boolean("sets_valuation").notNull().default(false),
   label: text("label").notNull(),
 }, (t) => [
   check(
     "approval_steps_strategy_chk",
-    sql`${t.approverStrategy} in ('org_relative','capability','director_by_unit')`,
+    sql`${t.approverStrategy} in ('org_relative','capability','director_by_unit','superior')`,
   ),
   // step_order is unique within a workflow (not globally)
   uniqueIndex("approval_steps_wf_order_uniq").on(t.workflowId, t.stepOrder),

@@ -21,8 +21,43 @@ export interface ChainStepSeed {
   onSendBack?: string;
   blocking?: boolean;
   setsProcurementType?: boolean;
+  setsValuation?: boolean;
   label: string;
 }
+
+/** Configurable value threshold for the director branch (5000 lei, in bani). */
+export const HYDROKOV_THRESHOLD_MINOR = 500000;
+
+/** Re-usable "needs director signatures" predicate: value ≥ 5000 OR external order. */
+const NEEDS_DIRECTORS: Condition = {
+  any: [
+    { field: "estimatedValueMinor", gte: HYDROKOV_THRESHOLD_MINOR },
+    { all: [{ field: "estimatedValueMinor", lt: HYDROKOV_THRESHOLD_MINOR }, { field: "inSeapCatalog", eq: false }] },
+  ],
+};
+
+/** External order: value < 5000 AND NOT in SEAP catalog. */
+const EXTERNAL_ORDER: Condition = {
+  all: [{ field: "estimatedValueMinor", lt: HYDROKOV_THRESHOLD_MINOR }, { field: "inSeapCatalog", eq: false }],
+};
+
+/**
+ * The real HYDROKOV direct-purchase chain (sursa: CLAUDE.md procedura reală):
+ *   angajat → superior ierarhic direct → Birou Achiziții (evaluează valoarea + SEAP) →
+ *   ramificare:
+ *     valoare ≥ 5000              → Director Economic → Director General
+ *     valoare < 5000 & în SEAP    → "inițiat în SEAP" (terminal, fără directori)
+ *     valoare < 5000 & fără SEAP  → Coordonator Achiziții → Director Economic → Director General
+ * The two document types (comandă internă / referat) share this chain; the type is
+ * a requisition field, not a separate template.
+ */
+export const HYDROKOV_CHAIN: ChainStepSeed[] = [
+  { order: 1, taskType: "AVIZARE_SUPERIOR", requiredCapability: "sef_ierarhic", approverStrategy: "superior", label: "Avizare superior ierarhic" },
+  { order: 2, taskType: "ACHIZITII_EVALUARE", requiredCapability: "birou_achizitii", approverStrategy: "capability", setsValuation: true, label: "Birou Achiziții — evaluare ofertă" },
+  { order: 3, taskType: "COORD_ACHIZITII", requiredCapability: "coord_achizitii", approverStrategy: "capability", appliesWhen: EXTERNAL_ORDER, label: "Semnătură coordonator achiziții (comandă externă)" },
+  { order: 4, taskType: "DIRECTOR_ECONOMIC", requiredCapability: "director_economic", approverStrategy: "capability", appliesWhen: NEEDS_DIRECTORS, label: "Semnătură director economic" },
+  { order: 5, taskType: "DIRECTOR_GENERAL", requiredCapability: "director_general", approverStrategy: "capability", appliesWhen: NEEDS_DIRECTORS, label: "Semnătură director general" },
+];
 
 /**
  * The real Covasna chain (confirmed from diagramaFlux.pdf + the org file).

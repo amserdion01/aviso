@@ -20,12 +20,12 @@ export type TaskStatus =
   | "sent_back"
   | "skipped";
 
-export type RequisitionStatus = "in_progress" | "approved" | "rejected";
+export type RequisitionStatus = "in_progress" | "approved" | "rejected" | "seap_initiated";
 
 export type ApprovalAction = "approve" | "reject" | "send_back";
 export type TransitionAction = ApprovalAction | "create";
 
-export type ApproverStrategy = "org_relative" | "capability" | "director_by_unit";
+export type ApproverStrategy = "org_relative" | "capability" | "director_by_unit" | "superior";
 
 /** Where a send-back returns to. Defaults to the previous applicable step. */
 export type SendBackTarget = "previous" | "requester" | number;
@@ -36,19 +36,25 @@ export interface RequisitionContext {
   needsSsm: boolean;
   procurementType: string | null;
   estimatedValueMinor: number | null;
+  /** set by the Achiziții evaluation step; null until then (HYDROKOV SEAP branch). */
+  inSeapCatalog?: boolean | null;
 }
 
 /**
  * A predicate over the requisition context. `null` = always applies.
- * `{ all: [...] }` is the conjunction used by admin-configured threshold rules,
- * e.g. value > X AND procurementType = 'achizitii'.
+ * `{ all: [...] }` / `{ any: [...] }` are AND / OR combinators (HYDROKOV value+SEAP
+ * branching: value >= 5000 OR (value < 5000 AND not in SEAP catalog)).
  */
 export type Condition =
   | { field: "needsIt"; eq: boolean }
   | { field: "needsSsm"; eq: boolean }
   | { field: "procurementType"; eq: string }
+  | { field: "inSeapCatalog"; eq: boolean }
   | { field: "estimatedValueMinor"; gt: number }
+  | { field: "estimatedValueMinor"; gte: number }
+  | { field: "estimatedValueMinor"; lt: number }
   | { all: Condition[] }
+  | { any: Condition[] }
   | null;
 
 /** A step in the approval-chain template. */
@@ -64,6 +70,8 @@ export interface StepDef {
   blocking?: boolean;
   /** the achiziții-încadrare step: its approval sets context.procurementType. */
   setsProcurementType?: boolean;
+  /** the Achiziții evaluation step: its approval sets value + inSeapCatalog. */
+  setsValuation?: boolean;
 }
 
 /** One row per step per requisition. The active step is the single `waiting` task. */
@@ -101,6 +109,8 @@ export interface ActInput {
   comment?: string;
   /** required when approving the step with setsProcurementType. */
   classification?: string;
+  /** required when approving the step with setsValuation (Birou Achiziții). */
+  valuation?: { valueMinor: number; inSeapCatalog: boolean };
 }
 
 export class AuthorizationError extends Error {
@@ -131,17 +141,26 @@ export class ClassificationRequiredError extends Error {
   }
 }
 
+export class ValuationRequiredError extends Error {
+  constructor() {
+    super("This step requires a calculated value + SEAP-catalog answer to approve");
+    this.name = "ValuationRequiredError";
+  }
+}
+
 const DEFAULT_CONTEXT: RequisitionContext = {
   needsIt: false,
   needsSsm: false,
   procurementType: null,
   estimatedValueMinor: null,
+  inSeapCatalog: null,
 };
 
 /** Evaluate a step's condition against the requisition context. */
 export function applies(condition: Condition | undefined, ctx: RequisitionContext): boolean {
   if (condition == null) return true;
   if ("all" in condition) return condition.all.every((c) => applies(c, ctx));
+  if ("any" in condition) return condition.any.some((c) => applies(c, ctx));
   switch (condition.field) {
     case "needsIt":
       return ctx.needsIt === condition.eq;
@@ -149,8 +168,15 @@ export function applies(condition: Condition | undefined, ctx: RequisitionContex
       return ctx.needsSsm === condition.eq;
     case "procurementType":
       return ctx.procurementType === condition.eq;
-    case "estimatedValueMinor":
-      return (ctx.estimatedValueMinor ?? 0) > condition.gt;
+    case "inSeapCatalog":
+      // null (not yet evaluated by Achiziții) matches neither true nor false.
+      return (ctx.inSeapCatalog ?? null) === condition.eq;
+    case "estimatedValueMinor": {
+      const v = ctx.estimatedValueMinor ?? 0;
+      if ("gte" in condition) return v >= condition.gte;
+      if ("lt" in condition) return v < condition.lt;
+      return v > condition.gt;
+    }
   }
 }
 
@@ -274,8 +300,18 @@ export function act(state: WorkflowState, input: ActInput): WorkflowState {
         if (!input.classification) throw new ClassificationRequiredError();
         context.procurementType = input.classification;
       }
+      if (currentStep.setsValuation) {
+        if (!input.valuation) throw new ValuationRequiredError();
+        context.estimatedValueMinor = input.valuation.valueMinor;
+        context.inSeapCatalog = input.valuation.inSeapCatalog;
+      }
       current.status = "approved";
       nextStatus = activateNext(tasks, state.steps, context, current.stepOrder);
+      // HYDROKOV: value < threshold AND in SEAP catalog ends right after the
+      // valuation step with no further blocking step → "initiated in SEAP".
+      if (nextStatus === "approved" && currentStep.setsValuation && context.inSeapCatalog === true) {
+        nextStatus = "seap_initiated";
+      }
       break;
     }
     case "reject": {
