@@ -89,9 +89,17 @@ directorEconomic, directorGeneral, admin.
 - Valorile de stare: text + CHECK (sau tabel lookup), nu ENUM Postgres.
 - Commit după fiecare test verde, mesaj conventional-commit.
 
-## Decizii deschise (ÎNTREABĂ înainte, nu ghici)
-- Semnăturile Director Economic + Director General: secvențiale sau în paralel?
-- Centrele regionale (Tg. Secuiesc, Covasna, Întorsura Buzăului): lanț propriu sau centralizat?
-- "Superiorul ierarhic" e mereu exact un nivel mai sus, sau pot fi mai multe niveluri de avizare?
-- La comanda externă <5000 fără cont SEAP: semnătura Achiziții e secvențială înainte de directori
-  sau doar o listă de semnatari?
+## Decizii (rezolvate — implementate)
+- Director Economic + Director General: **secvențial** (motorul are un singur task `waiting`).
+- "Superiorul ierarhic": **un singur nivel** (superiorul direct, `users.superior_id`; strategia `superior`).
+- Cele două tipuri de document: **un singur șablon** (`wf-hydrokov`) + câmp `doc_type`/`in_paap` pe requisition.
+- Ramura <5000 + SEAP: stare terminală **`seap_initiated`** + se generează documentul (PDF/print).
+- Comandă externă (<5000 fără SEAP): semnatari ca **listă** pe document, realizați ca pași secvențiali
+  în motor (Coordonator Achiziții → Director Economic → Director General).
+- Centrele regionale (Tg. Secuiesc, Covasna, Întorsura Buzăului): **amânate (faza 2)** — v1 pe o
+  singură organigramă; ulterior prin lanțuri `superior_id` / org_units per centru.
+- Lotul admin (workflow-uri configurabile, operatori de condiție în UI, praguri editabile): **separat**,
+  după ce fluxul real e stabil — ca adaos peste modelul de șablon.
+
+Implementare: motorul în `src/domain/{workflow,chain}.ts` (HYDROKOV_CHAIN, prag 5000 lei =
+`HYDROKOV_THRESHOLD_MINOR`), rezolvarea aprobatorilor în `src/db/repo.ts`, seed în `src/db/seed.ts`.

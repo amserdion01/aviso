@@ -1,103 +1,87 @@
 # HydroKov — Ghid de demonstrație
 
-**HydroKov** digitalizează fluxul de aprobare a *referatelor de necesitate* la Apa Covasna:
-un angajat alege o **categorie** de referat și îl trimite, acesta parcurge traseul de avizare
-al categoriei, iar fiecare aprobator poate **Aprobă**, **Respinge** sau **Trimite înapoi** din
-inboxul propriu. Toate acțiunile sunt înregistrate într-un istoric/audit, iar la final
-documentul oficial se poate salva ca PDF.
+**HydroKov** digitalizează procedura reală de **achiziție directă** a operatorului de apă:
+un angajat întocmește un document (**comandă internă** dacă articolul e în PAAP, altfel
+**referat de necesitate** + notă justificativă), acesta este **avizat de superiorul ierarhic
+direct**, apoi ajunge la **Biroul Achiziții**, care stabilește **valoarea** și dacă produsul e în
+**catalogul SEAP**. În funcție de valoare și SEAP, traseul se ramifică automat. Fiecare aprobator
+poate **Aprobă / Respinge / Trimite înapoi**, totul cu istoric/audit, iar la final documentul se
+poate salva ca PDF.
 
 > **Adresă demo:** https://aviso-docs.vercel.app
-> **Parolă (pentru toate conturile):** `Parola123!`
+> **Parolă (toate conturile):** `Parola123!`
 >
-> Datele sunt fictive, pentru demonstrație: **18 referate** în **4 categorii**, în toate stările
-> (finalizate, în curs la diferiți pași, respinse, trimise înapoi) — inclusiv câteva cu conținut în
-> **limba maghiară**. Te poți autentifica cu oricare cont de mai jos.
+> Date fictive: **10 referate** în toate stările (în curs la diferiți pași, aprobate, respinse,
+> **inițiate în SEAP**), inclusiv câteva cu conținut în **limba maghiară**.
 
-> **Limbă: română / maghiară.** Aplicația este bilingvă. Schimbi limba din **meniul de utilizator**
-> (dreapta sus) → comutatorul **RO / HU**; alegerea se reține pentru contul tău, iar emailurile de
-> notificare se trimit în limba destinatarului. Conturile `it@aviso.local` și `magazie@aviso.local`
-> sunt setate implicit pe **maghiară** (poți comuta oricând înapoi pe RO).
+> **Limbă: română / maghiară.** Aplicația e bilingvă. Schimbi limba din **meniul de utilizator**
+> (dreapta sus) → comutatorul **RO / HU**; alegerea se reține pe cont, iar emailurile de notificare
+> se trimit în limba destinatarului. Conturile `achizitii` și `coordachizitii` sunt implicit pe
+> **maghiară** (poți comuta oricând pe RO).
+
+---
+
+## Traseul de avizare (HYDROKOV)
+
+```
+Angajat (comandă internă / referat + notă)
+   └─ Avizare superior ierarhic direct
+        └─ Birou Achiziții — stabilește valoarea + dacă e în catalogul SEAP
+             ├─ valoare ≥ 5000 lei            → Director Economic → Director General → APROBAT
+             ├─ valoare < 5000 lei & în SEAP  → INIȚIAT ÎN SEAP (final, fără directori)
+             └─ valoare < 5000 lei & fără SEAP → Coordonator Achiziții → Director Economic
+                                                  → Director General → APROBAT (comandă externă)
+```
+
+Pragul (5000 lei) este o constantă configurabilă. Tipul documentului (comandă internă vs referat)
+nu schimbă traseul — doar titlul documentului și forma (referatul cere notă justificativă).
 
 ---
 
 ## Conturi
 
-| Email | Rol în aplicație | Ce vezi / ce poți face |
+| Email | Rol | Ce vezi / ce poți face |
 |---|---|---|
-| `angajat@aviso.local` | **Angajat** (solicitant) | Creează referate; vede „Toate referatele" cu statusul lor |
-| `sefbirou@aviso.local` | **Șef birou** | Primul pas de avizare în inbox |
-| `sefserviciu@aviso.local` | **Șef serviciu** | Al doilea pas de avizare |
-| `secretariat@aviso.local` | **Secretariat** (înregistrare) | Pasul de înregistrare |
-| `it@aviso.local` | **IT** *(implicit în maghiară)* | Avizează referatele care necesită aviz IT |
-| `ssm@aviso.local` | **SSM** | Avizează referatele care necesită aviz SSM |
-| `ru@aviso.local` | **Resurse umane** | Pasul RU |
-| `magazie@aviso.local` | **Magazie** *(implicit în maghiară)* | Verificare stoc magazie |
-| `direconomic@aviso.local` | **Director economic** | Aprobare economică |
-| `achizitii@aviso.local` | **Achiziții** | Încadrare + achiziții |
-| `aprovizionare@aviso.local` | **Aprovizionare** | Ramura aprovizionare |
-| `servicii@aviso.local` | **Servicii** | Ramura servicii |
-| `dirtehnic@aviso.local` | **Director tehnic** | Aprobarea finală de director |
-| `dirgeneral@aviso.local` | **Director general + Administrator** | Tot, plus **Administrare** și **Rapoarte** |
-
----
-
-## Categorii de flux (traseu de avizare)
-
-Fiecare referat aparține unei **categorii**, care îi dictează traseul. Categoriile pre-create:
-
-| Categorie | Traseu |
-|---|---|
-| **Standard** | Șef birou → Șef serviciu → Înregistrare → IT* → SSM* → RU → Magazie → Director economic → Achiziții (încadrare) → Achiziții/Aprovizionare/Servicii → Director |
-| **Achiziții mici** | Șef birou → Director economic → Achiziții |
-| **Servicii IT** | Șef birou → IT → Director economic → Achiziții |
-| **Reparații urgente** | Șef serviciu → Director |
-
-(*) la „Standard", pașii IT și SSM apar doar dacă referatul îi solicită.
-Un **administrator** poate crea/edita categorii și pașii lor din **Administrare → Flux de avizare**.
+| `angajat@aviso.local` | **Angajat** (solicitant) | Creează comenzi/referate; vede „Toate referatele" |
+| `sefbirou@aviso.local` | **Superior ierarhic** (al angajatului) | Avizează referatele subalternilor în inbox |
+| `sefserviciu@aviso.local` | **Superior ierarhic** (nivel superior) | Avizează ce vine de la șefii de birou |
+| `achizitii@aviso.local` | **Birou Achiziții** *(implicit în maghiară)* | Stabilește valoarea + SEAP la pasul de evaluare |
+| `coordachizitii@aviso.local` | **Coordonator Achiziții** *(implicit în maghiară)* | Semnează comenzile externe (<5000 fără SEAP) |
+| `direconomic@aviso.local` | **Director Economic** | Semnătura economică (≥5000 / comandă externă) |
+| `dirgeneral@aviso.local` | **Director General + Administrator** | Semnătura finală, plus **Administrare** și **Rapoarte** |
 
 ---
 
 ## Ce poți încerca (flux recomandat)
 
-### 1. Perspectiva solicitantului
+### 1. Solicitant
 1. Autentifică-te cu **`angajat@aviso.local`**.
-2. **Toate referatele** — vezi referatele tale cu statusuri diferite: `În curs`, `Finalizat`, `Respins`. *(Un admin/director vede aici referatele din întreaga organizație, cu coloana Solicitant.)*
-3. **Referat nou** — alege întâi **categoria** (ex. „Standard" sau „Achiziții mici"), apoi completează articol, cantitate, centru de cost și justificare → **Trimite referatul**. Categoria aleasă determină traseul.
-4. Deschide un referat → vezi **traseul de avizare** (stepper), **datele**, **istoricul/audit** și secțiunea de **discuție** (comentarii).
+2. **Referat nou** — completează articol, cantitate, centru de cost, justificare.
+   - Lasă **„în PAAP" debifat** → apare câmpul **Notă justificativă** (obligatoriu) și documentul devine
+     **referat de necesitate**. Bifează „în PAAP" → devine **comandă internă**.
+   - Valoarea introdusă e doar o estimare; valoarea finală o stabilește Biroul Achiziții.
+3. **Trimite referatul** → intră la avizarea superiorului tău direct.
 
-### 2. Perspectiva aprobatorului (inbox + acțiuni)
-Fiecare cont de aprobator are deja referate care îi așteaptă decizia (în paranteză, categoria):
+### 2. Avizare superior + evaluare Achiziții (ramificarea)
+1. Autentifică-te cu **`sefbirou@aviso.local`** → în inbox găsești referatul angajatului → **Aprobă**.
+2. Autentifică-te cu **`achizitii@aviso.local`** (UI în maghiară). La pasul **Birou Achiziții** introduci
+   **valoarea calculată (lei)** și răspunzi **„în catalogul SEAP? (da/nu)"**, apoi aprobi. În funcție de
+   ce alegi:
+   - **valoare < 5000 + SEAP = da** → referatul devine **„Inițiat în SEAP"** (final, fără directori);
+   - **valoare ≥ 5000** → merge la **Director Economic** apoi **Director General**;
+   - **valoare < 5000 + SEAP = nu** → merge la **Coordonator Achiziții** (comandă externă) apoi directori.
+3. Continuă cu `direconomic` / `dirgeneral` (sau `coordachizitii` pentru comanda externă) pentru semnături.
 
-| Autentifică-te cu | În „Inboxul meu" găsești |
-|---|---|
-| `sefbirou@aviso.local` | „Reactivi laborator" *(Standard)* |
-| `sefserviciu@aviso.local` | „Scaune ergonomice birou" *(Standard, a fost **trimis înapoi**)* |
-| `it@aviso.local` | „Switch-uri Cisco" *(Standard)* + „Abonament VPN" *(Servicii IT)* |
-| `magazie@aviso.local` | „Pompă Grundfos" *(Standard)* |
-| `direconomic@aviso.local` | „Imprimantă Xerox" *(Standard)* + „Tonere HP" *(Achiziții mici)* |
-| `dirtehnic@aviso.local` | „Înlocuire motor electric" *(Reparații urgente)* |
+La **respingere / trimitere înapoi** comentariul (motivul) e obligatoriu.
 
-În **Inboxul meu** poți, direct din listă: **Aprobă** (avansează la pasul următor), **Trimite înapoi** sau **Respinge**.
-La respingere / trimitere înapoi este obligatoriu un comentariu (motivul). Încearcă să aprobi un referat și urmărește cum dispare din inbox și avansează pe traseu.
+### 3. Document final (PDF)
+Pe un referat **Aprobat** sau **Inițiat în SEAP**, apasă **PDF / Descarcă** — se generează documentul
+oficial (titlu „Comandă internă" sau „Referat de necesitate", cu nota justificativă unde e cazul).
 
-### 3. Notificări, căutare, comentarii
-- **Clopoțelul** (sus-dreapta) arată notificările: actualizări la referatele tale (ca solicitant) și referate care îți așteaptă avizul (ca aprobator).
-- **Căutarea** (bara de sus) caută în referatele în care ești implicat — după articol, centru de cost, solicitant sau ID.
-- Pe pagina unui referat, secțiunea **Discuție** permite comentarii (vezi exemplele de la „Laptop Dell Latitude 5540").
-
-### 4. Achiziții + PDF
-1. Autentifică-te cu **`achizitii@aviso.local`** (sau `dirgeneral@aviso.local`).
-2. **Achiziții** — lista referatelor avizate complet (5 referate din mai multe categorii), cu valori și totaluri.
-3. Apasă **PDF** pe un referat finalizat — se deschide documentul oficial; salvează-l ca PDF din dialogul de tipărire al browserului.
-
-### 5. Rapoarte (manager)
-Autentifică-te cu **`dirgeneral@aviso.local`** → **Rapoarte**: total referate, finalizate, valoare, timp mediu de avizare, coada pe fiecare pas și cheltuieli pe centru de cost.
-
-### 6. Administrare (doar Administrator)
-Cu **`dirgeneral@aviso.local`** → **Administrare**:
-- **Utilizatori & roluri** — adaugă utilizatori, editează rolurile, activează/dezactivează conturi.
-- **Delegări / înlocuitori** — desemnează un înlocuitor pentru o perioadă.
-- **Flux de avizare** — gestionează **categoriile**: adaugă o categorie nouă, redenumește, (dez)activează, și editează pașii fiecăreia (adaugă/șterge/reordonează, capabilitate, condiții). Modificările se aplică doar referatelor viitoare. *Încearcă: creează o categorie nouă și adaugă-i 2-3 pași.*
+### 4. Rapoarte & Administrare (`dirgeneral@aviso.local`)
+- **Rapoarte** — total, finalizate (inclusiv inițiate în SEAP), valoare, timp mediu, coada pe pas,
+  cheltuieli pe centru de cost.
+- **Administrare** — utilizatori & roluri, delegări/înlocuitori, și fluxul de avizare.
 
 ---
 
