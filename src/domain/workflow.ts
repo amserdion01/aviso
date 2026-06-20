@@ -111,6 +111,8 @@ export interface ActInput {
   classification?: string;
   /** required when approving the step with setsValuation (Birou Achiziții). */
   valuation?: { valueMinor: number; inSeapCatalog: boolean };
+  /** send_back only: the step order to return to (any earlier step). Defaults to the step's onSendBack. */
+  sendBackTo?: number;
 }
 
 export class AuthorizationError extends Error {
@@ -323,19 +325,33 @@ export function act(state: WorkflowState, input: ActInput): WorkflowState {
       break;
     }
     case "send_back": {
-      const target = currentStep.onSendBack ?? "previous";
-      let dest: Task | undefined;
-      if (target === "previous") {
-        dest = tasks
-          .filter((t) => t.stepOrder < current.stepOrder && t.status === "approved")
-          .sort((a, b) => b.stepOrder - a.stepOrder)[0];
-      } else if (typeof target === "number") {
-        dest = tasks.find((t) => t.stepOrder === target);
+      // Resolve the destination step order: an explicit choice (any earlier step)
+      // overrides the step's configured default (onSendBack / "previous").
+      let destOrder: number | undefined;
+      if (typeof input.sendBackTo === "number") {
+        destOrder = input.sendBackTo;
       } else {
-        throw new SendBackError("Send-back to requester is not yet supported");
+        const target = currentStep.onSendBack ?? "previous";
+        if (target === "previous") {
+          destOrder = tasks
+            .filter((t) => t.stepOrder < current.stepOrder && t.status === "approved")
+            .sort((a, b) => b.stepOrder - a.stepOrder)[0]?.stepOrder;
+        } else if (typeof target === "number") {
+          destOrder = target;
+        } else {
+          throw new SendBackError("Send-back to requester is not yet supported");
+        }
       }
-      if (!dest) throw new SendBackError("No valid step to send back to");
-      current.status = "pending";
+      const dest = tasks.find((t) => t.stepOrder === destOrder);
+      // Must be a real earlier step that is on this requisition's path (not skipped).
+      if (!dest || dest.stepOrder >= current.stepOrder || dest.status === "skipped") {
+        throw new SendBackError("No valid step to send back to");
+      }
+      // Reset every step after the destination so the chain re-walks (and re-branches)
+      // forward from there when the destination approver acts again.
+      for (const tk of tasks) {
+        if (tk.stepOrder > dest.stepOrder && tk.status !== "pending") tk.status = "pending";
+      }
       dest.status = "waiting";
       break;
     }

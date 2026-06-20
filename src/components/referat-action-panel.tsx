@@ -19,6 +19,7 @@ export function ReferatActionPanel({
   needsClassification,
   needsValuation,
   canSendBack,
+  sendBackTargets = [],
   initialMode,
   pdfHref,
 }: {
@@ -27,6 +28,8 @@ export function ReferatActionPanel({
   needsClassification: boolean;
   needsValuation: boolean;
   canSendBack: boolean;
+  /** Earlier steps this referat can be sent back to (any prior step on the path). */
+  sendBackTargets?: { order: number; label: string }[];
   initialMode: Mode | null;
   pdfHref?: string;
 }) {
@@ -92,6 +95,17 @@ export function ReferatActionPanel({
                 <span>{t("referatDetail.panel.valuation.hint")}</span>
               </div>
             </>
+          )}
+
+          {mode === "send_back" && sendBackTargets.length > 0 && (
+            <FormField label={t("referatDetail.panel.sendBackTarget.label")} hint={t("referatDetail.panel.sendBackTarget.hint")}>
+              <Select
+                name="sendBackTo"
+                defaultValue=""
+                placeholder={t("referatDetail.panel.sendBackTarget.previous")}
+                options={sendBackTargets.map((tg) => ({ value: String(tg.order), label: tg.label }))}
+              />
+            </FormField>
           )}
 
           {mode === "approve" ? (

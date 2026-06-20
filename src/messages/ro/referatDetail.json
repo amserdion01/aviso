@@ -85,6 +85,11 @@
       "label": "Ce trebuie corectat",
       "placeholder": "ex. Specifică modelul exact și anexează oferta."
     },
+    "sendBackTarget": {
+      "label": "Trimite înapoi la pasul",
+      "previous": "Pasul anterior (implicit)",
+      "hint": "Poți alege orice pas anterior; pașii de după el se reiau."
+    },
     "confirmApprove": "Confirmă aprobarea",
     "confirmSendBack": "Trimite înapoi",
     "confirmReject": "Respinge referatul"

@@ -312,6 +312,7 @@ export async function actOnTask(input: ActInput & { requisitionId: string }): Pr
       comment: input.comment,
       classification: input.classification,
       valuation: input.valuation,
+      sendBackTo: input.sendBackTo,
     });
 
     await tx

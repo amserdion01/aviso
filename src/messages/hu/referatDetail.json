@@ -85,6 +85,11 @@
       "label": "Mit kell javítani",
       "placeholder": "pl. Adja meg a pontos típust, és csatolja az árajánlatot."
     },
+    "sendBackTarget": {
+      "label": "Visszaküldés a lépéshez",
+      "previous": "Előző lépés (alapértelmezett)",
+      "hint": "Bármelyik korábbi lépést kiválaszthatja; az utána következő lépések újraindulnak."
+    },
     "confirmApprove": "Jóváhagyás megerősítése",
     "confirmSendBack": "Visszaküldés",
     "confirmReject": "Referátum elutasítása"

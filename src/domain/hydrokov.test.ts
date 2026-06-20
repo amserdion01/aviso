@@ -152,4 +152,32 @@ describe("reject + send-back", () => {
     expect(activeTask(s)!.taskType).toBe("AVIZARE_SUPERIOR");
     expect(taskByType(s, "ACHIZITII_EVALUARE").status).toBe("pending");
   });
+
+  it("send-back can target ANY earlier step and re-walks forward from there", () => {
+    // Drive into the external-order branch up to Director Economic.
+    let s = approveActive(start()); // superior
+    s = approveActive(s, { valuation: { valueMinor: 300000, inSeapCatalog: false } }); // achiziții
+    s = approveActive(s); // coord achiziții -> Director Economic waiting
+    expect(activeTask(s)!.taskType).toBe("DIRECTOR_ECONOMIC");
+
+    // Director Economic sends it all the way back to the superior (order 1).
+    const de = activeTask(s)!;
+    s = act(s, { actorId: de.effectiveApproverId, action: "send_back", sendBackTo: 1, comment: "reverificați necesitatea" });
+    expect(activeTask(s)!.taskType).toBe("AVIZARE_SUPERIOR");
+    // Every step after the superior is reset to pending (re-walk).
+    expect(taskByType(s, "ACHIZITII_EVALUARE").status).toBe("pending");
+    expect(taskByType(s, "COORD_ACHIZITII").status).toBe("pending");
+    expect(taskByType(s, "DIRECTOR_ECONOMIC").status).toBe("pending");
+
+    // Re-approving forward reaches the valuation step again.
+    s = approveActive(s); // superior again
+    expect(activeTask(s)!.taskType).toBe("ACHIZITII_EVALUARE");
+  });
+
+  it("rejects a send-back to a non-earlier or skipped step", () => {
+    let s = approveActive(start()); // superior -> achiziții waiting
+    const a = activeTask(s)!;
+    // step 4 (Director Economic) is not an earlier step relative to achiziții (order 2)
+    expect(() => act(s, { actorId: a.effectiveApproverId, action: "send_back", sendBackTo: 4 })).toThrow();
+  });
 });

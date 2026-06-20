@@ -111,6 +111,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     classification: formData.get("classification") ?? undefined,
     valuationLei: formData.get("valuationLei") ?? undefined,
     inSeapCatalog: formData.get("inSeapCatalog") ?? undefined,
+    sendBackTo: formData.get("sendBackTo") ?? undefined,
   });
   if (!parsed.success) {
     throw new Error(t("actions.invalidAction"));
@@ -130,6 +131,7 @@ export async function actReferatAction(formData: FormData): Promise<void> {
       comment: parsed.data.comment,
       classification: parsed.data.classification,
       valuation,
+      sendBackTo: parsed.data.sendBackTo,
     });
     after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {

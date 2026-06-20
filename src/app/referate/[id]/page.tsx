@@ -84,6 +84,13 @@ export default async function ReferatDetailPage({
   const { requisition: r, tasks, history, activeTask } = detail;
   const canAct = activeTask?.effectiveApproverId === user.id;
   const canSendBack = tasks.some((t) => activeTask && t.stepOrder < activeTask.stepOrder && t.status === "approved");
+  // Any earlier on-path step can be a send-back target (not just the previous one).
+  const sendBackTargets = activeTask
+    ? tasks
+        .filter((task) => task.stepOrder < activeTask.stepOrder && task.status !== "skipped")
+        .sort((a, b) => a.stepOrder - b.stepOrder)
+        .map((task) => ({ order: task.stepOrder, label: taskTypeLabel(task.taskType, locale) }))
+    : [];
   const badge = requisitionStatusBadge(r.status, locale);
 
   const steps: Step[] = tasks
@@ -222,6 +229,7 @@ export default async function ReferatDetailPage({
               needsClassification={activeTask?.taskType === "INCADRARE"}
               needsValuation={activeTask?.taskType === "ACHIZITII_EVALUARE"}
               canSendBack={canSendBack}
+              sendBackTargets={sendBackTargets}
               initialMode={initialMode}
               pdfHref={r.status === "approved" || r.status === "seap_initiated" ? `/referate/${r.id}/pdf` : undefined}
             />

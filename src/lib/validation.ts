@@ -40,6 +40,10 @@ export const actionSchema = z.object({
     .union([z.coerce.number().nonnegative(), z.literal("").transform(() => undefined)])
     .optional(),
   inSeapCatalog: z.enum(["da", "nu"]).optional(),
+  // send_back only: chosen target step order (any earlier step).
+  sendBackTo: z
+    .union([z.coerce.number().int(), z.literal("").transform(() => undefined)])
+    .optional(),
 });
 
 export const delegationSchema = z
