@@ -1,20 +1,15 @@
 "use client";
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Toast, type ToastTone } from "./primitives";
 
-interface Flash {
-  tone: ToastTone;
-  title: string;
-  message?: string;
-}
-
-/** Maps a `?flash=` value (set by a server action before redirect) to a toast. */
-const FLASH: Record<string, Flash> = {
-  create: { tone: "success", title: "Referat trimis", message: "Referatul a intrat pe traseul de avizare." },
-  approve: { tone: "success", title: "Referat aprobat", message: "A fost trimis mai departe pe traseu." },
-  send_back: { tone: "info", title: "Trimis înapoi", message: "Referatul a fost returnat pasului anterior." },
-  reject: { tone: "info", title: "Referat respins", message: "Solicitantul a fost notificat." },
+/** Maps a `?flash=` value (set by a server action before redirect) to tone + message key. */
+const FLASH: Record<string, { tone: ToastTone; key: string }> = {
+  create: { tone: "success", key: "create" },
+  approve: { tone: "success", key: "approve" },
+  send_back: { tone: "info", key: "sendBack" },
+  reject: { tone: "info", key: "reject" },
 };
 
 /**
@@ -23,6 +18,7 @@ const FLASH: Record<string, Flash> = {
  * auto-dismiss timer strips the param (so a refresh won't re-show it).
  */
 export function ToastHost() {
+  const t = useTranslations();
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -46,7 +42,12 @@ export function ToastHost() {
   if (!def) return null;
   return (
     <div className="avi-toast-stack">
-      <Toast tone={def.tone} title={def.title} message={def.message} onClose={dismiss} />
+      <Toast
+        tone={def.tone}
+        title={t(`common.toast.${def.key}.title`)}
+        message={t(`common.toast.${def.key}.message`)}
+        onClose={dismiss}
+      />
     </div>
   );
 }

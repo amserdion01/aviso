@@ -23,5 +23,11 @@
   "status": "Státusz",
   "pieces": "db",
   "all": "Összes",
-  "optional": "(opcionális)"
+  "optional": "(opcionális)",
+  "toast": {
+    "create": { "title": "Referátum beküldve", "message": "A referátum elindult a jóváhagyási folyamaton." },
+    "approve": { "title": "Referátum jóváhagyva", "message": "Továbbküldve a folyamaton." },
+    "sendBack": { "title": "Visszaküldve", "message": "A referátumot visszaküldték az előző lépéshez." },
+    "reject": { "title": "Referátum elutasítva", "message": "Az igénylőt értesítettük." }
+  }
 }

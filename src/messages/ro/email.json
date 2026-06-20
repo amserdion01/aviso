@@ -19,5 +19,11 @@
     "intro": "Referatul tău a fost respins. Vezi istoricul pentru detalii.",
     "cta": "Vezi referatul",
     "subject": "HydroKov: referat respins — {item}"
+  },
+  "seap": {
+    "heading": "Referat inițiat în SEAP",
+    "intro": "Referatul tău a fost evaluat și inițiat direct în SEAP (achiziție sub prag, produs aflat în catalog).",
+    "cta": "Vezi referatul",
+    "subject": "HydroKov: referat inițiat în SEAP — {item}"
   }
 }

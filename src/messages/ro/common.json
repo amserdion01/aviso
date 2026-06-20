@@ -23,5 +23,11 @@
   "status": "Status",
   "pieces": "buc.",
   "all": "Toate",
-  "optional": "(opțional)"
+  "optional": "(opțional)",
+  "toast": {
+    "create": { "title": "Referat trimis", "message": "Referatul a intrat pe traseul de avizare." },
+    "approve": { "title": "Referat aprobat", "message": "A fost trimis mai departe pe traseu." },
+    "sendBack": { "title": "Trimis înapoi", "message": "Referatul a fost returnat pasului anterior." },
+    "reject": { "title": "Referat respins", "message": "Solicitantul a fost notificat." }
+  }
 }

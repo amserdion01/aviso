@@ -19,5 +19,11 @@
     "intro": "A referátumát elutasították. A részletekért tekintse meg az előzményeket.",
     "cta": "Referátum megtekintése",
     "subject": "HydroKov: elutasított referátum — {item}"
+  },
+  "seap": {
+    "heading": "SEAP-ben kezdeményezett referátum",
+    "intro": "A referátumát értékelték és közvetlenül a SEAP-ban kezdeményezték (küszöb alatti beszerzés, katalógusban szereplő termék).",
+    "cta": "Referátum megtekintése",
+    "subject": "HydroKov: SEAP-ben kezdeményezett referátum — {item}"
   }
 }
