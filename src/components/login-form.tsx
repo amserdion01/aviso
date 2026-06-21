@@ -6,6 +6,7 @@ import { checkActiveStatusAction } from "@/app/actions";
 import { syncLocaleCookieFromUser } from "@/app/locale-actions";
 import { Button, Checkbox, FormField, Input } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export function LoginForm() {
   const t = useTranslations();
@@ -42,6 +43,9 @@ export function LoginForm() {
   return (
     <div className="avi-login">
       <div className="avi-login__panel">
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "var(--space-4)" }}>
+          <LanguageSwitcher />
+        </div>
         <div className="avi-login__brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/assets/aviso-wordmark.svg" width={190} height={36} alt="HydroKov" />
