@@ -53,6 +53,20 @@ async function act(reqId: string, action: "approve" | "reject" | "send_back", co
   });
 }
 
+/** Send the waiting referat back to the requester for edits (status → 'returned'). */
+async function returnToRequester(reqId: string, comment: string) {
+  const t = await waiting(reqId);
+  if (!t) return;
+  await actOnTask({ requisitionId: reqId, actorId: t.approver, action: "send_back", comment, toRequester: true });
+}
+
+/** Send the waiting referat back to a specific earlier step order. */
+async function sendBackToStep(reqId: string, stepOrder: number, comment: string) {
+  const t = await waiting(reqId);
+  if (!t) return;
+  await actOnTask({ requisitionId: reqId, actorId: t.approver, action: "send_back", comment, sendBackTo: stepOrder });
+}
+
 /** Approve until the waiting step is `stop` (leaves it there), or until finished. */
 async function approveUntil(reqId: string, stop: string | null, val: Valuation) {
   for (let i = 0; i < 25; i++) {
@@ -167,6 +181,39 @@ async function main() {
   // 10) ≥5000, în maghiară, în așteptare la Director Economic
   const h2 = await mk("Szivattyú-vezérlő automatika a vízműhöz", 1, "A meghibásodott vezérlőegység cseréje a vízkezelő állomáson.", "Stație de tratare", 27500, { inPaap: true });
   await approveUntil(h2, "DIRECTOR_ECONOMIC", { valueLei: 27500, inSeapCatalog: false });
+
+  // 11) RETURNAT la solicitant (necesită corecții) — superiorul îl trimite înapoi
+  const x1 = await mk("Stație totală topografică", 1, "Măsurători pentru extinderea rețelei de distribuție.", "Distribuție apă", 14500, { inPaap: true });
+  await act(x1, "approve", undefined); // superior avizează
+  await returnToRequester(x1, "Atașați minim două oferte comparative și clarificați specificațiile tehnice.");
+  await backdate(x1, 1);
+
+  // 12) TRIMIS ÎNAPOI la un pas anterior — Director Economic îl întoarce la avizarea superiorului
+  const x2 = await mk("Compresor de aer industrial", 1, "Înlocuirea compresorului defect de la atelierul mecanic.", "Stație de tratare", 11800, { inPaap: true });
+  await act(x2, "approve", undefined); // superior
+  await act(x2, "approve", undefined, { valueLei: 11800, inSeapCatalog: false }); // achiziții → Director Economic
+  await sendBackToStep(x2, 1, "Reconfirmați necesitatea cu șeful de tură înainte de semnăturile de director.");
+  await backdate(x2, 2);
+
+  // 13) APROBAT — comandă internă ≥5000 (pentru rapoarte)
+  const x3 = await mk("Conducte PEHD De110 (200 m)", 200, "Reabilitarea unui tronson din rețeaua de distribuție.", "Distribuție apă", 21000, { inPaap: true });
+  await approveUntil(x3, null, { valueLei: 21000, inSeapCatalog: false });
+  await backdate(x3, 7);
+
+  // 14) INIȚIAT ÎN SEAP — referat <5000 + SEAP
+  const x4 = await mk("Scaune ergonomice (4 buc.)", 4, "Dotarea biroului de dispecerat.", "Administrativ", 2400, { nota: "Articol neprevăzut în PAAP-ul aprobat." });
+  await approveUntil(x4, null, { valueLei: 2400, inSeapCatalog: true });
+  await backdate(x4, 3);
+
+  // 15) ÎN AȘTEPTARE la Coordonator Achiziții — comandă externă (<5000 fără SEAP)
+  const x5 = await mk("Set garnituri pompe (diverse)", 1, "Stoc de piese pentru mentenanța curentă.", "Stație de tratare", 1900, { inPaap: true });
+  await approveUntil(x5, "COORD_ACHIZITII", { valueLei: 1900, inSeapCatalog: false });
+
+  // 16) RETURNAT la solicitant, conținut maghiar
+  const x6 = await mk("Védőfelszerelés a karbantartó csapatnak", 6, "Az egyéni védőfelszerelés cseréje a karbantartó csapat számára.", "Stație de tratare", 3300, { nota: "A tétel nem szerepel a jóváhagyott PAAP-ban." });
+  await act(x6, "approve", undefined); // superior
+  await returnToRequester(x6, "Kérjük pontosítsa a méreteket és a mennyiségeket.");
+  await backdate(x6, 1);
 
   // A couple of approver accounts default to Hungarian (per-user language + emails).
   await db.update(users).set({ locale: "hu" }).where(inArray(users.email, ["achizitii@aviso.local", "coordachizitii@aviso.local"]));

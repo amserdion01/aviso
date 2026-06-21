@@ -8,8 +8,11 @@ bilingvă **română / maghiară**.
 > **Adresă demo:** https://aviso-docs.vercel.app
 > **Parolă (toate conturile):** `Parola123!`
 >
-> Date fictive, pentru demonstrație: ~10 referate în diverse stări (în curs la diferiți pași,
-> aprobate, respinse, inițiate în SEAP), inclusiv câteva cu conținut în **limba maghiară**.
+> Date fictive, pentru demonstrație: **16 referate** în diverse stări (în curs la diferiți pași,
+> aprobate, respinse, **inițiate în SEAP**, **returnate la solicitant**), inclusiv câteva cu conținut
+> în **limba maghiară**.
+>
+> Există și o versiune în limba maghiară a acestui ghid: [`GHID-DEMO.hu.md`](./GHID-DEMO.hu.md).
 
 ---
 
