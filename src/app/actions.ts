@@ -139,11 +139,11 @@ export async function actReferatAction(formData: FormData): Promise<void> {
     });
     after(() => notifyForState(parsed.data.requisitionId, next));
   } catch (err) {
-    if (err instanceof ClassificationRequiredError) {
-      throw new Error(t("actions.classifyFirst"));
-    }
-    if (err instanceof ValuationRequiredError) {
-      throw new Error(t("actions.valuationRequired"));
+    // A quick "approve" on a step that needs extra input (classification, or the
+    // Achiziții value + SEAP) can't be completed inline — send the user to the
+    // detail page where those fields live, instead of erroring.
+    if (err instanceof ClassificationRequiredError || err instanceof ValuationRequiredError) {
+      redirect(`/referate/${parsed.data.requisitionId}`);
     }
     if (
       err instanceof AuthorizationError ||

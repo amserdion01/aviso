@@ -69,9 +69,11 @@ export default async function InboxPage() {
       align: "right",
       render: (task) => (
         <div className="avi-rowactions">
-          {task.taskType === "INCADRARE" ? (
+          {task.taskType === "INCADRARE" || task.taskType === "ACHIZITII_EVALUARE" ? (
+            // Steps that need extra input (classification / value + SEAP) open the
+            // detail page instead of a one-click approve.
             <ButtonLink href={`/referate/${task.requisitionId}`} size="sm" variant="primary">
-              {t("inbox.classify")}
+              {task.taskType === "ACHIZITII_EVALUARE" ? t("inbox.evaluate") : t("inbox.classify")}
             </ButtonLink>
           ) : (
             <form action={actReferatAction}>
