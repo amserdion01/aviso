@@ -1,7 +1,7 @@
 {
   "title": "Összes referátum",
   "subAll": "A rendszerben lévő összes referátum és aktuális állapotuk.",
-  "subMine": "Az Ön által kezdeményezett referátumok és aktuális állapotuk.",
+  "subMine": "Azok a referátumok, amelyekben érintett (Ön kezdeményezte, vagy az Ön jóváhagyásán mennek át) és állapotuk.",
   "subResults": "Találatok a következőre: „{query}” — {count} referátum.",
   "newReferat": "Új referátum",
   "table": {
@@ -18,7 +18,7 @@
     "noneAllTitle": "Nincs referátum a rendszerben",
     "noneMineTitle": "Még nincs referátum",
     "noneAllDescription": "Amikor az alkalmazottak referátumokat küldenek be, azok itt jelennek meg a jóváhagyási útvonalon lévő állapotukkal.",
-    "noneMineDescription": "Az Ön által kezdeményezett referátumok itt jelennek meg a jóváhagyási útvonalon lévő állapotukkal.",
+    "noneMineDescription": "Az Ön által kezdeményezett vagy jóváhagyott referátumok itt jelennek meg a jóváhagyási útvonalon lévő állapotukkal.",
     "create": "Referátum létrehozása"
   }
 }

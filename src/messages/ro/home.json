@@ -1,7 +1,7 @@
 {
   "title": "Toate referatele",
   "subAll": "Toate referatele din sistem și starea lor curentă.",
-  "subMine": "Referatele inițiate de tine și starea lor curentă.",
+  "subMine": "Referatele în care ești implicat (inițiate de tine sau care trec prin avizarea ta) și starea lor.",
   "subResults": "Rezultate pentru „{query}” — {count} referat(e).",
   "newReferat": "Referat nou",
   "table": {
@@ -18,7 +18,7 @@
     "noneAllTitle": "Niciun referat în sistem",
     "noneMineTitle": "Niciun referat încă",
     "noneAllDescription": "Când angajații trimit referate, vor apărea aici cu statusul lor pe traseul de avizare.",
-    "noneMineDescription": "Referatele pe care le inițiezi vor apărea aici, cu statusul lor pe traseul de avizare.",
+    "noneMineDescription": "Referatele pe care le inițiezi sau pe care le avizezi vor apărea aici, cu statusul lor pe traseul de avizare.",
     "create": "Creează un referat"
   }
 }

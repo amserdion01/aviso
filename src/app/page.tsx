@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getTranslations, getLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/locale";
 import { requireUser, canSeeAllRequisitions } from "@/lib/session";
-import { myRequisitions, allRequisitions } from "@/db/queries";
+import { involvedRequisitions, allRequisitions } from "@/db/queries";
 import { requisitionStatusBadge } from "@/lib/labels";
 import {
   PageHead,
@@ -36,9 +36,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const { q } = await searchParams;
   const query = (q ?? "").trim();
 
-  const source: Row[] = seeAll
-    ? await allRequisitions()
-    : (await myRequisitions(user.id)).map((r) => ({ ...r, requesterName: user.name }));
+  const source: Row[] = seeAll ? await allRequisitions() : await involvedRequisitions(user.id);
   const rows = query
     ? source.filter((r) => `${r.item} ${r.costCenter} ${r.id} ${r.requesterName}`.toLowerCase().includes(query.toLowerCase()))
     : source;
@@ -63,20 +61,16 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       ),
     },
-    ...(seeAll
-      ? [
-          {
-            key: "solicitant",
-            header: t("home.table.requester"),
-            render: (r: Row) => (
-              <div className="avi-cell-user">
-                <Avatar name={r.requesterName} size="sm" />
-                <div className="avi-cell-user__nm">{r.requesterName}</div>
-              </div>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: "solicitant",
+      header: t("home.table.requester"),
+      render: (r: Row) => (
+        <div className="avi-cell-user">
+          <Avatar name={r.requesterName} size="sm" />
+          <div className="avi-cell-user__nm">{r.requesterName}</div>
+        </div>
+      ),
+    },
     {
       key: "costCenter",
       header: t("home.table.costCenter"),

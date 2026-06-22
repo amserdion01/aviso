@@ -460,6 +460,42 @@ export async function myRequisitions(userId: string) {
 }
 
 /**
+ * Referate the user is involved in — initiated by them, OR routed to / already
+ * acted on by them as an approver. This is what a non-admin/non-director sees in
+ * "Toate referatele" (so e.g. a șef birou sees the ones he avizes, not just ones
+ * he created).
+ */
+export async function involvedRequisitions(userId: string) {
+  return db
+    .selectDistinct({
+      id: requisitions.id,
+      item: requisitions.item,
+      quantity: requisitions.quantity,
+      costCenter: requisitions.costCenter,
+      status: requisitions.status,
+      createdAt: requisitions.createdAt,
+      requesterName: users.name,
+    })
+    .from(requisitions)
+    .innerJoin(users, eq(users.id, requisitions.requesterId))
+    .leftJoin(approvalTasks, eq(approvalTasks.requisitionId, requisitions.id))
+    .where(
+      or(
+        eq(requisitions.requesterId, userId),
+        // a step that actually REACHED this user (active or already acted on) — not
+        // merely a still-pending future step (every approver is pre-materialized on
+        // every referat), and not a skipped branch.
+        and(
+          eq(approvalTasks.effectiveApproverId, userId),
+          inArray(approvalTasks.status, ["waiting", "approved", "rejected", "sent_back"]),
+        ),
+        eq(approvalTasks.actedBy, userId),
+      ),
+    )
+    .orderBy(desc(requisitions.createdAt));
+}
+
+/**
  * Whether a user is involved in a requisition: the requester, an approver it
  * was routed to (current or past), someone who acted on it (incl. as a
  * delegate), or a delegate currently covering an approver it's waiting on.
